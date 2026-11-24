@@ -1,0 +1,14 @@
+{
+  "name": "HuesoOxido.Survival",
+  "rootNamespace": "HuesoOxido.Survival",
+  "references": ["HuesoOxido.Core"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

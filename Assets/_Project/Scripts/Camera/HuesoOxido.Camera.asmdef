@@ -1,0 +1,14 @@
+{
+  "name": "HuesoOxido.Camera",
+  "rootNamespace": "HuesoOxido.Camera",
+  "references": ["HuesoOxido.Core", "HuesoOxido.Player", "Unity.InputSystem", "Unity.Cinemachine"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

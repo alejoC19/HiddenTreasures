@@ -1,0 +1,14 @@
+{
+  "name": "HuesoOxido.Digging",
+  "rootNamespace": "HuesoOxido.Digging",
+  "references": ["HuesoOxido.Core"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

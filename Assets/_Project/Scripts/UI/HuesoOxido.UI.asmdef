@@ -1,0 +1,14 @@
+{
+  "name": "HuesoOxido.UI",
+  "rootNamespace": "HuesoOxido.UI",
+  "references": ["HuesoOxido.Core"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
