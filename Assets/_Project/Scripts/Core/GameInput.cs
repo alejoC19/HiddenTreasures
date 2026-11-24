@@ -14,7 +14,7 @@ namespace HuesoOxido.Core
         const float StickDegreesPerSecond = 150f;
 
         InputAction _move, _lookMouse, _lookStick, _sprint, _crouch, _toggleView,
-                    _interact, _dig, _inventory, _map, _save, _cancel;
+                    _interact, _dig, _inventory, _map, _save, _cancel, _journal;
         bool _uiMode;
 
         public event Action<bool> UiModeChanged;
@@ -44,6 +44,7 @@ namespace HuesoOxido.Core
         // Estas se leen incluso con la UI abierta para poder cerrarla.
         public bool InventoryPressed => _inventory.WasPressedThisFrame();
         public bool MapPressed => _map.WasPressedThisFrame();
+        public bool JournalPressed => _journal.WasPressedThisFrame();
         public bool CancelPressed => _cancel.WasPressedThisFrame();
 
         void Awake()
@@ -67,6 +68,7 @@ namespace HuesoOxido.Core
             _dig = Button("Dig", "<Mouse>/leftButton", "<Gamepad>/rightTrigger");
             _inventory = Button("Inventory", "<Keyboard>/tab", "<Gamepad>/buttonNorth");
             _map = Button("Map", "<Keyboard>/m", "<Gamepad>/select");
+            _journal = Button("Journal", "<Keyboard>/j", "<Gamepad>/dpad/up");
             _save = Button("Save", "<Keyboard>/f5");
             _cancel = Button("Cancel", "<Keyboard>/escape");
         }
@@ -81,7 +83,7 @@ namespace HuesoOxido.Core
         void OnEnable()
         {
             _move.Enable(); _lookMouse.Enable(); _lookStick.Enable(); _sprint.Enable(); _crouch.Enable();
-            _toggleView.Enable(); _interact.Enable(); _dig.Enable(); _inventory.Enable(); _map.Enable();
+            _toggleView.Enable(); _interact.Enable(); _dig.Enable(); _inventory.Enable(); _map.Enable(); _journal.Enable();
             _save.Enable(); _cancel.Enable();
             ApplyCursor();
             if (InputSystem.devices.Count == 0)
@@ -91,14 +93,14 @@ namespace HuesoOxido.Core
         void OnDisable()
         {
             _move.Disable(); _lookMouse.Disable(); _lookStick.Disable(); _sprint.Disable(); _crouch.Disable();
-            _toggleView.Disable(); _interact.Disable(); _dig.Disable(); _inventory.Disable(); _map.Disable();
+            _toggleView.Disable(); _interact.Disable(); _dig.Disable(); _inventory.Disable(); _map.Disable(); _journal.Disable();
             _save.Disable(); _cancel.Disable();
         }
 
         void OnDestroy()
         {
             _move?.Dispose(); _lookMouse?.Dispose(); _lookStick?.Dispose(); _sprint?.Dispose(); _crouch?.Dispose();
-            _toggleView?.Dispose(); _interact?.Dispose(); _dig?.Dispose(); _inventory?.Dispose(); _map?.Dispose();
+            _toggleView?.Dispose(); _interact?.Dispose(); _dig?.Dispose(); _inventory?.Dispose(); _map?.Dispose(); _journal?.Dispose();
             _save?.Dispose(); _cancel?.Dispose();
         }
 

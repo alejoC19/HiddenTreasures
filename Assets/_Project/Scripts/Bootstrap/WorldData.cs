@@ -12,6 +12,16 @@ namespace HuesoOxido.Core
         public float HeightAt(float x, float z) => Field.HeightAt(x, z);
         public float HeightAt(Vector3 p) => Field.HeightAt(p.x, p.z);
 
+        /// <summary>Terreno blando donde se marcan las pisadas: camino de tierra, explanada del campamento y suelo de las ruinas.</summary>
+        public bool IsSoftGround(float x, float z)
+        {
+            if (Road != null && Road.DistanceTo(x, z) < 2.4f) return true;
+            float dc = Mathf.Sqrt((x - CampPosition.x) * (x - CampPosition.x) + (z - CampPosition.z) * (z - CampPosition.z));
+            if (dc < 13f) return true;
+            float dr = Mathf.Sqrt((x - RuinsCenter.x) * (x - RuinsCenter.x) + (z - RuinsCenter.z) * (z - RuinsCenter.z));
+            return dr < 9f;
+        }
+
         public Vector3 CampPosition;
         public Vector3 RuinsCenter;
         public Vector3 PlayerSpawn;

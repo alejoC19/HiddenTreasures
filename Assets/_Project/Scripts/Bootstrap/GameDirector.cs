@@ -48,6 +48,8 @@ namespace HuesoOxido.Core
             foreach (var site in _c.World.Sites.Sites) _initialHints[site.SiteId] = site.HasHint;
 
             _c.Dig.FindUnearthed += OnFound;
+            _c.Dig.FindUnearthed += (_, __) => _c.PlayerState.Machine.NotifyFind();
+            AddRelicMarkers();
             _s.Quests.Completed += OnQuestCompleted;
             if (!_s.Quests.HasQuest) _s.Quests.Start(QuestManager.RelicHunt());
             _c.Dig.Stroke += pos => DirtBit.Burst(pos + Vector3.up * 0.1f, 5, _dirt);
@@ -111,6 +113,8 @@ namespace HuesoOxido.Core
             string color = info != null ? UiFactory.Hex(RarityStyle.ColorOf(info.Rarity)) : "ffffff";
             string rarity = info != null ? RarityStyle.NameOf(info.Rarity) : "";
             string tail = res.IsDuplicate ? "duplicado" : "¡nueva en tu colección!";
+            bool isRelic = item.DefinitionId != null && item.DefinitionId.StartsWith(QuestManager.RelicPrefix, StringComparison.Ordinal);
+            FindReveal.Spawn(site.transform.position, info != null ? info.Rarity : Rarity.Common, isRelic);
             string msg = "¡Hallazgo! <color=#" + color + ">" + name + "</color> (" + rarity + ") · " + tail;
 
             if (_s.Quests.ReportFind(item.DefinitionId) && !_s.Quests.IsCompleted)
@@ -122,6 +126,22 @@ namespace HuesoOxido.Core
                 SpawnPickup(item, GroundNear(_c.Player.transform.position + _c.Player.transform.forward * 1.1f));
                 _s.Notifier.Post(msg);
                 _s.Notifier.Post("Mochila llena: la pieza quedó en el suelo.");
+            }
+        }
+
+        /// <summary>Marca en el mapa cada reliquia ya desenterrada (las que faltan no se revelan).</summary>
+        void AddRelicMarkers()
+        {
+            foreach (var site in _c.World.Sites.Sites)
+            {
+                if (site.ItemId == null || !site.ItemId.StartsWith(QuestManager.RelicPrefix, StringComparison.Ordinal)) continue;
+                var captured = site;
+                _c.Map.AddMarker(new MapMarker
+                {
+                    Label = "Reliquia hallada", Color = new Color(1f, 0.82f, 0.25f),
+                    Position = () => captured.transform.position,
+                    Visible = () => captured.Excavated,
+                });
             }
         }
 

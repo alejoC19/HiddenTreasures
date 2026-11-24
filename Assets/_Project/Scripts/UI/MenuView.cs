@@ -26,7 +26,7 @@ namespace HuesoOxido.UI
             "<b>Moverse</b>   W A S D\n<b>Mirar</b>   mouse\n<b>Correr</b>   Shift\n<b>Agacharse</b>   C o Ctrl\n"
           + "<b>Cámara 1ª / 3ª persona</b>   V\n<b>Excavar</b>   mantener clic izquierdo sobre una señal fuerte\n"
           + "<b>Interactuar</b>   E (mostrador, carpa, surtidor, museo, vehículo, baúl, objetos del suelo)\n"
-          + "<b>Inventario</b>   Tab        <b>Mapa</b>   M        <b>Guardar</b>   F5        <b>Pausa</b>   Esc\n\n"
+          + "<b>Inventario</b>   Tab        <b>Mapa</b>   M        <b>Libreta</b>   J        <b>Guardar</b>   F5        <b>Pausa</b>   Esc\n\n"
           + "<b>Vehículo:</b> W/S acelerar y frenar, A/D girar, E bajar (a baja velocidad).\n\n"
           + "<color=#F0A845>Tu decisión de siempre: ¿volvés a asegurar lo que encontraste, o arriesgás por una pieza más?</color>";
 

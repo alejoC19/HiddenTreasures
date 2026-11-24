@@ -180,7 +180,7 @@ namespace HuesoOxido.Core.EditorTools
 
         static void PoseCharacter(Stage st, bool digging)
         {
-            st.Anim.PreviewPose(digging ? 0f : 0f, 0.4f, digging);
+            st.Anim.PreviewPose(0f, 0.4f, digging ? PlayerAction.Digging : PlayerAction.Idle);
             BakeCharacter(st);
             var t = st.Player.transform;
             Vector3 dir = Quaternion.AngleAxis(24f, t.right) * t.forward;

@@ -73,6 +73,8 @@ namespace HuesoOxido.Core
             ctx.Motor.Initialize(ctx.Input, ctx.Look, ctx.EnergyComp, load);
             var clockComp = systems.AddComponent<WorldClockComponent>();
             clockComp.Initialize(s.Clock, s.Weather, () => ctx.Input.UiMode);
+            QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;   // texturas del suelo nitidas de lejos
+            systems.AddComponent<AmbientMotes>().Initialize(ctx.Cam.transform, s.Clock, s.Weather);
             var rain = new GameObject("Rain").AddComponent<RainEffect>();
             rain.Initialize(ctx.Cam.transform, s.Weather);
             systems.AddComponent<AtmosphereFx>().Initialize(ctx.Cam.transform, ctx.World.Sun, s.Clock, s.Weather, ctx.World.HeightAt);
@@ -93,8 +95,12 @@ namespace HuesoOxido.Core
             ctx.Dig.Initialize(ctx.Input, ctx.Detector, s.Permits, ctx.EnergyComp,
                 () => !ctx.Vehicle.HasDriver && ctx.Motor.IsGrounded && !ctx.Motor.IsSprinting,
                 () => 1f + s.Upgrades.Bonus(Economy.UpgradeKind.DigSpeed), worldSeed + 99);
+            systems.AddComponent<FootprintSystem>().Initialize(ctx.Motor, ctx.Player.transform, ctx.World);
+            ctx.PlayerState = ctx.Player.AddComponent<PlayerStateDriver>();
+            ctx.PlayerState.Initialize(ctx.Motor, ctx.Dig, ctx.Character);
             animator.Initialize(ctx.Character, ctx.Motor, ctx.Dig);
-            systems.AddComponent<DetectorVisual>().Initialize(ctx.Rig, ctx.Cam.transform, ctx.Player.transform, ctx.Detector, ctx.Dig, ctx.Character.IsModel ? ctx.Character.RightHand : null);
+            animator.Machine = ctx.PlayerState.Machine;
+            systems.AddComponent<DetectorVisual>().Initialize(ctx.Rig, ctx.Cam.transform, ctx.Player.transform, ctx.Detector, ctx.PlayerState, ctx.Character.IsModel ? ctx.Character.RightHand : null);
 
             // Interaccion
             ctx.Sensor = systems.AddComponent<InteractionSensor>();
@@ -131,6 +137,12 @@ namespace HuesoOxido.Core
             return cam;
         }
 
+        static IEnumerable<JournalSite> JournalSites(GameContext ctx)
+        {
+            foreach (var site in ctx.World.Sites.Sites)
+                yield return new JournalSite { SiteId = site.SiteId, ItemId = site.ItemId, Excavated = site.Excavated };
+        }
+
         void BuildUi(GameContext ctx, GameObject uiGo, GameDirector director, List<IItemInfo> allItems)
         {
             var s = ctx.Services;
@@ -140,7 +152,7 @@ namespace HuesoOxido.Core
             hud.Initialize(canvas, new HudContext
             {
                 Energy = s.Energy, Backpack = s.Backpack, Wallet = s.Wallet, Clock = s.Clock, Weather = s.Weather,
-                Detector = ctx.Detector, Dig = ctx.Dig, Sensor = ctx.Sensor, Vehicle = ctx.Vehicle, Notifier = s.Notifier, Input = ctx.Input, Quests = s.Quests,
+                Detector = ctx.Detector, Dig = ctx.Dig, Sensor = ctx.Sensor, Vehicle = ctx.Vehicle, Notifier = s.Notifier, Input = ctx.Input, Quests = s.Quests, PlayerFsm = ctx.PlayerState.Machine,
             });
 
             var inventory = uiGo.AddComponent<InventoryView>();
@@ -166,7 +178,9 @@ namespace HuesoOxido.Core
             });
             var menu = uiGo.AddComponent<MenuView>();
             menu.Initialize(canvas, director.Menu);
-            ctx.Ui.Bind(inventory, shop, ctx.Map, menu);
+            var journal = uiGo.AddComponent<JournalView>();
+            journal.Initialize(canvas, () => JournalSites(ctx), ctx.Services.Catalog, ctx.Services.Quests);
+            ctx.Ui.Bind(inventory, shop, ctx.Map, menu, journal);
         }
     }
 }

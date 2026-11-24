@@ -62,3 +62,12 @@ Para cada fallo: copiar el texto de la Console.
 - **Misiones**: `Core/QuestManager.cs` (lógica pura, 5 tests). Misión inicial "Encontrar 3 reliquias prehispánicas": 3 sitios nuevos (`relic_site_00..02`) repartidos al azar sobre el terreno (≥55 m del campamento y entre sí), reliquias `relic_*` en el catálogo, progreso en el guardado (`QuestId/QuestProgress/QuestCompleted`), recompensa $400 al cumplir.
 - **HUD**: panel "OBJETIVO" bajo el panel de estado (arriba a la izquierda, sin solaparse), con "Reliquias: n/3". Las barras de energía y peso siguen donde estaban.
 - **Verificado**: 45 tests .NET, compilación real en Unity 6 y renders del Editor (`tools/render_previews.sh`). **No verificado**: rendimiento en una GPU real (los renders usan llvmpipe), la misión jugándose de punta a punta (sin Play Mode), ni el HUD en pantalla.
+
+## Libreta, estados del jugador, pisadas y detalles (última etapa)
+
+- **Libreta de campo** (tecla **J**, también gamepad ↑; Tab sigue siendo el inventario): `UI/JournalView.cs` + `Core/FieldJournal.cs` (lógica pura, testeada). Lista las 3 reliquias y los 30 sitios del bosque; lo no desenterrado es "???" y lo desenterrado muestra nombre, rareza y descripción.
+- **Excavación cinemática**: `Core/PlayerStateMachine.cs` (Idle, Crouching, Digging, PickingUp, Cleaning; 5 tests) + `Player/PlayerStateDriver.cs`. Al aparecer la pieza: recoger (0,9 s) → limpiar con cepillo (1,9 s), con movimiento bloqueado y barra de progreso en el HUD. Triggers del Animator listos (`Idle, Crouch, Dig, PickUp, Clean` + `IsMoving`, `Speed`): ver **ANIMACIONES.md**. Sin controller, poses procedurales (pala al cavar, cepillo al limpiar).
+- **Cubo de reliquia + marca en el mapa**: `Bootstrap/Art/FindReveal.cs` (cubo dorado que sube del hoyo y gira mientras se recoge/limpia, destello y chispas con el color de la rareza); las reliquias ya halladas se marcan en el mapa ("Reliquia hallada").
+- **Pisadas**: `Bootstrap/Art/FootprintSystem.cs` (quads con alfa, pool circular de 48, se desvanecen en ~28 s) sobre el camino de tierra, el campamento y las ruinas.
+- **Ambiente**: `Survival/AmbientMotes.cs` (polen de día, luciérnagas al atardecer/noche) y filtrado anisotrópico forzado.
+- **Verificado**: 51 tests .NET y compilación real en Unity 6. **No verificado** (sin Play Mode): la libreta en pantalla, las transiciones de estado jugando, el cubo, las pisadas, las luciérnagas y las poses del personaje.

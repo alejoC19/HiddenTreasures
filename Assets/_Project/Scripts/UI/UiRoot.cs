@@ -13,13 +13,14 @@ namespace HuesoOxido.UI
         ShopView _shop;
         MapView _map;
         MenuView _menu;
+        JournalView _journal;
         Canvas _canvas;
         UnityEngine.UI.Image _fade;
         float _fadeT = -1f;
         const float FadeSeconds = 1.6f;
 
         public Transform CanvasTransform => _canvas.transform;
-        public bool AnyOpen => (_inventory != null && _inventory.IsOpen) || (_shop != null && _shop.IsOpen) || (_map != null && _map.IsOpen) || (_menu != null && _menu.IsOpen);
+        public bool AnyOpen => (_inventory != null && _inventory.IsOpen) || (_shop != null && _shop.IsOpen) || (_map != null && _map.IsOpen) || (_menu != null && _menu.IsOpen) || (_journal != null && _journal.IsOpen);
 
         public void Initialize(GameInput input)
         {
@@ -45,14 +46,15 @@ namespace HuesoOxido.UI
 
         public MenuView.Mode MenuMode => _menu != null ? _menu.Current : MenuView.Mode.None;
 
-        public void Bind(InventoryView inventory, ShopView shop, MapView map, MenuView menu)
+        public void Bind(InventoryView inventory, ShopView shop, MapView map, MenuView menu, JournalView journal = null)
         {
-            _inventory = inventory; _shop = shop; _map = map; _menu = menu;
+            _inventory = inventory; _shop = shop; _map = map; _menu = menu; _journal = journal;
         }
 
         public void OpenInventory() { CloseAll(); _inventory.Open(); _input.SetUiMode(true); }
         public void OpenShop() { CloseAll(); _shop.Open(); _input.SetUiMode(true); }
         public void OpenMap() { CloseAll(); _map.Open(); _input.SetUiMode(true); }
+        public void OpenJournal() { CloseAll(); if (_journal != null) _journal.Open(); _input.SetUiMode(true); }
         public void OpenMainMenu() { CloseAll(); _menu.OpenMain(); _input.SetUiMode(true); }
         public void OpenPause() { CloseAll(); _menu.OpenPause(); _input.SetUiMode(true); }
         public void OpenMuseum() { CloseAll(); _shop.OpenMuseum(); _input.SetUiMode(true); }
@@ -65,6 +67,7 @@ namespace HuesoOxido.UI
             if (_inventory != null) _inventory.Close();
             if (_shop != null) _shop.Close();
             if (_map != null) _map.Close();
+            if (_journal != null) _journal.Close();
             if (_menu != null) _menu.Close();
             _input.SetUiMode(false);
         }
@@ -89,7 +92,7 @@ namespace HuesoOxido.UI
             }
             if (AnyOpen)
             {
-                bool closeKey = _input.CancelPressed || _input.InventoryPressed || (_input.MapPressed && _map.IsOpen);
+                bool closeKey = _input.CancelPressed || _input.InventoryPressed || (_input.MapPressed && _map.IsOpen) || (_input.JournalPressed && _journal != null && _journal.IsOpen);
                 if (closeKey) CloseAll();
             }
             else
@@ -97,6 +100,7 @@ namespace HuesoOxido.UI
                 if (_input.CancelPressed) OpenPause();
                 else if (_input.InventoryPressed) OpenInventory();
                 else if (_input.MapPressed) OpenMap();
+                else if (_input.JournalPressed && _journal != null) OpenJournal();
             }
         }
     }

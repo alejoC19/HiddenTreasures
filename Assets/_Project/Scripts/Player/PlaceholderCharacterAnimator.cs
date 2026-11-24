@@ -8,6 +8,8 @@ namespace HuesoOxido.Player
     /// <summary>Animacion procedural del cuerpo placeholder: caminar, correr, agacharse, barrer y excavar.</summary>
     public sealed class PlaceholderCharacterAnimator : MonoBehaviour
     {
+        public PlayerStateMachine Machine { get; set; }
+        public bool ControllerDriven { get; set; }
         PlaceholderCharacter _body;
         PlayerMotor _motor;
         IDigActivity _dig;
@@ -29,7 +31,10 @@ namespace HuesoOxido.Player
             if (_body == null || _motor == null || _body.Torso == null) return;
             float dt = Time.deltaTime;
             bool digging = _dig != null && _dig.IsDigging;
-            if (_body.IsModel) { UpdateModel(dt, digging); return; }
+            var act = CurrentAction(digging);
+            if (_body.IsModel) { UpdateModel(dt, act); return; }
+            if (_body.Brush != null && _body.Brush.gameObject.activeSelf != (act == PlayerAction.Cleaning)) _body.Brush.gameObject.SetActive(act == PlayerAction.Cleaning);
+            if (act == PlayerAction.PickingUp || act == PlayerAction.Cleaning) digging = false;
 
             _phase += dt * Mathf.Lerp(5f, 11f, _motor.Speed01) * (_motor.IsMoving ? 1f : 0f);
             float swing = Mathf.Sin(_phase) * Mathf.Lerp(0f, 38f, Mathf.Clamp01(_motor.Speed01 * 1.6f));
@@ -38,7 +43,7 @@ namespace HuesoOxido.Player
             _body.RightLeg.localRotation = Quaternion.Euler(-swing, 0f, 0f);
             _body.LeftArm.localRotation = Quaternion.Euler(-swing * 0.7f, 0f, 0f);
 
-            float targetLean = digging ? 28f : (_motor.IsCrouched ? 18f : 0f);
+            float targetLean = digging ? 28f : (act == PlayerAction.PickingUp ? 36f : (act == PlayerAction.Cleaning ? 26f : (_motor.IsCrouched ? 18f : 0f)));
             _lean = Mathf.Lerp(_lean, targetLean, 1f - Mathf.Exp(-10f * dt));
             _body.Torso.localRotation = Quaternion.Euler(_lean, 0f, 0f);
             float drop = _motor.IsCrouched ? 0.32f : 0f;
@@ -89,10 +94,18 @@ namespace HuesoOxido.Player
             _graph.Connect(p, 0, _mixer, port);
         }
 
-        void UpdateModel(float dt, bool digging)
+        PlayerAction CurrentAction(bool digging)
         {
+            if (Machine != null) return Machine.State;
+            return digging ? PlayerAction.Digging : PlayerAction.Idle;
+        }
+
+        void UpdateModel(float dt, PlayerAction act)
+        {
+            // Con un Animator Controller del usuario mandan sus animaciones: aqui solo se muestran las herramientas.
+            if (_body.HasAnimatorController) { ShowTools(act); return; }
             EnsureGraph();
-            bool moving = _motor.IsMoving && !digging;
+            bool moving = _motor.IsMoving && act != PlayerAction.Digging && act != PlayerAction.PickingUp && act != PlayerAction.Cleaning;
             float run = moving ? Mathf.InverseLerp(0.55f, 0.9f, _motor.Speed01) : 0f;
             float tIdle = moving ? 0f : 1f, tWalk = moving ? 1f - run : 0f, tRun = moving ? run : 0f;
             float k = 1f - Mathf.Exp(-9f * dt);
@@ -101,11 +114,17 @@ namespace HuesoOxido.Player
             {
                 _mixer.SetInputWeight(0, _wIdle); _mixer.SetInputWeight(1, _wWalk); _mixer.SetInputWeight(2, _wRun);
             }
-            ApplyModelPose(dt, digging);
+            ApplyModelPose(dt, act);
+        }
+
+        void ShowTools(PlayerAction act)
+        {
+            if (_body.Shovel != null && _body.Shovel.gameObject.activeSelf != (act == PlayerAction.Digging)) _body.Shovel.gameObject.SetActive(act == PlayerAction.Digging);
+            if (_body.Brush != null && _body.Brush.gameObject.activeSelf != (act == PlayerAction.Cleaning)) _body.Brush.gameObject.SetActive(act == PlayerAction.Cleaning);
         }
 
         /// <summary>Evalua una pose fija (vista previa en modo edicion). t en segundos dentro del clip de caminar.</summary>
-        public void PreviewPose(float walkWeight, float time, bool digging)
+        public void PreviewPose(float walkWeight, float time, PlayerAction act)
         {
             EnsureGraph();
             Debug.Log("[PREVIEW] animacion del personaje lista=" + _graphReady);
@@ -114,15 +133,16 @@ namespace HuesoOxido.Player
                 _mixer.SetInputWeight(0, 1f - walkWeight); _mixer.SetInputWeight(1, walkWeight); _mixer.SetInputWeight(2, 0f);
                 _graph.Evaluate(time);
             }
-            ApplyModelPose(0.02f, digging);
+            ApplyModelPose(0.02f, act);
         }
 
-        void ApplyModelPose(float dt, bool digging)
+        void ApplyModelPose(float dt, PlayerAction act)
         {
             var body = _body;
-            float targetLean = digging ? 26f : (_motor != null && _motor.IsCrouched ? 16f : 0f);
+            bool crouchLike = (_motor != null && _motor.IsCrouched) || act == PlayerAction.Cleaning;
+            float targetLean = act == PlayerAction.Digging ? 26f : (act == PlayerAction.PickingUp ? 38f : (act == PlayerAction.Cleaning ? 24f : ((_motor != null && _motor.IsCrouched) ? 16f : 0f)));
             _lean = Mathf.Lerp(_lean, targetLean, 1f - Mathf.Exp(-10f * dt));
-            float targetDrop = (_motor != null && _motor.IsCrouched) ? 0.25f : 0f;
+            float targetDrop = crouchLike ? (act == PlayerAction.Cleaning ? 0.34f : 0.25f) : (act == PlayerAction.PickingUp ? 0.18f : 0f);
             _crouchDrop = Mathf.Lerp(_crouchDrop, targetDrop, 1f - Mathf.Exp(-10f * dt));
             body.ModelRoot.localPosition = new Vector3(0f, -_crouchDrop, 0f);
             if (body.SpineBone != null && _lean > 0.1f)
@@ -130,25 +150,51 @@ namespace HuesoOxido.Player
 
             Vector3 fwd = body.transform.forward, right = body.transform.right;
             Transform hand = body.RightHand;
-            if (digging)
+            ShowTools(act);
+            switch (act)
             {
-                _digPhase += dt * 5.5f;
-                float stroke = Mathf.Sin(_digPhase);
-                float pitch = 38f + stroke * 24f;
-                Vector3 dir = Quaternion.AngleAxis(pitch, right) * fwd;
-                AimArm(body.ArmRBone, body.ForeArmRBone, hand, dir, 1f);
-                AimArm(body.ArmLBone, body.ForeArmLBone, null, dir, 1f);
-                body.Shovel.gameObject.SetActive(true);
-                body.Shovel.rotation = Quaternion.LookRotation(dir, Vector3.up);
-                body.Shovel.position = hand.position;
-            }
-            else
-            {
-                // Brazo derecho extendido con el detector, barrido lento.
-                float sweep = Mathf.Sin(Time.time * 1.3f) * 14f;
-                Vector3 dir = Quaternion.AngleAxis(sweep, Vector3.up) * (Quaternion.AngleAxis(24f, right) * fwd);
-                AimArm(body.ArmRBone, body.ForeArmRBone, hand, dir, 1f);
-                if (body.Shovel.gameObject.activeSelf) body.Shovel.gameObject.SetActive(false);
+                case PlayerAction.Digging:
+                {
+                    _digPhase += dt * 5.5f;
+                    float stroke = Mathf.Sin(_digPhase);
+                    Vector3 dir = Quaternion.AngleAxis(38f + stroke * 24f, right) * fwd;
+                    AimArm(body.ArmRBone, body.ForeArmRBone, hand, dir, 1f);
+                    AimArm(body.ArmLBone, body.ForeArmLBone, null, dir, 1f);
+                    body.Shovel.rotation = Quaternion.LookRotation(dir, Vector3.up);
+                    body.Shovel.position = hand.position;
+                    break;
+                }
+                case PlayerAction.PickingUp:
+                {
+                    // Las manos bajan al hoyo y suben con la pieza.
+                    float p = Machine != null ? Machine.Progress01 : 0.5f;
+                    float pitch = Mathf.Lerp(72f, 20f, Mathf.SmoothStep(0f, 1f, p));
+                    Vector3 dir = Quaternion.AngleAxis(pitch, right) * fwd;
+                    AimArm(body.ArmRBone, body.ForeArmRBone, hand, dir, 1f);
+                    AimArm(body.ArmLBone, body.ForeArmLBone, null, dir, 1f);
+                    break;
+                }
+                case PlayerAction.Cleaning:
+                {
+                    // Barrido corto del cepillo sobre la pieza que sostiene la mano izquierda.
+                    _digPhase += dt * 9f;
+                    float sweep = Mathf.Sin(_digPhase) * 16f;
+                    Vector3 dirR = Quaternion.AngleAxis(sweep, Vector3.up) * (Quaternion.AngleAxis(52f, right) * fwd);
+                    Vector3 dirL = Quaternion.AngleAxis(48f, right) * fwd;
+                    AimArm(body.ArmRBone, body.ForeArmRBone, hand, dirR, 1f);
+                    AimArm(body.ArmLBone, body.ForeArmLBone, null, dirL, 1f);
+                    body.Brush.rotation = Quaternion.LookRotation(dirR, Vector3.up);
+                    body.Brush.position = hand.position;
+                    break;
+                }
+                default:
+                {
+                    // Brazo derecho extendido con el detector, barrido lento.
+                    float sweep = Mathf.Sin(Time.time * 1.3f) * 14f;
+                    Vector3 dir = Quaternion.AngleAxis(sweep, Vector3.up) * (Quaternion.AngleAxis(24f, right) * fwd);
+                    AimArm(body.ArmRBone, body.ForeArmRBone, hand, dir, 1f);
+                    break;
+                }
             }
         }
 

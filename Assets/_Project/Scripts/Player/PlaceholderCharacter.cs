@@ -18,6 +18,10 @@ namespace HuesoOxido.Player
         public bool IsModel { get; private set; }
         public Animator ModelAnimator { get; private set; }
         public Transform ModelRoot { get; private set; }
+        public Transform Brush => _brush;
+        Transform _brush;
+        public bool HasAnimatorController { get; private set; }
+        public const string ControllerPath = "Art/Animation/PlayerController";
         public Transform ArmRBone, ForeArmRBone, ArmLBone, ForeArmLBone, SpineBone;
 
         public Transform RightHand => _hand;
@@ -83,6 +87,8 @@ namespace HuesoOxido.Player
             blade.transform.localPosition = new Vector3(0f, -0.1f, 0.78f);
             blade.transform.localScale = new Vector3(0.2f, 0.02f, 0.28f);
             _shovel.gameObject.SetActive(false);
+            _brush = BuildBrush(_hand);
+            _brush.gameObject.SetActive(false);
 
             _renderers = root.GetComponentsInChildren<Renderer>(true);
         }
@@ -101,7 +107,14 @@ namespace HuesoOxido.Player
             model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f); // el glTF mira hacia -Z en Unity
             ModelRoot = model.transform;
             ModelAnimator = model.GetComponentInChildren<Animator>();
-            if (ModelAnimator != null) { ModelAnimator.applyRootMotion = false; ModelAnimator.runtimeAnimatorController = null; }
+            if (ModelAnimator != null)
+            {
+                ModelAnimator.applyRootMotion = false;
+                // Si el usuario deja su Animator Controller en Resources/Art/Animation/PlayerController, mandan sus animaciones.
+                var ctrl = Resources.Load<RuntimeAnimatorController>(ControllerPath);
+                ModelAnimator.runtimeAnimatorController = ctrl;
+                HasAnimatorController = ctrl != null;
+            }
 
             foreach (var t in model.GetComponentsInChildren<Transform>(true))
             {
@@ -119,9 +132,33 @@ namespace HuesoOxido.Player
 
             _shovel = BuildShovel(_hand);
             _shovel.gameObject.SetActive(false);
+            _brush = BuildBrush(_hand);
+            _brush.gameObject.SetActive(false);
             _renderers = root.GetComponentsInChildren<Renderer>(true);
             IsModel = true;
             return true;
+        }
+
+        /// <summary>Cepillo de arqueologo: mango de madera y cerdas claras. Apunta hacia +Z de la mano.</summary>
+        static Transform BuildBrush(Transform hand)
+        {
+            var brush = new GameObject("Brush").transform;
+            brush.SetParent(hand, false);
+            var wood = ProceduralSurfaces.Leather("brush_wood", new Color(0.55f, 0.36f, 0.18f));
+            var bristle = ProceduralSurfaces.Fabric("brush_bristle", new Color(0.82f, 0.7f, 0.45f), 120f);
+            var steel = ProceduralSurfaces.Steel("brush_ferrule", new Color(0.6f, 0.6f, 0.62f), 0.5f, 0.8f);
+            var handle = MaterialUtil.Primitive(PrimitiveType.Cylinder, "Handle", brush, wood);
+            handle.transform.localPosition = new Vector3(0f, 0f, 0.1f);
+            handle.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            handle.transform.localScale = new Vector3(0.035f, 0.1f, 0.035f);
+            var ferrule = MaterialUtil.Primitive(PrimitiveType.Cylinder, "Ferrule", brush, steel);
+            ferrule.transform.localPosition = new Vector3(0f, 0f, 0.215f);
+            ferrule.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            ferrule.transform.localScale = new Vector3(0.042f, 0.02f, 0.042f);
+            var head = MaterialUtil.Primitive(PrimitiveType.Cube, "Bristles", brush, bristle);
+            head.transform.localPosition = new Vector3(0f, 0f, 0.27f);
+            head.transform.localScale = new Vector3(0.07f, 0.03f, 0.09f);
+            return brush;
         }
 
         static Transform BuildShovel(Transform hand)

@@ -54,6 +54,7 @@ namespace HuesoOxido.Core
         public GameObject Player;
         public PlayerMotor Motor;
         public PlaceholderCharacter Character;
+        public PlayerStateDriver PlayerState;
         public LookController Look;
         public CameraRig Rig;
         public UnityEngine.Camera Cam;
