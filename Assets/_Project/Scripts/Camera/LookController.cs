@@ -9,7 +9,7 @@ namespace HuesoOxido.Camera
         [SerializeField, Range(0.2f, 3f)] float sensitivity = 1f;
         [SerializeField] float minPitch = -70f;
         [SerializeField] float maxPitch = 80f;
-        [SerializeField] bool invertY;
+        [SerializeField] bool invertY = false;
 
         GameInput _input;
 
@@ -22,7 +22,15 @@ namespace HuesoOxido.Camera
             set => sensitivity = Mathf.Clamp(value, 0.2f, 3f);
         }
 
-        public void Initialize(GameInput input) { _input = input; }
+        const string PrefKey = "ht_look_sensitivity";
+
+        public void Initialize(GameInput input)
+        {
+            _input = input;
+            sensitivity = Mathf.Clamp(PlayerPrefs.GetFloat(PrefKey, sensitivity), 0.2f, 3f);
+        }
+
+        public void SaveSensitivity() { PlayerPrefs.SetFloat(PrefKey, sensitivity); PlayerPrefs.Save(); }
 
         public void SetRotation(float yaw, float pitch) { Yaw = yaw; Pitch = Mathf.Clamp(pitch, minPitch, maxPitch); }
 

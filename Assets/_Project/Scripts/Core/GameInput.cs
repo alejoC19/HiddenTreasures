@@ -84,6 +84,8 @@ namespace HuesoOxido.Core
             _toggleView.Enable(); _interact.Enable(); _dig.Enable(); _inventory.Enable(); _map.Enable();
             _save.Enable(); _cancel.Enable();
             ApplyCursor();
+            if (InputSystem.devices.Count == 0)
+                Debug.LogError("[Hidden Treasures] El Input System no detecta dispositivos. Activá 'Input System Package' en Project Settings > Player > Active Input Handling y reiniciá el Editor (menú Hidden Treasures > Configurar proyecto lo hace).");
         }
 
         void OnDisable()

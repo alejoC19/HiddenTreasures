@@ -22,6 +22,8 @@ namespace HuesoOxido.UI
             public IReadOnlyList<IItemInfo> AllItems;
             public InventoryModel Backpack; public InventoryModel Trunk;
             public ISessionActions Session;
+            public Func<float> GetSensitivity;
+            public Action<float> SetSensitivity;
         }
 
         Deps _d;
@@ -236,6 +238,10 @@ namespace HuesoOxido.UI
         void BuildGame()
         {
             UiFactory.Label(_content, "El juego guarda al dormir en la carpa. También podés guardar con F5.", 20, UiFactory.Muted);
+            var sens = UiFactory.Row(_content, 50f);
+            UiFactory.RowText(sens, "Sensibilidad de cámara: <b>" + _d.GetSensitivity().ToString("0.0") + "</b>");
+            UiFactory.MakeButton(sens, "−", () => { _d.SetSensitivity(_d.GetSensitivity() - 0.1f); MarkDirty(); }, 60f, 38f, 24);
+            UiFactory.MakeButton(sens, "+", () => { _d.SetSensitivity(_d.GetSensitivity() + 0.1f); MarkDirty(); }, 60f, 38f, 24);
             Row("Guardar partida", "Guardar", () => { _d.Session.SaveGame(); MarkDirty(); });
             Row("Cargar la última partida guardada", "Cargar", () => _d.Session.LoadGame(), _d.Session.HasSave);
             Row(_confirmNew ? "<color=#" + UiFactory.Hex(UiFactory.Bad) + ">¿Seguro? Se borra todo el progreso.</color>" : "Empezar de cero",

@@ -43,7 +43,7 @@ tools/                     validate.sh + gen_validation.py (compilación y tests
 Una asmdef por sistema. `Bootstrap` es la raíz de composición: el único sitio que conoce a todos los sistemas.
 
 ## Validación sin Unity
-`tools/validate.sh` genera un proyecto .NET por asmdef, compila contra las referencias de UnityEngine, el código fuente real del Input System y uGUI, y ejecuta los tests. Requiere .NET SDK 8 y `Unity.InputSystem.dll` compilado (ver `tools/gen_validation.py`). No reemplaza probar en el Editor.
+`tools/validate.sh` genera un proyecto .NET por asmdef, compila contra las referencias de UnityEngine, el código fuente real del Input System y uGUI, y ejecuta los tests. Primero `tools/setup_validation.sh` (instala .NET 8 si falta y compila el Input System desde su fuente oficial), después `tools/validate.sh`. No reemplaza probar en el Editor.
 
 ## Convenciones
 - `HuesoOxido.Camera` puede ocultar `UnityEngine.Camera`: usar `UnityEngine.Camera` completo.

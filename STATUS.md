@@ -42,6 +42,5 @@ Actualizado al cierre de la sesión de desarrollo autónomo inicial.
 1. **Primera ejecución en Unity** y corregir lo que aparezca en Console (prioridad máxima).
 2. Reemplazar placeholders por assets reales (ver `ASSETS_TODO.md`): personaje y animaciones Mixamo, vegetación, ruinas, detector, audio.
 3. Tuning del vehículo y del balance económico y de energía.
-4. Lluvia visible (hoy el clima afecta niebla, luz y energía, pero no hay partículas de lluvia).
-5. Ambient Occlusion: agregar a mano el Renderer Feature "Screen Space Ambient Occlusion" en `Settings/HT_Renderer`.
-6. Menú principal, pausa y ajustes (sensibilidad en pantalla).
+4. Ambient Occlusion: agregar a mano el Renderer Feature "Screen Space Ambient Occlusion" en `Settings/HT_Renderer`.
+5. Menú principal y pausa. (La sensibilidad de cámara ya se ajusta en el mostrador, pestaña Partida; la lluvia son partículas simples.)

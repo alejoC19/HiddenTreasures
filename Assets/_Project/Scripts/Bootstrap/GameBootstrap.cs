@@ -69,6 +69,8 @@ namespace HuesoOxido.Core
             ctx.Motor.Initialize(ctx.Input, ctx.Look, ctx.EnergyComp, load);
             var clockComp = systems.AddComponent<WorldClockComponent>();
             clockComp.Initialize(s.Clock, s.Weather, () => ctx.Input.UiMode);
+            var rain = new GameObject("Rain").AddComponent<RainEffect>();
+            rain.Initialize(ctx.Cam.transform, s.Weather);
             systems.AddComponent<DayNightCycle>().Initialize(ctx.World.Sun, ctx.World.Moon, s.Clock, s.Weather, ctx.World.Skybox, ctx.Cam);
 
             // Vehiculo
@@ -143,6 +145,8 @@ namespace HuesoOxido.Core
             {
                 Trade = s.Trade, Upgrades = s.Upgrades, Permits = s.Permits, Collection = s.Collection, Wallet = s.Wallet,
                 Lookup = s.Catalog, AllItems = allItems, Backpack = s.Backpack, Trunk = s.Trunk, Session = director.Session,
+                GetSensitivity = () => ctx.Look.Sensitivity,
+                SetSensitivity = v => { ctx.Look.Sensitivity = v; ctx.Look.SaveSensitivity(); },
             });
 
             ctx.Map = uiGo.AddComponent<MapView>();
