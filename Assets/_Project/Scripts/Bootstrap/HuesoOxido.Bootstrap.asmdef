@@ -1,0 +1,19 @@
+{
+  "name": "HuesoOxido.Bootstrap",
+  "rootNamespace": "HuesoOxido.Core",
+  "references": [
+    "HuesoOxido.Core", "HuesoOxido.Player", "HuesoOxido.Camera", "HuesoOxido.Interaction",
+    "HuesoOxido.Detection", "HuesoOxido.Digging", "HuesoOxido.Inventory", "HuesoOxido.Vehicle",
+    "HuesoOxido.Economy", "HuesoOxido.Collection", "HuesoOxido.Survival", "HuesoOxido.SaveSystem",
+    "HuesoOxido.UI", "Unity.InputSystem"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

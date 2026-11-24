@@ -31,9 +31,11 @@ sln = []
 for name, (base, d) in asmdefs.items():
     editor = d.get("includePlatforms") == ["Editor"]
     test = name.startswith("HuesoOxido.Tests")
+    if editor and not test:
+        continue  # No hay UnityEditor.dll real para verificar el codigo de Editor: se revisa a mano.
     items = ['<PackageReference Include="UnityEngine.Modules" Version="2021.3.33" />']
     if editor and not test:
-        items.append('<PackageReference Include="Unity3D.UnityEditor" Version="2018.1.6-f1" />')
+        items.append('<PackageReference Include="UnityEditor" Version="2019.3.2.1" />')
     for r in d.get("references", []):
         if r in asmdefs:
             items.append('<ProjectReference Include="../%s/%s.csproj" />' % (r, r))

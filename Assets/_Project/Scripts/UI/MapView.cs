@@ -9,6 +9,8 @@ namespace HuesoOxido.UI
         public string Label;
         public Color Color;
         public System.Func<Vector3> Position;
+        /// <summary>Si es null, siempre visible.</summary>
+        public System.Func<bool> Visible;
     }
 
     /// <summary>Mapa cenital. La textura la genera quien construye el mundo; aca solo se dibuja y se ubican los marcadores.</summary>
@@ -19,6 +21,7 @@ namespace HuesoOxido.UI
         GameObject _root;
         Rect _bounds;
         Transform _player;
+        RectTransform _mapRect;
         RectTransform _playerMarker;
         readonly List<(MapMarker marker, RectTransform rect)> _markers = new List<(MapMarker, RectTransform)>();
         bool _open;
@@ -41,7 +44,8 @@ namespace HuesoOxido.UI
             var raw = mapRect.gameObject.AddComponent<RawImage>();
             raw.texture = mapTexture;
 
-            foreach (var m in markers) AddMarker(mapRect, m);
+            _mapRect = mapRect;
+            foreach (var m in markers) AddMarker(m);
 
             _playerMarker = UiFactory.Rect("Player", mapRect);
             UiFactory.Place(_playerMarker, new Vector2(0f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(16f, 16f));
@@ -53,9 +57,9 @@ namespace HuesoOxido.UI
             _root.SetActive(false);
         }
 
-        void AddMarker(RectTransform parent, MapMarker m)
+        public void AddMarker(MapMarker m)
         {
-            var r = UiFactory.Rect("Marker_" + m.Label, parent);
+            var r = UiFactory.Rect("Marker_" + m.Label, _mapRect);
             UiFactory.Place(r, new Vector2(0f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(14f, 14f));
             var img = r.gameObject.AddComponent<Image>();
             img.color = m.Color;
@@ -77,7 +81,12 @@ namespace HuesoOxido.UI
         void Update()
         {
             if (!_open) return;
-            foreach (var (marker, rect) in _markers) rect.anchoredPosition = ToMap(marker.Position());
+            foreach (var (marker, rect) in _markers)
+            {
+                bool visible = marker.Visible == null || marker.Visible();
+                if (rect.gameObject.activeSelf != visible) rect.gameObject.SetActive(visible);
+                if (visible) rect.anchoredPosition = ToMap(marker.Position());
+            }
             _playerMarker.anchoredPosition = ToMap(_player.position);
             _playerMarker.localRotation = Quaternion.Euler(0f, 0f, -_player.eulerAngles.y);
         }

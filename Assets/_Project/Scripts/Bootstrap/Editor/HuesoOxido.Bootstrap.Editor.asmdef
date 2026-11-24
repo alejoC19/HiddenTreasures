@@ -1,0 +1,14 @@
+{
+  "name": "HuesoOxido.Bootstrap.Editor",
+  "rootNamespace": "HuesoOxido.Core.EditorTools",
+  "references": ["HuesoOxido.Bootstrap"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
