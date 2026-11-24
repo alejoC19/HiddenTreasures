@@ -71,7 +71,7 @@ namespace HuesoOxido.Core
                     log.AddComponent<MeshRenderer>().sharedMaterial = barkMat;
                 }
             }
-            var flame = Part(PrimitiveType.Sphere, "Flame", fire, MaterialUtil.Emissive(new Color(1f, 0.55f, 0.15f)), new Vector3(0f, 0.55f, 0f), new Vector3(0.35f, 0.6f, 0.35f), false);
+            var flame = FlameVisual.Create(fire, new Vector3(0f, 0.12f, 0f));
             var lightGo = new GameObject("FireLight");
             lightGo.transform.SetParent(fire, false);
             lightGo.transform.localPosition = new Vector3(0f, 1f, 0f);

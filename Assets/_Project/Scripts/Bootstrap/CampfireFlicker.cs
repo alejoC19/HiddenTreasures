@@ -15,7 +15,7 @@ namespace HuesoOxido.Core
             float n = Mathf.PerlinNoise(_seed, Time.time * 7f);
             _light.intensity = 2.0f + n * 1.0f;
             float s = 0.85f + n * 0.4f;
-            _flame.localScale = new Vector3(0.35f * s, 0.6f * (0.8f + n * 0.6f), 0.35f * s);
+            _flame.localScale = new Vector3(s, 0.8f + n * 0.6f, s);
         }
     }
 }
