@@ -94,7 +94,7 @@ namespace HuesoOxido.Core
                 () => !ctx.Vehicle.HasDriver && ctx.Motor.IsGrounded && !ctx.Motor.IsSprinting,
                 () => 1f + s.Upgrades.Bonus(Economy.UpgradeKind.DigSpeed), worldSeed + 99);
             animator.Initialize(ctx.Character, ctx.Motor, ctx.Dig);
-            systems.AddComponent<DetectorVisual>().Initialize(ctx.Rig, ctx.Cam.transform, ctx.Player.transform, ctx.Detector, ctx.Dig);
+            systems.AddComponent<DetectorVisual>().Initialize(ctx.Rig, ctx.Cam.transform, ctx.Player.transform, ctx.Detector, ctx.Dig, ctx.Character.IsModel ? ctx.Character.RightHand : null);
 
             // Interaccion
             ctx.Sensor = systems.AddComponent<InteractionSensor>();

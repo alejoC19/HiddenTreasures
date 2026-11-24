@@ -31,6 +31,7 @@ namespace HuesoOxido.Core.EditorTools
         {
             public WorldData World; public UnityEngine.Camera Cam; public DayNightCycle Day;
             public GameClock Clock; public WeatherModel Weather; public GameObject Player, Vehicle; public AtmosphereFx Atmo;
+            public PlaceholderCharacterAnimator Anim; public PlaceholderCharacter Char; public Transform Det;
         }
 
         [MenuItem("Hidden Treasures/Generar vistas previas")]
@@ -68,6 +69,9 @@ namespace HuesoOxido.Core.EditorTools
             // El primer cuadro tras construir en modo edicion sale sin luz ambiente calculada: se descarta.
             st.Cam.transform.position = camp + Vector3.up * 3f; st.Day.ApplyNow(); DynamicGI.UpdateEnvironment();
             Capture(st.Cam, Path.Combine(dir, "_warmup.png")); File.Delete(Path.Combine(dir, "_warmup.png"));
+            bool onlyChar = System.Environment.GetEnvironmentVariable("HT_PREVIEW_ONLY") == "char";
+            if (!onlyChar)
+            {
             Shot(st, dir, "01_campamento_hora_dorada", 17.2f, WeatherKind.Clear, camp + new Vector3(12f, 2.4f, -7f), camp + new Vector3(-1f, 1.6f, 6f), 62f);
             Shot(st, dir, "02_ruinas_hora_dorada", 17.4f, WeatherKind.Clear, ruins + new Vector3(7f, 2.6f, -21f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
             Shot(st, dir, "03_ruinas_interior", 17.0f, WeatherKind.Clear, ruins + new Vector3(0f, 1.7f, -12f), ruins + new Vector3(0f, 1.8f, 8f), 70f);
@@ -78,6 +82,18 @@ namespace HuesoOxido.Core.EditorTools
             Shot(st, dir, "08_campamento_noche", 22.0f, WeatherKind.Clear, camp + new Vector3(9f, 2.2f, -6f), camp + new Vector3(0f, 1.2f, 0f), 62f);
             Shot(st, dir, "10_props_campamento", 17.4f, WeatherKind.Clear, camp + new Vector3(3f, 1.5f, 2.5f), camp + new Vector3(0.5f, 0.5f, 7f), 60f);
             Shot(st, dir, "11_fogata_cerca", 17.6f, WeatherKind.Clear, camp + new Vector3(2.2f, 1.3f, -4.4f), camp + new Vector3(0f, 0.3f, -1.5f), 55f);
+            }
+            if (st.Char != null)
+            {
+                Vector3 pp = st.Player.transform.position;
+                PoseCharacter(st, false);
+                Shot(st, dir, "12_personaje_detector", 17.3f, WeatherKind.Clear, pp + st.Player.transform.TransformDirection(new Vector3(-2.3f, 1.4f, 3.0f)), pp + Vector3.up * 1.2f, 50f);
+                Shot(st, dir, "12b_detector_frente", 17.3f, WeatherKind.Clear, pp + st.Player.transform.TransformDirection(new Vector3(0f, 1.5f, 4.0f)), pp + Vector3.up * 1.2f, 50f);
+                Shot(st, dir, "12c_detector_lado", 17.3f, WeatherKind.Clear, pp + st.Player.transform.TransformDirection(new Vector3(4.0f, 1.5f, 0f)), pp + Vector3.up * 1.2f, 50f);
+                PoseCharacter(st, true);
+                Shot(st, dir, "13b_excavando_lado", 17.3f, WeatherKind.Clear, pp + st.Player.transform.TransformDirection(new Vector3(4.0f, 1.4f, 0.5f)), pp + Vector3.up * 1.0f, 50f);
+                Shot(st, dir, "13_personaje_excavando", 17.3f, WeatherKind.Clear, pp + st.Player.transform.TransformDirection(new Vector3(-2.8f, 1.5f, 2.2f)), pp + Vector3.up * 1.0f, 50f);
+            }
             Shot(st, dir, "09_lluvia_nublado", 14.0f, WeatherKind.Rain, ruins + new Vector3(7f, 2.6f, -21f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
             Debug.Log("[PREVIEW] listo en " + dir);
         }
@@ -95,10 +111,20 @@ namespace HuesoOxido.Core.EditorTools
             var ch = st.Player.AddComponent<PlaceholderCharacter>(); ch.Build();
             st.Player.transform.position = st.World.PlayerSpawn;
             st.Player.transform.rotation = Quaternion.Euler(0f, 35f, 0f);
-            ch.RightArm.localRotation = Quaternion.Euler(-62f, 0f, 0f);
+            if (ch.IsModel)
+            {
+                st.Anim = st.Player.AddComponent<PlaceholderCharacterAnimator>();
+                st.Anim.Initialize(ch, null, null);
+                st.Char = ch;
+                // Detector real (construido por el propio componente) para verlo en la mano.
+                var dv = new GameObject("DetectorPreview").AddComponent<HuesoOxido.Detection.DetectorVisual>();
+                typeof(HuesoOxido.Detection.DetectorVisual).GetMethod("Build", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(dv, null);
+                st.Det = (Transform)typeof(HuesoOxido.Detection.DetectorVisual).GetField("_root", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(dv);
+            }
+            else ch.RightArm.localRotation = Quaternion.Euler(-62f, 0f, 0f);
 
             st.Vehicle = new GameObject("Vehicle");
-            st.Vehicle.transform.SetPositionAndRotation(st.World.VehicleSpawn - Vector3.up * 0.55f, Quaternion.Euler(0f, 140f, 0f));
+            st.Vehicle.transform.SetPositionAndRotation(new Vector3(st.World.VehicleSpawn.x, st.World.HeightAt(st.World.VehicleSpawn.x, st.World.VehicleSpawn.z) + 0.40f, st.World.VehicleSpawn.z), Quaternion.Euler(0f, 140f, 0f));
             PlaceholderVehicle.Build(st.Vehicle.transform, VehicleMounts);
 
             var camGo = new GameObject("PreviewCamera");
@@ -114,6 +140,45 @@ namespace HuesoOxido.Core.EditorTools
             return st;
         }
 
+        static readonly System.Collections.Generic.List<GameObject> BakedClones = new System.Collections.Generic.List<GameObject>();
+
+        /// <summary>En modo edicion no corre el Player Loop y el skinning no se actualiza: se hornea la pose actual en mallas estaticas.</summary>
+        static void BakeCharacter(Stage st)
+        {
+            foreach (var g in BakedClones) if (g != null) UnityEngine.Object.DestroyImmediate(g);
+            BakedClones.Clear();
+            foreach (var smr in st.Player.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                if (smr.GetComponent<MeshFilter>() != null) continue;
+                var baked = new Mesh();
+                smr.BakeMesh(baked, false);
+                var go = new GameObject("Baked_" + smr.name);
+                go.transform.SetPositionAndRotation(smr.transform.position, smr.transform.rotation);
+                go.transform.localScale = smr.transform.lossyScale;
+                go.AddComponent<MeshFilter>().sharedMesh = baked;
+                var mats = smr.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++) { mats[i] = new Material(mats[i]); mats[i].SetFloat("_Cull", 0f); }
+                go.AddComponent<MeshRenderer>().sharedMaterials = mats;
+                Debug.Log("[PREVIEW] baked " + smr.name + " verts=" + baked.vertexCount + " bounds=" + baked.bounds.size.ToString("0.00") + " lossy=" + smr.transform.lossyScale.ToString("0.00"));
+                smr.enabled = false;
+                BakedClones.Add(go);
+            }
+        }
+
+        static void PoseCharacter(Stage st, bool digging)
+        {
+            st.Anim.PreviewPose(digging ? 0f : 0f, 0.4f, digging);
+            BakeCharacter(st);
+            var t = st.Player.transform;
+            Vector3 dir = Quaternion.AngleAxis(24f, t.right) * t.forward;
+            st.Det.gameObject.SetActive(!digging);
+            st.Det.SetParent(null, true);
+            var tp = st.Player.transform;
+            Debug.Log("[PREVIEW] mano(local jugador)=" + tp.InverseTransformPoint(st.Char.RightHand.position).ToString("0.00") + " hombro=" + tp.InverseTransformPoint(st.Char.ArmRBone.position).ToString("0.00") + " izq=" + tp.InverseTransformPoint(st.Char.ArmLBone.position).ToString("0.00") + " dir(local)=" + tp.InverseTransformDirection(dir).ToString("0.00") + " pala activa=" + st.Char.Shovel.gameObject.activeSelf);
+            st.Det.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            st.Det.position = st.Char.RightHand.position - dir * 0.04f;
+        }
+
         static void Shot(Stage st, string dir, string name, float hour, WeatherKind weather, Vector3 pos, Vector3 look, float fov)
         {
             st.Clock.Set(hour, 1);
@@ -125,6 +190,7 @@ namespace HuesoOxido.Core.EditorTools
             st.Cam.fieldOfView = fov;
             st.Atmo.ApplyNow();
             st.Atmo.PrewarmForPreview(40f);
+            { var ff = GameObject.Find("FireFx"); if (ff != null) CampfireFx.Prewarm(ff.transform, 4f); }
             st.Atmo.ApplyNow();
             string path = Path.Combine(dir, name + ".png");
             Capture(st.Cam, path);

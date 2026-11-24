@@ -9,6 +9,17 @@ namespace HuesoOxido.Core.EditorTools
     /// </summary>
     public sealed class TextureImportSettings : AssetPostprocessor
     {
+        /// <summary>Los modelos de Resources/Art/Models se leen en tiempo de ejecucion (separar ruedas de la malla): deben ser legibles.</summary>
+        void OnPreprocessModel()
+        {
+            if (!assetPath.Replace('\\', '/').Contains("/Resources/Art/Models/")) return;
+            var importer = assetImporter as ModelImporter;
+            if (importer == null) return;
+            importer.isReadable = true;
+            importer.importCameras = false;
+            importer.importLights = false;
+        }
+
         void OnPreprocessTexture()
         {
             if (!assetPath.Contains("/Resources/Art/")) return;

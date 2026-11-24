@@ -26,6 +26,9 @@ namespace HuesoOxido.Core
             return _lit;
         }
 
+        /// <summary>Material Lit base (URP o Standard) para que otras clases construyan el suyo.</summary>
+        public static Material LitMaterialTemplate() => new Material(LitShader());
+
         /// <summary>Shader sin iluminacion con transparencia, valido en ambos pipelines (particulas, lluvia).</summary>
         public static Shader ParticleShader()
         {

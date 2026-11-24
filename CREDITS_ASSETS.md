@@ -32,3 +32,16 @@ Descarga reproducible: `tools/fetch_cc0_props.py`.
 | [antique_ceramic_vase_01](https://polyhaven.com/a/antique_ceramic_vase_01) | James Ray Cock | 9408 |
 | [ceramic_vase_02](https://polyhaven.com/a/ceramic_vase_02) | James Ray Cock | 2756 |
 | [brass_vase_03](https://polyhaven.com/a/brass_vase_03) | Rico Cilliers | 2616 |
+
+## Vehículo y personaje (modelos 3D reales)
+
+Ambos se cargan por código desde `Resources/Art/Models/`; si faltan, el juego usa el respaldo procedural (camioneta y explorador de primitivas con materiales PBR pintados por código).
+
+| Archivo | Origen | Licencia | Notas |
+|---|---|---|---|
+| `WillysJeep.fbx` + `willys_jeep_{diff,nor,ao_arm}.png` | [Willy's Jeep Asset](https://opengameart.org/content/willys-jeep-asset) (OpenGameArt) | **CC-BY-SA 3.0 / GPL 3.0** | Jeep clásico, 20k triángulos, texturas PBR 2K. Las 4 ruedas se separan de la malla al cargar (`MeshSplitter`). **Atención:** la licencia es *share-alike*; si se publica el juego hay que revisarla (o reemplazar el modelo, ver abajo). |
+| `Soldier.glb` | Personaje "Soldier" de Mixamo, distribuido en los ejemplos de [three.js](https://github.com/mrdoob/three.js/tree/dev/examples/models/gltf) (MIT para el repo) | Términos de uso de Mixamo (uso libre en proyectos; no redistribuir el archivo suelto) | Rig + clips Idle / Walk / Run. Importado con el paquete oficial glTFast (`com.unity.cloud.gltfast` 6.9.1). |
+
+Reemplazar un modelo: dejar el nuevo archivo con el mismo nombre en `Resources/Art/Models/` (o cambiar `PlaceholderVehicle.ModelPath` / `PlaceholderCharacter.ModelPath`). Alternativas libres ya localizadas: [UAZ pickup](https://opengameart.org/content/uaz-truck) (CC-BY 4.0, sin texturas, ruedas fusionadas) y [GAZ-67](https://opengameart.org/content/lowpoly-soviet-jeep) (CC0, low-poly).
+
+Todo lo demás del fuego, la camioneta de respaldo, el detector y el explorador de respaldo se genera por código (sin archivos externos).

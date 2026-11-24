@@ -71,7 +71,7 @@ namespace HuesoOxido.Core
                     log.AddComponent<MeshRenderer>().sharedMaterial = barkMat;
                 }
             }
-            var flame = FlameVisual.Create(fire, new Vector3(0f, 0.12f, 0f));
+            var flame = CampfireFx.Create(fire, new Vector3(0f, 0.15f, 0f));
             var lightGo = new GameObject("FireLight");
             lightGo.transform.SetParent(fire, false);
             lightGo.transform.localPosition = new Vector3(0f, 1f, 0f);
@@ -81,7 +81,7 @@ namespace HuesoOxido.Core
             light.range = 16f;
             light.intensity = 2.4f;
             light.shadows = LightShadows.None;
-            fire.gameObject.AddComponent<CampfireFlicker>().Setup(light, flame.transform);
+            fire.gameObject.AddComponent<CampfireFlicker>().Setup(light, flame);
 
             // Surtidor de combustible.
             var pump = new GameObject("FuelPump").transform;

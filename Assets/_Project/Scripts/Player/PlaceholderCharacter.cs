@@ -13,6 +13,13 @@ namespace HuesoOxido.Player
         Renderer[] _renderers;
         bool _built;
 
+        public const string ModelPath = "Art/Models/Soldier";
+        /// <summary>True si se uso el modelo 3D real (Resources/Art/Models/Soldier.glb) en lugar del cuerpo de primitivas.</summary>
+        public bool IsModel { get; private set; }
+        public Animator ModelAnimator { get; private set; }
+        public Transform ModelRoot { get; private set; }
+        public Transform ArmRBone, ForeArmRBone, ArmLBone, ForeArmLBone, SpineBone;
+
         public Transform RightHand => _hand;
         public Transform Shovel => _shovel;
         public Transform Torso => _torso;
@@ -25,6 +32,7 @@ namespace HuesoOxido.Player
         {
             if (_built) return;
             _built = true;
+            if (BuildFromModel()) return;
             var skin = MaterialUtil.Lit(new Color(0.80f, 0.62f, 0.48f), 0.2f);
             var shirt = MaterialUtil.Lit(new Color(0.30f, 0.38f, 0.26f), 0.1f);
             var pants = MaterialUtil.Lit(new Color(0.24f, 0.22f, 0.20f), 0.1f);
@@ -77,6 +85,66 @@ namespace HuesoOxido.Player
             _shovel.gameObject.SetActive(false);
 
             _renderers = root.GetComponentsInChildren<Renderer>(true);
+        }
+
+        /// <summary>Instancia el personaje real y deja listos los anclajes (mano, pala). Devuelve false si no hay modelo.</summary>
+        bool BuildFromModel()
+        {
+            var prefab = Resources.Load<GameObject>(ModelPath);
+            if (prefab == null) return false;
+            var root = new GameObject("Body").transform;
+            root.SetParent(transform, false);
+            var model = Object.Instantiate(prefab, root);
+            model.name = "Model";
+            GltfMaterials.ConvertToLit(model, 0.25f);
+            model.transform.localPosition = Vector3.zero;
+            model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f); // el glTF mira hacia -Z en Unity
+            ModelRoot = model.transform;
+            ModelAnimator = model.GetComponentInChildren<Animator>();
+            if (ModelAnimator != null) { ModelAnimator.applyRootMotion = false; ModelAnimator.runtimeAnimatorController = null; }
+
+            foreach (var t in model.GetComponentsInChildren<Transform>(true))
+            {
+                string n = t.name;
+                if (n.EndsWith(":RightArm")) ArmRBone = t;
+                else if (n.EndsWith(":RightForeArm")) ForeArmRBone = t;
+                else if (n.EndsWith(":LeftArm")) ArmLBone = t;
+                else if (n.EndsWith(":LeftForeArm")) ForeArmLBone = t;
+                else if (n.EndsWith(":RightHand")) _hand = t;
+                else if (n.EndsWith(":Spine1")) SpineBone = t;
+            }
+            if (_hand == null || ArmRBone == null) { MaterialUtil.Dispose(root.gameObject); ModelRoot = null; ModelAnimator = null; return false; }
+            _torso = SpineBone != null ? SpineBone : root;
+            _armR = ArmRBone; _armL = ArmLBone;
+
+            _shovel = BuildShovel(_hand);
+            _shovel.gameObject.SetActive(false);
+            _renderers = root.GetComponentsInChildren<Renderer>(true);
+            IsModel = true;
+            return true;
+        }
+
+        static Transform BuildShovel(Transform hand)
+        {
+            var shovel = new GameObject("Shovel").transform;
+            shovel.SetParent(hand, false);
+            var steel = ProceduralSurfaces.Steel("shovel", new Color(0.55f, 0.56f, 0.58f), 0.45f, 0.8f);
+            var wood = ProceduralSurfaces.Leather("shovel_wood", new Color(0.5f, 0.34f, 0.18f));
+            var handle = MaterialUtil.Primitive(PrimitiveType.Cylinder, "Handle", shovel, wood);
+            handle.transform.localPosition = new Vector3(0f, 0f, 0.45f);
+            handle.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            handle.transform.localScale = new Vector3(0.04f, 0.55f, 0.04f);
+            var grip = MaterialUtil.Primitive(PrimitiveType.Cube, "DGrip", shovel, wood);
+            grip.transform.localPosition = new Vector3(0f, 0f, -0.08f);
+            grip.transform.localScale = new Vector3(0.16f, 0.035f, 0.035f);
+            var blade = MaterialUtil.Primitive(PrimitiveType.Cube, "Blade", shovel, steel);
+            blade.transform.localPosition = new Vector3(0f, -0.02f, 1.12f);
+            blade.transform.localRotation = Quaternion.Euler(8f, 0f, 0f);
+            blade.transform.localScale = new Vector3(0.22f, 0.015f, 0.3f);
+            var socket = MaterialUtil.Primitive(PrimitiveType.Cube, "Socket", shovel, steel);
+            socket.transform.localPosition = new Vector3(0f, -0.01f, 0.98f);
+            socket.transform.localScale = new Vector3(0.05f, 0.04f, 0.1f);
+            return shovel;
         }
 
         static Transform Limb(Transform parent, string name, Vector3 pivotPos, float length, float thickness, Material mat)
