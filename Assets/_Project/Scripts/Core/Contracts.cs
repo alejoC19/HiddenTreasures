@@ -32,4 +32,7 @@ namespace HuesoOxido.Core
     public interface IDigPermission { bool CanDig(string zoneId); }
 
     public interface IInputBlocker { bool GameplayBlocked { get; } }
+
+    /// <summary>Permite ocultar el cuerpo del personaje en primera persona (sigue proyectando sombra).</summary>
+    public interface IBodyVisibility { void SetVisible(bool visible); }
 }

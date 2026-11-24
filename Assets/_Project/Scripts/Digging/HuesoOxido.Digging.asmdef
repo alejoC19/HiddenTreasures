@@ -1,10 +1,7 @@
 {
   "name": "HuesoOxido.Digging",
   "rootNamespace": "HuesoOxido.Digging",
-  "references": [
-    "HuesoOxido.Core",
-    "HuesoOxido.Detection"
-  ],
+  "references": ["HuesoOxido.Core", "HuesoOxido.Detection"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
