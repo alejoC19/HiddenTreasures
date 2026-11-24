@@ -15,6 +15,7 @@ namespace HuesoOxido.Detection
 
         GameObject _hint;
         GameObject _hole;
+        GameObject _mound;
 
         public string SiteId => siteId;
         public string ZoneId => zoneId;
@@ -47,10 +48,25 @@ namespace HuesoOxido.Detection
             _hole = MaterialUtil.Primitive(PrimitiveType.Cylinder, "Hole", transform, mat);
             _hole.transform.localPosition = new Vector3(0f, 0.012f, 0f);
             _hole.transform.localScale = new Vector3(0.7f, 0.012f, 0.7f);
-            var mound = MaterialUtil.Primitive(PrimitiveType.Sphere, "Mound", transform, MaterialUtil.Lit(new Color(0.28f, 0.2f, 0.12f), 0.05f));
-            mound.transform.localPosition = new Vector3(0.55f, 0.02f, 0.1f);
-            mound.transform.localScale = new Vector3(0.7f, 0.22f, 0.55f);
+            _mound = MaterialUtil.Primitive(PrimitiveType.Sphere, "Mound", transform, MaterialUtil.Lit(new Color(0.28f, 0.2f, 0.12f), 0.05f));
+            _mound.transform.localPosition = new Vector3(0.55f, 0.02f, 0.1f);
+            _mound.transform.localScale = new Vector3(0.7f, 0.22f, 0.55f);
         }
+
+        /// <summary>Usado al cargar partida o empezar de cero: deja el sitio como estaba o ya excavado.</summary>
+        public void RestoreState(bool excavated, bool showHint)
+        {
+            if (excavated) { MarkExcavated(false); return; }
+            if (Excavated)
+            {
+                Excavated = false;
+                if (_hole != null) Destroy(_hole);
+                if (_mound != null) Destroy(_mound);
+            }
+            if (showHint) ShowHint();
+        }
+
+        public bool HasHint => _hint != null;
     }
 
     /// <summary>Lista de sitios de la escena (sin singleton: se inyecta).</summary>

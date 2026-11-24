@@ -10,13 +10,15 @@ namespace HuesoOxido.Survival
         GameClock _clock;
         WeatherModel _weather;
         Material _sky;
+        UnityEngine.Camera _cam;
 
         static readonly Color SunLow = new Color(1.00f, 0.56f, 0.24f);
         static readonly Color SunHigh = new Color(1.00f, 0.96f, 0.88f);
         static readonly Color Moon = new Color(0.45f, 0.55f, 0.85f);
 
-        public void Initialize(Light sun, Light moon, GameClock clock, WeatherModel weather, Material skybox)
+        public void Initialize(Light sun, Light moon, GameClock clock, WeatherModel weather, Material skybox, UnityEngine.Camera cam)
         {
+            _cam = cam;
             _sun = sun; _moon = moon; _clock = clock; _weather = weather; _sky = skybox;
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
@@ -60,6 +62,11 @@ namespace HuesoOxido.Survival
             float night = 1f - dayAmt;
             RenderSettings.fogDensity = (_weather != null ? _weather.FogDensity : 0.006f) * (1f + night * 0.6f);
 
+            if (_sky == null && _cam != null)
+            {
+                _cam.clearFlags = CameraClearFlags.SolidColor;
+                _cam.backgroundColor = RenderSettings.fogColor;
+            }
             if (_sky != null)
             {
                 if (_sky.HasProperty("_Exposure")) _sky.SetFloat("_Exposure", Mathf.Lerp(0.08f, 1.15f, dayAmt) * Mathf.Lerp(0.6f, 1f, light));

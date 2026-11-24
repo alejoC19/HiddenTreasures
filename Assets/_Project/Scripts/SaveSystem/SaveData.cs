@@ -22,6 +22,9 @@ namespace HuesoOxido.SaveSystem
     public sealed class Vec3Dto { public float X, Y, Z; public float Yaw; }
 
     [Serializable]
+    public sealed class GroundItemDto { public ItemDto Item; public float X, Y, Z; }
+
+    [Serializable]
     public sealed class SaveData
     {
         public const int CurrentVersion = 1;
@@ -44,6 +47,7 @@ namespace HuesoOxido.SaveSystem
         public Vec3Dto Player = new Vec3Dto();
         public Vec3Dto Vehicle = new Vec3Dto();
         public bool HasPositions;
+        public List<GroundItemDto> GroundItems = new List<GroundItemDto>();
     }
 
     public static class SaveMigrator
@@ -61,6 +65,7 @@ namespace HuesoOxido.SaveSystem
             if (data.ExcavatedSites == null) data.ExcavatedSites = new List<string>();
             if (data.Player == null) data.Player = new Vec3Dto();
             if (data.Vehicle == null) data.Vehicle = new Vec3Dto();
+            if (data.GroundItems == null) data.GroundItems = new List<GroundItemDto>();
             data.Version = SaveData.CurrentVersion;
             return data;
         }

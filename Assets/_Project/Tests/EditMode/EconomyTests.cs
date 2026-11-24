@@ -105,5 +105,33 @@ namespace HuesoOxido.Tests
             Assert.IsTrue(permits.CanDig("forest_ruins"));
             Assert.IsFalse(permits.CanDig("otra_zona"));
         }
+
+        [Test]
+        public void Fuel_BuyFillsTankOrSpendsAllMoney()
+        {
+            var tank = new FuelTank(40f, 10f);
+            var rich = new Wallet(500);
+            var (liters, cost) = FuelPurchase.Buy(tank, rich);
+            Assert.AreEqual(30f, liters, 1e-3f);
+            Assert.AreEqual(30, cost);
+            Assert.AreEqual(470, rich.Money);
+
+            var tank2 = new FuelTank(40f, 0f);
+            var poor = new Wallet(12);
+            var (l2, c2) = FuelPurchase.Buy(tank2, poor);
+            Assert.AreEqual(12f, l2, 1e-3f);
+            Assert.AreEqual(0, poor.Money);
+            Assert.AreEqual(0f, FuelPurchase.Buy(tank2, poor).liters);
+        }
+
+        [Test]
+        public void FuelTank_ConsumeAndRefillClamp()
+        {
+            var t = new FuelTank(10f);
+            Assert.AreEqual(4f, t.Consume(4f), 1e-4f);
+            Assert.AreEqual(6f, t.Consume(100f), 1e-4f);
+            Assert.IsTrue(t.IsEmpty);
+            Assert.AreEqual(10f, t.Refill(99f), 1e-4f);
+        }
     }
 }
