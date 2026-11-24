@@ -1,8 +1,27 @@
 {
   "name": "HuesoOxido.Bootstrap.Editor",
   "rootNamespace": "HuesoOxido.Core.EditorTools",
-  "references": ["HuesoOxido.Bootstrap"],
-  "includePlatforms": ["Editor"],
+  "references": [
+    "HuesoOxido.Bootstrap",
+    "HuesoOxido.Core",
+    "HuesoOxido.Player",
+    "HuesoOxido.Camera",
+    "HuesoOxido.Interaction",
+    "HuesoOxido.Detection",
+    "HuesoOxido.Digging",
+    "HuesoOxido.Inventory",
+    "HuesoOxido.Vehicle",
+    "HuesoOxido.Economy",
+    "HuesoOxido.Collection",
+    "HuesoOxido.Survival",
+    "HuesoOxido.SaveSystem",
+    "HuesoOxido.UI",
+    "UnityEngine.UI",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,

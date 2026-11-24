@@ -55,7 +55,7 @@ namespace HuesoOxido.Core
         {
             var go = GameObject.CreatePrimitive(type);
             var mesh = go.GetComponent<MeshFilter>().sharedMesh;
-            Object.Destroy(go);
+            MaterialUtil.Dispose(go);
             return mesh;
         }
     }

@@ -30,6 +30,9 @@ namespace HuesoOxido.Survival
 
         void Update() { if (_clock != null) Apply(); }
 
+        /// <summary>Aplica el estado actual de hora y clima sin esperar a Update (herramientas de Editor).</summary>
+        public void ApplyNow() { if (_clock != null) Apply(); }
+
         void Apply()
         {
             float pitch = (_clock.Hour - 6f) / 24f * 360f;  // 6h: horizonte, 12h: cenit, 18h: horizonte

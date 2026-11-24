@@ -59,12 +59,19 @@ namespace HuesoOxido.Core
             return m;
         }
 
+        /// <summary>Destruye un objeto: Destroy en juego, DestroyImmediate en modo edicion (herramientas de Editor).</summary>
+        public static void Dispose(Object o)
+        {
+            if (o == null) return;
+            if (Application.isPlaying) Object.Destroy(o); else Object.DestroyImmediate(o);
+        }
+
         /// <summary>Crea una primitiva sin collider y con material asignado.</summary>
         public static GameObject Primitive(PrimitiveType type, string name, Transform parent, Material mat, bool keepCollider = false)
         {
             var go = GameObject.CreatePrimitive(type);
             go.name = name;
-            if (!keepCollider) { var c = go.GetComponent<Collider>(); if (c != null) Object.Destroy(c); }
+            if (!keepCollider) { var c = go.GetComponent<Collider>(); if (c != null) Dispose(c); }
             go.GetComponent<Renderer>().sharedMaterial = mat;
             go.transform.SetParent(parent, false);
             return go;
