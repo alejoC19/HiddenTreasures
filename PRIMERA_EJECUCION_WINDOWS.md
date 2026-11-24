@@ -1,5 +1,7 @@
 # Primera ejecución en Windows — checklist
 
+> **Versión actual de la guía de pruebas: `PRUEBAS.md`** (62 tests EditMode, Git LFS obligatorio, recorrido de 15 minutos con teclas de depuración F1–F8). Este archivo queda como referencia de instalación.
+
 Marcá cada punto. **Si algo falla, detenete en ese punto** y mandame lo que se pide en «Qué enviarme» (al final).
 Contexto: este proyecto se compiló y abrió en Unity 6000.0.58f2 real (sin errores), pero **nunca se ejecutó en Play Mode**: tu PC será la primera ejecución real.
 
