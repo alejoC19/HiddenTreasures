@@ -22,6 +22,9 @@ namespace HuesoOxido.Core
     {
         [SerializeField] int worldSeed = 1337;
 
+        /// <summary>Contexto ya construido (null hasta que termina Awake). Lo usan los tests de PlayMode.</summary>
+        public GameContext Context { get; private set; }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void AutoCreate()
         {
@@ -108,6 +111,7 @@ namespace HuesoOxido.Core
             director.Prepare(ctx);
             BuildUi(ctx, uiGo, director, allItems);
             director.Begin();
+            Context = ctx;
         }
 
         UnityEngine.Camera PrepareCamera()

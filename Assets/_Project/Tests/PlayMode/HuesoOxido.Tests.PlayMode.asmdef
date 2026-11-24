@@ -1,0 +1,19 @@
+{
+  "name": "HuesoOxido.Tests.PlayMode",
+  "rootNamespace": "HuesoOxido.Tests.PlayMode",
+  "references": [
+    "HuesoOxido.Core", "HuesoOxido.Bootstrap", "HuesoOxido.Player", "HuesoOxido.Camera", "HuesoOxido.Interaction",
+    "HuesoOxido.Detection", "HuesoOxido.Digging", "HuesoOxido.Inventory", "HuesoOxido.Vehicle", "HuesoOxido.Economy",
+    "HuesoOxido.Collection", "HuesoOxido.Survival", "HuesoOxido.SaveSystem", "HuesoOxido.UI",
+    "Unity.InputSystem", "UnityEngine.TestRunner", "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

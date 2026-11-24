@@ -139,7 +139,10 @@ namespace HuesoOxido.Digging
             }
         }
 
-        void Complete(BuriedSite site)
+        void Complete(BuriedSite site) => Unearth(site);
+
+        /// <summary>Saca la pieza del sitio y avisa por FindUnearthed. Lo usa la excavacion al completarse (y los tests).</summary>
+        public void Unearth(BuriedSite site)
         {
             IsDigging = false;
             _progress = 0f;

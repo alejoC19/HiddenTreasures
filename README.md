@@ -3,22 +3,16 @@
 Juego single-player de exploración y búsqueda de tesoros (arqueología y paleontología). **Unity 6 (6000.0 LTS), URP, C#, PC Windows.**
 Namespaces técnicos internos: `HuesoOxido.*`. Estado detallado, qué está verificado y qué no: [`STATUS.md`](STATUS.md). Recursos pendientes: [`ASSETS_TODO.md`](ASSETS_TODO.md).
 
-> **Importante:** este código se desarrolló sin acceso al Editor de Unity. Compila con .NET y su lógica pura tiene tests, pero **nunca se ejecutó dentro de Unity**. La primera apertura es la prueba real; seguí el checklist de `STATUS.md`.
+> **Importante:** el proyecto se **abrió, importó y compiló en un Editor de Unity 6 real** (0 errores, 0 advertencias) y `Main.unity` se resuelve bien, pero **nunca se ejecutó en Play Mode** (el Editor exige licencia para eso y el entorno de desarrollo no tiene). La primera ejecución es la prueba real; ver `INFORME_TECNICO.md` y el checklist de `STATUS.md`.
 
-## Primera apertura (paso a paso)
-1. Instalá **Unity 6 LTS** (Unity Hub, módulo Windows Build Support si vas a compilar). El proyecto declara `6000.0.58f2`; si instalaste otra 6000.0.x, aceptá el aviso de "cambiar de versión".
-2. Unity Hub → **Add** → elegí esta carpeta. Esperá la importación y la resolución de paquetes (Input System, URP, uGUI, Test Framework).
-   Si el Package Manager marca error de versión, abrí Window → Package Manager y poné la versión que ofrece tu Editor para ese paquete.
-3. Al terminar, el script `ProjectSetup` se ejecuta solo:
-   - activa el **nuevo Input System** y **pide reiniciar el Editor** (aceptá; sin esto el juego no recibe teclado ni mouse y muestra un aviso en pantalla);
-   - pone espacio de color Linear;
-   - crea el **URP Asset** (`Assets/_Project/Settings`) y lo asigna.
-4. Abrí `Assets/_Project/Scenes/Main.unity` (también está en Build Settings) y dale **Play**.
-5. Mirá la **Console** y pasame todo lo que salga en rojo o amarillo.
+## Primera apertura
+Pasos exactos, riesgos y la evidencia de qué se verificó en un Editor real: **[`INFORME_TECNICO.md`](INFORME_TECNICO.md)** (sección 10).
+Resumen: instalá **Unity 6000.0.58f2** (cualquier 6000.0.x), abrí la carpeta desde Unity Hub, esperá la importación, ejecutá **Hidden Treasures → Verificar proyecto** (debe dar OK), corré los tests (Test Runner) y abrí `Main.unity` → **Play**.
 
-Si algo se ve **magenta**: menú **Hidden Treasures → Desactivar URP (usar pipeline integrado)**. El juego funciona en ambos pipelines (solo se pierde el post-proceso). Para volver: **Hidden Treasures → Activar URP**. **Hidden Treasures → Configurar proyecto** repite todos los pasos.
-
-El juego **se construye solo al dar Play** (mundo, personaje, vehículo, UI): `Main.unity` contiene un único objeto `GameBootstrap`; incluso en una escena vacía el arranque automático lo crea. No hay prefabs a propósito: todo se arma por código con placeholders.
+- El proyecto ya trae la configuración oficial de Unity 6 + URP (`ProjectSettings` y URP Assets de la plantilla): **no hace falta reiniciar el Editor** ni configurar el Input System (queda en «Both»).
+- Si algo se ve **magenta**: **Hidden Treasures → Desactivar URP (usar pipeline integrado)**. El juego funciona en ambos pipelines (solo se pierde el post-proceso). **Hidden Treasures → Configurar proyecto** repite los ajustes.
+- Hacé clic en la vista *Game* para capturar el mouse.
+- El juego **se construye solo al dar Play**: `Main.unity` contiene un único objeto `GameBootstrap`. No hay prefabs a propósito.
 
 ## Menús
 - **Menú principal** al iniciar: Continuar (si hay guardado), Nueva partida, Controles, Sensibilidad, Salir.
@@ -52,16 +46,17 @@ Assets/_Project/Scenes/            Main.unity (escena mínima: solo el GameBoots
 Assets/_Project/Scripts/           Core, Player, Camera, Interaction, Detection, Digging, Inventory,
                                    Vehicle, Economy, Collection, Survival, SaveSystem, UI, Bootstrap(+Editor)
 Assets/_Project/Tests/EditMode/    Tests (Unity Test Framework / NUnit)
-Assets/_Project/Settings/          Aquí se crea el URP Asset
+Assets/_Project/Settings/          URP Assets oficiales (PC/Mobile), volúmenes y GlobalSettings
 Packages/manifest.json             Paquetes (Unity 6)
-ProjectSettings/                   ProjectVersion.txt y EditorBuildSettings.asset; el resto lo genera Unity
+ProjectSettings/                   Ajustes oficiales de la plantilla URP de Unity 6 (Input = Both, Linear, URP asignado)
 tools/                             Auditoría y validación fuera de Unity
 ```
 Una asmdef por sistema. `Bootstrap` es la raíz de composición: el único sitio que conoce a todos los sistemas.
 
-## Herramientas fuera de Unity (no reemplazan al Editor)
+## Herramientas de verificación
 - `tools/setup_validation.sh` (una vez): instala .NET 8 y compila el Input System desde su fuente oficial.
 - `tools/validate.sh`: genera los `.meta` que falten, **audita el repositorio** (`tools/audit_repo.py`: meta, GUIDs, asmdef, escena, ajustes), **compila** cada asmdef contra las referencias de UnityEngine y **ejecuta los tests**.
+- `tools/verify_in_unity.sh <Editor>`: con un Editor real compila con Unity y ejecuta `ProjectVerifier` (escena, GUIDs, URP, Input, paquetes). `tools/run_unity_tests.sh <Editor> EditMode|PlayMode` corre los tests dentro de Unity (**requiere licencia activa**).
 - Compilar con .NET prueba la sintaxis y los tipos; **no** prueba cómo se comporta Unity al ejecutar.
 
 ## Convenciones

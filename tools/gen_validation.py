@@ -1,10 +1,24 @@
 #!/usr/bin/env python3
 """Genera un csproj por asmdef para validar la compilacion con .NET (sin Unity Editor).
-Uso: python3 tools/gen_validation.py <repo_root> <work_dir>
+Uso: python3 tools/gen_validation.py <repo_root> <work_dir> [--unity-editor <carpeta del Editor instalado>]
+Con --unity-editor compila contra los ensamblados REALES de ese Editor (UnityEngine/UnityEditor); sin el, usa referencias NuGet 2021.3.
 Requiere: dotnet SDK, y Unity.InputSystem.dll compilado en <work_dir>/InputSystemLib (ver tools/README.md)."""
 import json, os, sys, glob
 
 root, work = os.path.abspath(sys.argv[1]), os.path.abspath(sys.argv[2])
+editor = os.path.abspath(sys.argv[sys.argv.index("--unity-editor") + 1]) if "--unity-editor" in sys.argv else None
+real_refs = ""
+if editor:
+    dlls = []
+    for sub in ("Editor/Data/Managed/UnityEngine", "Editor/Data/Managed"):
+        dlls += sorted(glob.glob(os.path.join(editor, sub, "*.dll")))
+    skip = ("Unity.Cecil", "Mono.", "nunit", "ICSharpCode", "System.", "Microsoft.", "netstandard", "mscorlib", "Newtonsoft")
+    seen = set()
+    for d in dlls:
+        n = os.path.basename(d)
+        if n in seen or n.startswith(skip) or "Tests" in n: continue
+        seen.add(n)
+        real_refs += '<Reference Include="%s"><HintPath>%s</HintPath><Private>false</Private></Reference>' % (n[:-4], d)
 asmdefs = {}
 for f in glob.glob(os.path.join(root, "Assets", "**", "*.asmdef"), recursive=True):
     d = json.load(open(f, encoding="utf-8"))
@@ -29,12 +43,14 @@ EXT_REFS = {
 os.makedirs(os.path.join(work, "proj"), exist_ok=True)
 sln = []
 for name, (base, d) in asmdefs.items():
-    editor = d.get("includePlatforms") == ["Editor"]
+    editor_asm = d.get("includePlatforms") == ["Editor"]
     test = name.startswith("HuesoOxido.Tests")
-    if editor and not test:
-        continue  # No hay UnityEditor.dll real para verificar el codigo de Editor: se revisa a mano.
-    items = ['<PackageReference Include="UnityEngine.Modules" Version="2021.3.33" />']
-    if editor and not test:
+    if name.startswith("HuesoOxido.Tests.PlayMode"):
+        continue  # Usa UnityTest (Unity Test Framework): solo lo compila un Editor real (tools/verify_in_unity.sh).
+    if editor_asm and not test and not real_refs:
+        continue  # Sin un Editor real no hay UnityEditor.dll: el codigo de Editor se revisa a mano.
+    items = [real_refs] if real_refs else ['<PackageReference Include="UnityEngine.Modules" Version="2021.3.33" />']
+    if editor_asm and not test and not real_refs:
         items.append('<PackageReference Include="UnityEditor" Version="2019.3.2.1" />')
     for r in d.get("references", []):
         if r in asmdefs:
