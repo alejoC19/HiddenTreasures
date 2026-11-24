@@ -14,7 +14,8 @@ namespace HuesoOxido.Core
         readonly PerlinNoise _noise;
         readonly System.Random _rng;
         readonly int _seed;
-        readonly Dictionary<string, Dictionary<Vector2Int, List<CombineInstance>>> _lists = new Dictionary<string, Dictionary<Vector2Int, List<CombineInstance>>>();
+        InstancedVegetation _veg;
+        readonly Dictionary<string, InstancedVegetation.Layer> _layers = new Dictionary<string, InstancedVegetation.Layer>();
 
         public VegetationBuilder(HeightField field, float[,] forestMask, PerlinNoise noise, int seed)
         {
@@ -31,13 +32,8 @@ namespace HuesoOxido.Core
             return _forest[iz, ix];
         }
 
-        void Add(string key, Mesh mesh, Vector3 pos, Quaternion rot, Vector3 scale)
-        {
-            if (!_lists.TryGetValue(key, out var chunks)) { chunks = new Dictionary<Vector2Int, List<CombineInstance>>(); _lists[key] = chunks; }
-            var ck = new Vector2Int(Mathf.FloorToInt((pos.x + HeightField.Half) / 64f), Mathf.FloorToInt((pos.z + HeightField.Half) / 64f));
-            if (!chunks.TryGetValue(ck, out var l)) { l = new List<CombineInstance>(); chunks[ck] = l; }
-            l.Add(new CombineInstance { mesh = mesh, transform = Matrix4x4.TRS(pos, rot, scale) });
-        }
+        void Add(string key, Vector3 pos, Quaternion rot, Vector3 scale)
+            => _veg.Add(_layers[key], Matrix4x4.TRS(pos, rot, scale));
 
         /// <summary>Cruz de cuadrados verticales (n planos) con la base en y=0 y UV completas.</summary>
         static Mesh CrossQuads(int planes, float width, float height, float bendTop)
@@ -77,12 +73,17 @@ namespace HuesoOxido.Core
             return _field.SlopeDegrees(x, z) < maxSlope;
         }
 
-        public void Build(Transform parent)
+        /// <summary>Cantidades por especie (densidad del bosque salvaje).</summary>
+        public const int GrassCount = 26000, TallGrassCount = 9000, FernCount = 6500, BushCount = 1600, FlowerCount = 2600;
+
+        public void Build(Transform parent, InstancedVegetation veg)
         {
+            _veg = veg;
             var root = new GameObject("Undergrowth").transform;
             root.SetParent(parent, false);
 
             var grassMesh = CrossQuads(3, 1.25f, 0.95f, 0.18f);
+            var tallMesh = CrossQuads(3, 1.0f, 1.9f, 0.45f);
             var fernMesh = CrossQuads(2, 1.7f, 1.0f, 0.25f);
             var bushMesh = CrossQuads(4, 1.7f, 1.4f, 0f);
             var flowerMesh = CrossQuads(2, 0.34f, 0.55f, 0.04f);
@@ -91,73 +92,73 @@ namespace HuesoOxido.Core
             var fernTex = FoliageTextures.Fern(_seed + 12);
             var leafTex = FoliageTextures.LeafCluster(_seed + 13);
             var flowerTex = FoliageTextures.Flower();
-            var mats = new Dictionary<string, Material>
-            {
-                { "grass_a", ArtMaterials.Foliage(grassTex, new Color(0.85f, 1f, 0.75f), "gA") },
-                { "grass_b", ArtMaterials.Foliage(grassTex, new Color(1f, 0.95f, 0.65f), "gB") },
-                { "fern", ArtMaterials.Foliage(fernTex, new Color(0.85f, 1f, 0.8f), "fern") },
-                { "bush", ArtMaterials.Foliage(leafTex, new Color(0.62f, 0.8f, 0.55f), "bush") },
-                { "flower_white", ArtMaterials.Foliage(flowerTex, new Color(1f, 1f, 1f), "fW") },
-                { "flower_yellow", ArtMaterials.Foliage(flowerTex, new Color(1f, 0.86f, 0.25f), "fY") },
-                { "flower_violet", ArtMaterials.Foliage(flowerTex, new Color(0.78f, 0.6f, 1f), "fV") },
-            };
+            void Layer(string key, Mesh mesh, Material mat, float dist) => _layers[key] = _veg.AddLayer(key, mesh, mat, dist, false);
+            Layer("grass_a", grassMesh, ArtMaterials.Foliage(grassTex, new Color(0.85f, 1f, 0.75f), "gA"), 80f);
+            Layer("grass_b", grassMesh, ArtMaterials.Foliage(grassTex, new Color(1f, 0.95f, 0.65f), "gB"), 80f);
+            Layer("tall_a", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.62f, 0.78f, 0.5f), "tA"), 100f);
+            Layer("tall_b", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.78f, 0.78f, 0.45f), "tB"), 100f);
+            Layer("fern", fernMesh, ArtMaterials.Foliage(fernTex, new Color(0.85f, 1f, 0.8f), "fern"), 115f);
+            Layer("bush", bushMesh, ArtMaterials.Foliage(leafTex, new Color(0.62f, 0.8f, 0.55f), "bush"), 160f);
+            Layer("flower_white", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 1f, 1f), "fW"), 55f);
+            Layer("flower_yellow", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 0.86f, 0.25f), "fY"), 55f);
+            Layer("flower_violet", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(0.78f, 0.6f, 1f), "fV"), 55f);
 
             int grass = 0;
-            for (int i = 0; i < 26000 && grass < 5600; i++)
+            for (int i = 0; i < 130000 && grass < GrassCount; i++)
             {
                 float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
-                if (!Allowed(x, z, 34f, 1.8f)) continue;
+                if (!Allowed(x, z, 34f, 1.6f)) continue;
                 float f = Forest(x, z);
                 float dens = _noise.Fbm(x * 0.05f + 3f, z * 0.05f + 9f, 2);
-                if (_rng.NextDouble() > 0.35 + dens * 0.8 - f * 0.35) continue;
+                if (_rng.NextDouble() > 0.5 + dens * 0.8 - f * 0.25) continue;
                 float s = Rnd(0.7f, 1.5f);
-                Add(_rng.NextDouble() < 0.7 ? "grass_a" : "grass_b", grassMesh, new Vector3(x, _field.HeightAt(x, z) - 0.03f, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s * Rnd(0.8f, 1.3f), s));
+                Add(_rng.NextDouble() < 0.7 ? "grass_a" : "grass_b", new Vector3(x, _field.HeightAt(x, z) - 0.03f, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s * Rnd(0.8f, 1.3f), s));
                 grass++;
             }
-            int ferns = 0;
-            for (int i = 0; i < 12000 && ferns < 1500; i++)
+            // Pasto alto: mas denso bajo los arboles y en manchones, casi nunca sobre el camino.
+            int tall = 0;
+            for (int i = 0; i < 90000 && tall < TallGrassCount; i++)
             {
                 float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
-                if (!Allowed(x, z, 32f, 2.6f)) continue;
-                if (_rng.NextDouble() > 0.15 + Forest(x, z) * 0.9) continue;
-                float s = Rnd(0.8f, 1.5f);
-                Add("fern", fernMesh, new Vector3(x, _field.HeightAt(x, z) - 0.02f, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s, s));
+                if (!Allowed(x, z, 30f, 2.4f)) continue;
+                float patch = _noise.Fbm(x * 0.035f + 41f, z * 0.035f + 17f, 3);
+                if (_rng.NextDouble() > 0.1 + patch * 0.9 + Forest(x, z) * 0.35 - 0.35) continue;
+                float s = Rnd(0.8f, 1.45f);
+                Add(_rng.NextDouble() < 0.6 ? "tall_a" : "tall_b", new Vector3(x, _field.HeightAt(x, z) - 0.03f, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s * Rnd(0.85f, 1.3f), s));
+                tall++;
+            }
+            int ferns = 0;
+            for (int i = 0; i < 70000 && ferns < FernCount; i++)
+            {
+                float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
+                if (!Allowed(x, z, 32f, 2.4f)) continue;
+                if (_rng.NextDouble() > 0.2 + Forest(x, z) * 0.95) continue;
+                float s = Rnd(0.8f, 1.6f);
+                Add("fern", new Vector3(x, _field.HeightAt(x, z) - 0.02f, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s, s));
                 ferns++;
             }
             int bushes = 0;
-            for (int i = 0; i < 4000 && bushes < 280; i++)
+            for (int i = 0; i < 30000 && bushes < BushCount; i++)
             {
                 float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
-                if (!Allowed(x, z, 28f, 3.2f)) continue;
-                float s = Rnd(0.8f, 1.7f);
-                Add("bush", bushMesh, new Vector3(x, _field.HeightAt(x, z) + 0.45f * s, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s, s));
+                if (!Allowed(x, z, 28f, 3.0f)) continue;
+                if (_rng.NextDouble() > 0.35 + Forest(x, z) * 0.7) continue;
+                float s = Rnd(0.8f, 1.9f);
+                Add("bush", new Vector3(x, _field.HeightAt(x, z) + 0.45f * s, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s, s));
                 bushes++;
             }
             int flowers = 0;
-            for (int i = 0; i < 9000 && flowers < 900; i++)
+            for (int i = 0; i < 60000 && flowers < FlowerCount; i++)
             {
                 float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
                 if (!Allowed(x, z, 26f, 1.4f)) continue;
                 if (_noise.Fbm(x * 0.04f + 70f, z * 0.04f + 30f, 2) < 0.52f) continue; // en manchones
                 string key = _rng.NextDouble() < 0.55 ? "flower_white" : (_rng.NextDouble() < 0.7 ? "flower_yellow" : "flower_violet");
                 float s = Rnd(0.8f, 1.4f);
-                Add(key, flowerMesh, new Vector3(x, _field.HeightAt(x, z) - 0.02f, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s, s));
+                Add(key, new Vector3(x, _field.HeightAt(x, z) - 0.02f, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s, s));
                 flowers++;
             }
-
-            foreach (var kv in _lists)
-                foreach (var ck in kv.Value)
-                {
-                    var go = new GameObject(kv.Key);
-                    go.transform.SetParent(root, false);
-                    var mesh = new Mesh { name = kv.Key, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
-                    mesh.CombineMeshes(ck.Value.ToArray(), true, true);
-                    go.AddComponent<MeshFilter>().sharedMesh = mesh;
-                    var r = go.AddComponent<MeshRenderer>();
-                    r.sharedMaterial = mats[kv.Key];
-                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                    go.isStatic = true;
-                }
+            Debug.Log("[VEG] pasto=" + grass + " pasto alto=" + tall + " helechos=" + ferns + " arbustos=" + bushes + " flores=" + flowers);
 
             BuildLogs(root);
         }

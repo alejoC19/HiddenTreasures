@@ -25,6 +25,7 @@ namespace HuesoOxido.Core
             var nor = TextureLibrary.Get(name + "_nor");
             if (nor != null && m.HasProperty("_BumpMap")) { m.SetTexture("_BumpMap", nor); m.EnableKeyword("_NORMALMAP"); }
             SetSmooth(m, smoothness);
+            m.enableInstancing = true;
             Cache[key] = m;
             return m;
         }
@@ -57,6 +58,7 @@ namespace HuesoOxido.Core
             if (m.HasProperty("_Mode")) m.SetFloat("_Mode", 1f);              // Standard: Cutout
             m.EnableKeyword("_ALPHATEST_ON");
             m.renderQueue = 2450;
+            m.enableInstancing = true;
             Cache[key] = m;
             return m;
         }

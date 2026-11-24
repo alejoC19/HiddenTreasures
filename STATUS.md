@@ -54,3 +54,11 @@ Para cada fallo: copiar el texto de la Console.
 2. Reemplazar placeholders por assets reales (`ASSETS_TODO.md`): personaje Mixamo, vegetación, ruinas, detector, audio.
 3. Tuning del vehículo, del balance y del rendimiento.
 5. Más terrenos y regiones (fuera del MVP).
+
+## Bosque salvaje, misiones y HUD de misión (última etapa)
+
+- **Vegetación densa con GPU Instancing** (`Bootstrap/Art/InstancedVegetation.cs`): ~1500 árboles y ~45 700 plantas (pasto 26 000, pasto alto 9 000, helechos 6 500, arbustos 1 600, flores 2 600) en 36 capas instanciadas (`Graphics.RenderMeshInstanced`), con culling por frustum y distancia por trozos de 40 m. Muralla de árboles en el borde del mapa.
+- **Niebla**: densidad base 0,0022 → 0,0085 (nublado 0,0115, lluvia 0,017, niebla 0,036): a ~150 m casi no se ve nada y el borde del mapa queda oculto.
+- **Misiones**: `Core/QuestManager.cs` (lógica pura, 5 tests). Misión inicial "Encontrar 3 reliquias prehispánicas": 3 sitios nuevos (`relic_site_00..02`) repartidos al azar sobre el terreno (≥55 m del campamento y entre sí), reliquias `relic_*` en el catálogo, progreso en el guardado (`QuestId/QuestProgress/QuestCompleted`), recompensa $400 al cumplir.
+- **HUD**: panel "OBJETIVO" bajo el panel de estado (arriba a la izquierda, sin solaparse), con "Reliquias: n/3". Las barras de energía y peso siguen donde estaban.
+- **Verificado**: 45 tests .NET, compilación real en Unity 6 y renders del Editor (`tools/render_previews.sh`). **No verificado**: rendimiento en una GPU real (los renders usan llvmpipe), la misión jugándose de punta a punta (sin Play Mode), ni el HUD en pantalla.

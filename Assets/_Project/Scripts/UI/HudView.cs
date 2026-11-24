@@ -27,6 +27,7 @@ namespace HuesoOxido.UI
         public VehicleController Vehicle;
         public Notifier Notifier;
         public GameInput Input;
+        public QuestManager Quests;
     }
 
     public sealed class HudView : MonoBehaviour
@@ -34,6 +35,7 @@ namespace HuesoOxido.UI
         struct Toast { public string Text; public float Until; }
 
         HudContext _c;
+        Text _questTitle, _questProgress;
         Text _energyText, _packText, _moneyText, _timeText, _prompt, _digMessage, _toastText, _speedText, _help;
         RectTransform _energyFill, _packFill, _signalFill, _digFill, _fuelFill;
         GameObject _digRoot, _vehicleRoot, _signalRoot;
@@ -55,6 +57,16 @@ namespace HuesoOxido.UI
             _packFill = BarAt(status.transform, 92f, UiFactory.Accent);
             _moneyText = Line(status.transform, 122f, "");
             _timeText = Line(status.transform, 152f, "");
+
+            // Mision (debajo del panel de estado, sin superponerse)
+            var quest = UiFactory.Panel(root, "Quest", new Color(0.04f, 0.04f, 0.03f, 0.55f));
+            UiFactory.Place(quest.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, -232f), new Vector2(430f, 86f));
+            var qHead = UiFactory.Label(quest.transform, "OBJETIVO", 13, UiFactory.Muted, TextAnchor.UpperLeft, FontStyle.Bold);
+            UiFactory.Place(qHead.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -6f), new Vector2(400f, 18f));
+            _questTitle = UiFactory.Label(quest.transform, "", 19, UiFactory.TextColor, TextAnchor.UpperLeft);
+            UiFactory.Place(_questTitle.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -26f), new Vector2(404f, 26f));
+            _questProgress = UiFactory.Label(quest.transform, "", 22, UiFactory.Accent, TextAnchor.UpperLeft, FontStyle.Bold);
+            UiFactory.Place(_questProgress.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -52f), new Vector2(404f, 28f));
 
             // Mira
             var cross = UiFactory.Panel(root, "Crosshair", new Color(1f, 1f, 1f, 0.7f));
@@ -142,6 +154,12 @@ namespace HuesoOxido.UI
         void Update()
         {
             if (_c == null) return;
+            if (_c.Quests != null && _c.Quests.HasQuest)
+            {
+                _questTitle.text = _c.Quests.TitleText;
+                _questProgress.text = _c.Quests.IsCompleted ? "¡Cumplida! " + _c.Quests.ProgressText : _c.Quests.ProgressText;
+                _questProgress.color = _c.Quests.IsCompleted ? UiFactory.Good : UiFactory.Accent;
+            }
             var e = _c.Energy;
             _energyText.text = "Energía  " + Mathf.CeilToInt(e.Current) + " / " + Mathf.CeilToInt(e.Max);
             UiFactory.SetBar(_energyFill, e.Fraction, e.Fraction < 0.25f ? UiFactory.Bad : UiFactory.Good);

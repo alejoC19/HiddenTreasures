@@ -48,6 +48,8 @@ namespace HuesoOxido.Core
             foreach (var site in _c.World.Sites.Sites) _initialHints[site.SiteId] = site.HasHint;
 
             _c.Dig.FindUnearthed += OnFound;
+            _s.Quests.Completed += OnQuestCompleted;
+            if (!_s.Quests.HasQuest) _s.Quests.Start(QuestManager.RelicHunt());
             _c.Dig.Stroke += pos => DirtBit.Burst(pos + Vector3.up * 0.1f, 5, _dirt);
             _c.Services.Energy.Exhausted += OnExhausted;
             _c.EnergyComp.HardLanding += loss => _s.Notifier.Post("Caída fuerte: perdiste " + Mathf.RoundToInt(loss) + " de energía");
@@ -111,6 +113,9 @@ namespace HuesoOxido.Core
             string tail = res.IsDuplicate ? "duplicado" : "¡nueva en tu colección!";
             string msg = "¡Hallazgo! <color=#" + color + ">" + name + "</color> (" + rarity + ") · " + tail;
 
+            if (_s.Quests.ReportFind(item.DefinitionId) && !_s.Quests.IsCompleted)
+                _s.Notifier.Post("Misión: " + _s.Quests.ProgressText);
+
             if (_s.Backpack.TryAdd(item)) _s.Notifier.Post(msg);
             else
             {
@@ -118,6 +123,12 @@ namespace HuesoOxido.Core
                 _s.Notifier.Post(msg);
                 _s.Notifier.Post("Mochila llena: la pieza quedó en el suelo.");
             }
+        }
+
+        void OnQuestCompleted(QuestDefinition quest)
+        {
+            _s.Wallet.Add(quest.RewardMoney);
+            _s.Notifier.Post("<color=#" + UiFactory.Hex(UiFactory.Good) + ">¡Misión cumplida!</color> " + quest.Title + " · recompensa $" + quest.RewardMoney);
         }
 
         void OnExhausted()
@@ -235,6 +246,7 @@ namespace HuesoOxido.Core
             _s.Weather.Set(WeatherKind.Clear);
             _s.Fuel.SetLevel(_s.Fuel.CapacityLiters);
             foreach (var site in _c.World.Sites.Sites) site.RestoreState(false, _initialHints[site.SiteId]);
+            _s.Quests.Start(QuestManager.RelicHunt());
             ClearPickups();
             _faintMarkerActive = false;
             _c.Motor.Teleport(_c.World.PlayerSpawn, 200f);
@@ -266,6 +278,7 @@ namespace HuesoOxido.Core
                 data.Weather = (int)s.Weather.Current;
                 data.Fuel = s.Fuel.Level;
                 data.ExcavatedSites.AddRange(c.World.Sites.ExcavatedIds());
+                if (s.Quests.HasQuest) { data.QuestId = s.Quests.Current.Id; data.QuestProgress = s.Quests.Progress; data.QuestCompleted = s.Quests.IsCompleted; }
 
                 data.HasPositions = true;
                 var vp = c.Vehicle.transform;
@@ -313,6 +326,9 @@ namespace HuesoOxido.Core
                 s.Clock.Set(data.Hour, data.Day);
                 s.Weather.Set((WeatherKind)Mathf.Clamp(data.Weather, 0, 3));
                 if (data.Fuel >= 0f) s.Fuel.SetLevel(data.Fuel);
+
+                if (!string.IsNullOrEmpty(data.QuestId)) s.Quests.Restore(data.QuestId, data.QuestProgress, data.QuestCompleted);
+                else s.Quests.Start(QuestManager.RelicHunt());
 
                 var done = new HashSet<string>(data.ExcavatedSites);
                 foreach (var site in c.World.Sites.Sites) site.RestoreState(done.Contains(site.SiteId), _d._initialHints[site.SiteId]);

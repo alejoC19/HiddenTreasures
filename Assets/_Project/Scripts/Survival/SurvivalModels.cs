@@ -139,10 +139,10 @@ namespace HuesoOxido.Survival
             {
                 switch (Current)
                 {
-                    case WeatherKind.Fog: return 0.028f;
-                    case WeatherKind.Rain: return 0.011f;
-                    case WeatherKind.Cloudy: return 0.004f;
-                    default: return 0.0022f;
+                    case WeatherKind.Fog: return 0.036f;
+                    case WeatherKind.Rain: return 0.017f;
+                    case WeatherKind.Cloudy: return 0.0115f;
+                    default: return 0.0085f; // bosque profundo: a ~150 m ya casi no se ve (el borde del mapa queda oculto)
                 }
             }
         }

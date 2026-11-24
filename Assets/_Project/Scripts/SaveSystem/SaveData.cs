@@ -48,6 +48,10 @@ namespace HuesoOxido.SaveSystem
         public Vec3Dto Vehicle = new Vec3Dto();
         public bool HasPositions;
         public List<GroundItemDto> GroundItems = new List<GroundItemDto>();
+        // Mision actual
+        public string QuestId;
+        public int QuestProgress;
+        public bool QuestCompleted;
     }
 
     public static class SaveMigrator

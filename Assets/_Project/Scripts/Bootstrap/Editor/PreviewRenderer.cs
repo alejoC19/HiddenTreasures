@@ -69,8 +69,9 @@ namespace HuesoOxido.Core.EditorTools
             // El primer cuadro tras construir en modo edicion sale sin luz ambiente calculada: se descarta.
             st.Cam.transform.position = camp + Vector3.up * 3f; st.Day.ApplyNow(); DynamicGI.UpdateEnvironment();
             Capture(st.Cam, Path.Combine(dir, "_warmup.png")); File.Delete(Path.Combine(dir, "_warmup.png"));
-            bool onlyChar = System.Environment.GetEnvironmentVariable("HT_PREVIEW_ONLY") == "char";
-            if (!onlyChar)
+            string only = System.Environment.GetEnvironmentVariable("HT_PREVIEW_ONLY");
+            bool onlyChar = only == "char", onlyForest = only == "forest";
+            if (!onlyChar && !onlyForest)
             {
             Shot(st, dir, "01_campamento_hora_dorada", 17.2f, WeatherKind.Clear, camp + new Vector3(12f, 2.4f, -7f), camp + new Vector3(-1f, 1.6f, 6f), 62f);
             Shot(st, dir, "02_ruinas_hora_dorada", 17.4f, WeatherKind.Clear, ruins + new Vector3(7f, 2.6f, -21f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
@@ -83,7 +84,17 @@ namespace HuesoOxido.Core.EditorTools
             Shot(st, dir, "10_props_campamento", 17.4f, WeatherKind.Clear, camp + new Vector3(3f, 1.5f, 2.5f), camp + new Vector3(0.5f, 0.5f, 7f), 60f);
             Shot(st, dir, "11_fogata_cerca", 17.6f, WeatherKind.Clear, camp + new Vector3(2.2f, 1.3f, -4.4f), camp + new Vector3(0f, 0.3f, -1.5f), 55f);
             }
-            if (st.Char != null)
+            if (onlyForest || only == null || only == "")
+            {
+                // Bosque denso: a ras de suelo, dentro del follaje y con niebla profunda.
+                var road = camp + new Vector3(42f, 0f, 30f);
+                Shot(st, dir, "14_bosque_denso_camino", 17.0f, WeatherKind.Clear, camp + new Vector3(36f, 1.8f, 24f), ruins + new Vector3(-6f, 3f, -20f), 66f);
+                Shot(st, dir, "15_bosque_interior", 16.6f, WeatherKind.Clear, OnGround(st, -20f, 30f, 1.7f), OnGround(st, 10f, 60f, 2.5f), 70f);
+                Shot(st, dir, "16_vista_aerea_densa", 17.5f, WeatherKind.Clear, new Vector3(-150f, 95f, -150f), new Vector3(0f, 8f, 0f), 60f);
+                Shot(st, dir, "17_bosque_niebla", 8.0f, WeatherKind.Fog, camp + new Vector3(36f, 1.8f, 24f), ruins + new Vector3(-6f, 3f, -20f), 66f);
+                Shot(st, dir, "18_borde_del_mapa", 17.2f, WeatherKind.Clear, OnGround(st, 110f, 0f, 1.8f), OnGround(st, 160f, 0f, 6f), 66f);
+            }
+            if (!onlyForest && st.Char != null)
             {
                 Vector3 pp = st.Player.transform.position;
                 PoseCharacter(st, false);
@@ -164,6 +175,8 @@ namespace HuesoOxido.Core.EditorTools
                 BakedClones.Add(go);
             }
         }
+
+        static Vector3 OnGround(Stage st, float x, float z, float height) => new Vector3(x, st.World.HeightAt(x, z) + height, z);
 
         static void PoseCharacter(Stage st, bool digging)
         {

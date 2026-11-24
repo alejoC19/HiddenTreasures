@@ -26,6 +26,7 @@ namespace HuesoOxido.Core
         public readonly UpgradeService Upgrades = new UpgradeService(DefaultUpgrades.Create());
         public readonly PermitService Permits = new PermitService(new[] { PermitService.ForestRuins });
         public readonly CollectionLog Collection = new CollectionLog();
+        public readonly QuestManager Quests = new QuestManager();
         public readonly InventoryModel Backpack;
         public readonly InventoryModel Trunk;
         public readonly EnergyModel Energy = new EnergyModel(BaseEnergy);

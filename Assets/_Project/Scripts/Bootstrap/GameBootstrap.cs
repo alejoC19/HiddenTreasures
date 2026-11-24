@@ -140,7 +140,7 @@ namespace HuesoOxido.Core
             hud.Initialize(canvas, new HudContext
             {
                 Energy = s.Energy, Backpack = s.Backpack, Wallet = s.Wallet, Clock = s.Clock, Weather = s.Weather,
-                Detector = ctx.Detector, Dig = ctx.Dig, Sensor = ctx.Sensor, Vehicle = ctx.Vehicle, Notifier = s.Notifier, Input = ctx.Input,
+                Detector = ctx.Detector, Dig = ctx.Dig, Sensor = ctx.Sensor, Vehicle = ctx.Vehicle, Notifier = s.Notifier, Input = ctx.Input, Quests = s.Quests,
             });
 
             var inventory = uiGo.AddComponent<InventoryView>();

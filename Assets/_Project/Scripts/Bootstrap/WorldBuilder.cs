@@ -20,6 +20,8 @@ namespace HuesoOxido.Core
         Vector2 _camp = new Vector2(WorldLayout.CampX, WorldLayout.CampZ);
         Vector2 _ruins = new Vector2(WorldLayout.RuinsX, WorldLayout.RuinsZ);
         readonly List<Vector2> _treePositions = new List<Vector2>();
+        InstancedVegetation _veg;
+        public const int MaxTrees = 1500;
         float[,] _forestMask;
         const int MapRes = 256;
 
@@ -35,9 +37,13 @@ namespace HuesoOxido.Core
             data.Ground = GroundBuilder.BuildMesh(_field, parent);
             BuildBounds(parent);
             BuildSkirt(parent);
+            _veg = new GameObject("Vegetation").AddComponent<InstancedVegetation>();
+            _veg.transform.SetParent(parent, false);
             ScatterTrees(parent);
             ScatterRocks(parent);
-            new VegetationBuilder(_field, _forestMask, _noise, _seed).Build(parent);
+            new VegetationBuilder(_field, _forestMask, _noise, _seed).Build(parent, _veg);
+            _veg.Finish();
+            Debug.Log("[VEG] instancias GPU totales=" + _veg.InstanceCount + " en " + _veg.LayerCount + " capas");
             BuildRuins(parent, data);
             var camp = CampBuilder.Build(parent, GroundAt(_camp), data, clock);
             data.CampPosition = camp;
@@ -92,16 +98,6 @@ namespace HuesoOxido.Core
         float RoadDistance(Vector2 xz) => _field.Road != null ? _field.Road.DistanceTo(xz.x, xz.y) : 99f;
 
         // ---------- Arboles ----------
-        sealed class Chunk
-        {
-            public readonly Dictionary<string, List<CombineInstance>> Lists = new Dictionary<string, List<CombineInstance>>();
-            public void Add(string key, Mesh m, Matrix4x4 t)
-            {
-                if (!Lists.TryGetValue(key, out var l)) { l = new List<CombineInstance>(); Lists[key] = l; }
-                l.Add(new CombineInstance { mesh = m, transform = t });
-            }
-        }
-
         void ScatterTrees(Transform parent)
         {
             var root = new GameObject("Forest").transform;
@@ -125,53 +121,71 @@ namespace HuesoOxido.Core
                 { "broad_autumn", ArtMaterials.Foliage(leafTex[0], new Color(1f, 0.62f, 0.32f), "bA") },
             };
 
-            var chunks = new Dictionary<Vector2Int, Chunk>();
+            // Una capa instanciada por (malla, material): troncos y copas de cada variante.
+            var treeLayers = new Dictionary<string, InstancedVegetation.Layer>();
+            const float treeDist = 280f;
+            for (int i = 0; i < conifers.Length; i++)
+            {
+                treeLayers["pt" + i] = _veg.AddLayer("pine_trunk_" + i, conifers[i].Trunk, mats["bark_pine"], treeDist, true, true);
+                treeLayers["pa" + i] = _veg.AddLayer("pine_a_" + i, conifers[i].Foliage, mats["conifer_a"], treeDist, true, true);
+                treeLayers["pb" + i] = _veg.AddLayer("pine_b_" + i, conifers[i].Foliage, mats["conifer_b"], treeDist, true, true);
+            }
+            for (int i = 0; i < broads.Length; i++)
+            {
+                treeLayers["bt" + i] = _veg.AddLayer("broad_trunk_" + i, broads[i].Trunk, mats["bark_broad"], treeDist, true, true);
+                treeLayers["bg" + i] = _veg.AddLayer("broad_green_" + i, broads[i].Foliage, mats["broad_green"], treeDist, true, true);
+                treeLayers["by" + i] = _veg.AddLayer("broad_yellow_" + i, broads[i].Foliage, mats["broad_yellow"], treeDist, true, true);
+                treeLayers["ba" + i] = _veg.AddLayer("broad_autumn_" + i, broads[i].Foliage, mats["broad_autumn"], treeDist, true, true);
+            }
+
             var grid = new Dictionary<Vector2Int, Vector2>();
-            const float cell = 4.4f;
+            const float cell = 3.6f;
             var colliders = new GameObject("TreeColliders").transform;
             colliders.SetParent(root, false);
 
-            for (int attempt = 0; attempt < 4200 && _treePositions.Count < 520; attempt++)
+            for (int attempt = 0; attempt < 16000 && _treePositions.Count < MaxTrees; attempt++)
             {
-                var p = new Vector2(Rnd(-Size * 0.485f, Size * 0.485f), Rnd(-Size * 0.485f, Size * 0.485f));
+                var p = new Vector2(Rnd(-Size * 0.495f, Size * 0.495f), Rnd(-Size * 0.495f, Size * 0.495f));
                 if (Vector2.Distance(p, _camp) < 24f) continue;
                 if (Vector2.Distance(p, _ruins) < 12f) continue;
                 float edge = Mathf.Max(Mathf.Abs(p.x), Mathf.Abs(p.y)) / (Size * 0.5f);
                 if (RoadDistance(p) < 4.8f) continue;
                 if (edge < 0.8f && Slope(p) > 26f) continue;
                 float clearing = _noise.Noise(p.x * 0.03f + _seed, p.y * 0.03f);
-                if (edge < 0.85f && clearing > 0.74f) continue;
+                // Claros mas escasos y pequeños: el bosque es denso; en el borde del mapa es una muralla de arboles.
+                if (edge < 0.85f && clearing > 0.84f) continue;
+                float minDist = edge > 0.78f ? 2.7f : 3.5f;
 
                 var cellKey = new Vector2Int(Mathf.FloorToInt(p.x / cell), Mathf.FloorToInt(p.y / cell));
                 bool blocked = false;
                 for (int dx = -1; dx <= 1 && !blocked; dx++)
                     for (int dz = -1; dz <= 1 && !blocked; dz++)
-                        if (grid.TryGetValue(new Vector2Int(cellKey.x + dx, cellKey.y + dz), out var other) && Vector2.Distance(other, p) < cell)
+                        if (grid.TryGetValue(new Vector2Int(cellKey.x + dx, cellKey.y + dz), out var other) && Vector2.Distance(other, p) < minDist)
                             blocked = true;
                 if (blocked) continue;
                 grid[cellKey] = p;
                 _treePositions.Add(p);
 
                 var g = GroundAt(p);
-                float scale = Rnd(0.8f, 1.3f);
+                float scale = Rnd(0.8f, 1.3f) * (edge > 0.85f ? Rnd(1.05f, 1.35f) : 1f);
                 var rot = Quaternion.Euler(0f, Rnd(0f, 360f), 0f);
                 var m = Matrix4x4.TRS(g - Vector3.up * 0.15f, rot, Vector3.one * scale);
-                var chunkKey = new Vector2Int(Mathf.FloorToInt((p.x + Size * 0.5f) / 80f), Mathf.FloorToInt((p.y + Size * 0.5f) / 80f));
-                if (!chunks.TryGetValue(chunkKey, out var ch)) { ch = new Chunk(); chunks[chunkKey] = ch; }
 
                 TreeVariant v;
                 if (_rng.NextDouble() < 0.68)
                 {
-                    v = conifers[_rng.Next(conifers.Length)];
-                    ch.Add("bark_pine", v.Trunk, m);
-                    ch.Add(_rng.NextDouble() < 0.5 ? "conifer_a" : "conifer_b", v.Foliage, m);
+                    int vi = _rng.Next(conifers.Length);
+                    v = conifers[vi];
+                    _veg.Add(treeLayers["pt" + vi], m);
+                    _veg.Add(treeLayers[(_rng.NextDouble() < 0.5 ? "pa" : "pb") + vi], m);
                 }
                 else
                 {
-                    v = broads[_rng.Next(broads.Length)];
+                    int vi = _rng.Next(broads.Length);
+                    v = broads[vi];
                     double r = _rng.NextDouble();
-                    ch.Add("bark_broad", v.Trunk, m);
-                    ch.Add(r < 0.78 ? "broad_green" : (r < 0.94 ? "broad_yellow" : "broad_autumn"), v.Foliage, m);
+                    _veg.Add(treeLayers["bt" + vi], m);
+                    _veg.Add(treeLayers[(r < 0.78 ? "bg" : (r < 0.94 ? "by" : "ba")) + vi], m);
                 }
 
                 var col = new GameObject("T").AddComponent<CapsuleCollider>();
@@ -181,24 +195,7 @@ namespace HuesoOxido.Core
                 col.height = 3.2f;
                 MarkForest(p, 2);
             }
-
-            foreach (var kv in chunks)
-                foreach (var l in kv.Value.Lists)
-                    Emit(root, l.Key, l.Value, mats[l.Key], l.Key.StartsWith("bark"));
-        }
-
-        static void Emit(Transform parent, string name, List<CombineInstance> list, Material mat, bool castShadows)
-        {
-            if (list.Count == 0) return;
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var mesh = new Mesh { name = name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
-            mesh.CombineMeshes(list.ToArray(), true, true);
-            go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var r = go.AddComponent<MeshRenderer>();
-            r.sharedMaterial = mat;
-            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
-            go.isStatic = true;
+            Debug.Log("[VEG] arboles=" + _treePositions.Count);
         }
 
         float Rnd(float a, float b) => a + (float)_rng.NextDouble() * (b - a);
@@ -343,7 +340,7 @@ namespace HuesoOxido.Core
             Add(root, data, placed, _ruins + new Vector2(-3.2f, -10.5f), "expedition_journal", "forest_site_journal", 0.7f, true);
 
             var picks = new List<IItemInfo>();
-            foreach (var i in items) if (i.Id != "golden_torc" && i.Id != "expedition_journal") picks.Add(i);
+            foreach (var i in items) if (i.Id != "golden_torc" && i.Id != "expedition_journal" && !i.Id.StartsWith(QuestManager.RelicPrefix, System.StringComparison.Ordinal)) picks.Add(i);
 
             int n = 0;
             for (int attempt = 0; attempt < 900 && n < 28; attempt++)
@@ -358,6 +355,32 @@ namespace HuesoOxido.Core
                 var info = LootTable.Pick(picks, _rng);
                 Add(root, data, placed, p, info.Id, "forest_site_" + n.ToString("00"), 0.3f + (int)info.Rarity * 0.12f + Rnd(0f, 0.15f), _rng.NextDouble() < 0.5);
                 n++;
+            }
+            PlaceRelics(root, data, placed, items);
+        }
+
+        /// <summary>
+        /// Las reliquias de la mision principal: un sitio por reliquia, repartidos al azar por todo el mapa (alturas del terreno
+        /// reales), lejos del campamento, del camino y entre si, en suelo llano.
+        /// </summary>
+        void PlaceRelics(Transform root, WorldData data, List<Vector2> placed, IReadOnlyList<IItemInfo> items)
+        {
+            var relicPositions = new List<Vector2>();
+            int index = 0;
+            foreach (var info in items)
+            {
+                if (!info.Id.StartsWith(QuestManager.RelicPrefix, System.StringComparison.Ordinal)) continue;
+                for (int attempt = 0; attempt < 1500; attempt++)
+                {
+                    var p = new Vector2(Rnd(-Size * 0.4f, Size * 0.4f), Rnd(-Size * 0.4f, Size * 0.4f));
+                    if (Vector2.Distance(p, _camp) < 55f || Vector2.Distance(p, _ruins) < 14f) continue;
+                    if (Slope(p) > 20f || RoadDistance(p) < 3f) continue;
+                    if (TooClose(relicPositions, p, 55f) || TooClose(placed, p, 6f) || NearTree(p, 1.8f)) continue;
+                    Add(root, data, placed, p, info.Id, "relic_site_" + index.ToString("00"), 0.6f, false);
+                    relicPositions.Add(p);
+                    break;
+                }
+                index++;
             }
         }
 
