@@ -28,6 +28,8 @@ namespace HuesoOxido.Core
         bool _faintMarkerActive;
         bool _wasInCamp = true;
         float _lastAutosave;
+        int _worldSeed = 1337;
+        public void SetWorldSeed(int seed) { _worldSeed = seed; }
 
         public IInventoryActions InventoryActions { get; private set; }
         public ISessionActions Session { get; private set; }
@@ -51,6 +53,7 @@ namespace HuesoOxido.Core
             _c.Dig.FindUnearthed += (_, __) => _c.PlayerState.Machine.NotifyFind();
             AddRelicMarkers();
             _s.Quests.Completed += OnQuestCompleted;
+            _s.Trade.Sold += OnSold;
             if (!_s.Quests.HasQuest) _s.Quests.Start(QuestManager.RelicHunt());
             _c.Dig.Stroke += pos => DirtBit.Burst(pos + Vector3.up * 0.1f, 5, _dirt);
             _c.Services.Energy.Exhausted += OnExhausted;
@@ -143,6 +146,14 @@ namespace HuesoOxido.Core
                     Visible = () => captured.Excavated,
                 });
             }
+        }
+
+        /// <summary>Al vender: aviso con el total y guardado automatico (el dinero y el inventario quedan a salvo).</summary>
+        void OnSold(int total, int count)
+        {
+            _s.Notifier.Post("Vendiste " + count + (count == 1 ? " objeto" : " objetos") + " por <color=#" + UiFactory.Hex(UiFactory.Accent) + ">$" + total + "</color>");
+            _c.Save.Save();
+            _lastAutosave = Time.time;
         }
 
         void OnQuestCompleted(QuestDefinition quest)
@@ -287,18 +298,9 @@ namespace HuesoOxido.Core
             public void Capture(SaveData data)
             {
                 var s = _d._s; var c = _d._c;
-                data.Money = s.Wallet.Money;
-                foreach (var i in s.Backpack.Items) data.Backpack.Add(ToDto(i));
-                foreach (var i in s.Trunk.Items) data.Trunk.Add(ToDto(i));
-                foreach (var kv in s.Upgrades.Snapshot()) data.Upgrades.Add(new UpgradeLevelDto { Id = kv.Key, Level = kv.Value });
-                data.Permits.AddRange(s.Permits.Snapshot());
-                foreach (var e in s.Collection.Entries) data.Collection.Add(new CollectionEntryDto { Id = e.Id, TimesFound = e.TimesFound, Displayed = e.Displayed });
-                data.Energy = s.Energy.Current;
-                data.Hour = s.Clock.Hour; data.Day = s.Clock.Day;
-                data.Weather = (int)s.Weather.Current;
-                data.Fuel = s.Fuel.Level;
+                GameSaveCodec.Capture(data, s.SaveState);
+                data.WorldSeed = _d._worldSeed;
                 data.ExcavatedSites.AddRange(c.World.Sites.ExcavatedIds());
-                if (s.Quests.HasQuest) { data.QuestId = s.Quests.Current.Id; data.QuestProgress = s.Quests.Progress; data.QuestCompleted = s.Quests.IsCompleted; }
 
                 data.HasPositions = true;
                 var vp = c.Vehicle.transform;
@@ -327,28 +329,9 @@ namespace HuesoOxido.Core
                 if (c.Vehicle.HasDriver) c.Vehicle.ExitVehicle();
                 c.Ui.CloseAll();
 
-                var levels = new Dictionary<string, int>();
-                foreach (var u in data.Upgrades) levels[u.Id] = u.Level;
-                s.Upgrades.Restore(levels);
-                _d.ApplyUpgrades();
-
-                s.Wallet.Set(data.Money);
-                var pack = new List<ItemInstance>(); foreach (var i in data.Backpack) pack.Add(FromDto(i));
-                var trunk = new List<ItemInstance>(); foreach (var i in data.Trunk) trunk.Add(FromDto(i));
-                s.Backpack.ReplaceAll(pack);
-                s.Trunk.ReplaceAll(trunk);
-                s.Permits.Restore(data.Permits);
-                var col = new List<CollectionEntry>();
-                foreach (var e in data.Collection) col.Add(new CollectionEntry { Id = e.Id, TimesFound = e.TimesFound, Displayed = e.Displayed });
-                s.Collection.Restore(col);
-
-                if (data.Energy >= 0f) s.Energy.Set(data.Energy); else s.Energy.RestoreFull();
-                s.Clock.Set(data.Hour, data.Day);
-                s.Weather.Set((WeatherKind)Mathf.Clamp(data.Weather, 0, 3));
-                if (data.Fuel >= 0f) s.Fuel.SetLevel(data.Fuel);
-
-                if (!string.IsNullOrEmpty(data.QuestId)) s.Quests.Restore(data.QuestId, data.QuestProgress, data.QuestCompleted);
-                else s.Quests.Start(QuestManager.RelicHunt());
+                GameSaveCodec.Restore(data, s.SaveState, _d.ApplyUpgrades);
+                if (data.WorldSeed != 0 && data.WorldSeed != _d._worldSeed)
+                    Debug.LogWarning("[Guardado] La partida se creo con otra semilla de mundo (" + data.WorldSeed + "): los sitios excavados pueden no coincidir.");
 
                 var done = new HashSet<string>(data.ExcavatedSites);
                 foreach (var site in c.World.Sites.Sites) site.RestoreState(done.Contains(site.SiteId), _d._initialHints[site.SiteId]);

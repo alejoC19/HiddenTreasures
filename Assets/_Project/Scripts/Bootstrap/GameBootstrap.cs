@@ -97,6 +97,7 @@ namespace HuesoOxido.Core
                 () => 1f + s.Upgrades.Bonus(Economy.UpgradeKind.DigSpeed), worldSeed + 99);
             systems.AddComponent<FootprintSystem>().Initialize(ctx.Motor, ctx.Player.transform, ctx.World);
             ctx.PlayerState = ctx.Player.AddComponent<PlayerStateDriver>();
+            systems.AddComponent<GameAudio>().Initialize(ctx.Player.transform, ctx.Motor, ctx.World, s.Clock, s.Weather, ctx.Dig, ctx.PlayerState.Machine, s.Trade);
             ctx.PlayerState.Initialize(ctx.Motor, ctx.Dig, ctx.Character);
             animator.Initialize(ctx.Character, ctx.Motor, ctx.Dig);
             animator.Machine = ctx.PlayerState.Machine;
@@ -116,7 +117,10 @@ namespace HuesoOxido.Core
             ctx.Ui.Initialize(ctx.Input);
             var director = uiGo.AddComponent<GameDirector>();
             director.Prepare(ctx);
+            director.SetWorldSeed(worldSeed);
             BuildUi(ctx, uiGo, director, allItems);
+            var cinematic = systems.AddComponent<MenuCinematic>();
+            cinematic.Initialize(ctx.Cam, ctx.Ui, ctx.World.CampPosition + new Vector3(0f, 0f, -1.5f), ctx.World.HeightAt);
             director.Begin();
             Context = ctx;
         }
@@ -152,7 +156,7 @@ namespace HuesoOxido.Core
             hud.Initialize(canvas, new HudContext
             {
                 Energy = s.Energy, Backpack = s.Backpack, Wallet = s.Wallet, Clock = s.Clock, Weather = s.Weather,
-                Detector = ctx.Detector, Dig = ctx.Dig, Sensor = ctx.Sensor, Vehicle = ctx.Vehicle, Notifier = s.Notifier, Input = ctx.Input, Quests = s.Quests, PlayerFsm = ctx.PlayerState.Machine,
+                Detector = ctx.Detector, Dig = ctx.Dig, Sensor = ctx.Sensor, Vehicle = ctx.Vehicle, Notifier = s.Notifier, Input = ctx.Input, Quests = s.Quests, PlayerFsm = ctx.PlayerState.Machine, Hidden = () => ctx.Ui.MenuMode == MenuView.Mode.Main,
             });
 
             var inventory = uiGo.AddComponent<InventoryView>();

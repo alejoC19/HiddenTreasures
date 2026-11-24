@@ -137,6 +137,12 @@ namespace HuesoOxido.UI
 
         void BuildSell()
         {
+            // Resumen: todo lo vendible (mochila + baul) y cuanto vale en total.
+            int grandTotal = 0, grandCount = 0;
+            foreach (var (_, inv0) in Sources())
+                foreach (var it0 in inv0.Items) { int pr = _d.Trade.PriceOf(it0); if (pr > 0) { grandTotal += pr; grandCount++; } }
+            UiFactory.Label(_content, "Tus hallazgos valen <b><color=#" + UiFactory.Hex(UiFactory.Accent) + ">$" + grandTotal + "</color></b>  (" + grandCount + " objetos)  ·  Dinero: $" + _d.Wallet.Money, 20, UiFactory.TextColor);
+
             bool any = false;
             foreach (var (source, inv) in Sources())
             {
@@ -144,10 +150,12 @@ namespace HuesoOxido.UI
                 any = true;
                 int total = 0;
                 foreach (var it in inv.Items) total += _d.Trade.PriceOf(it);
-                Header(source);
+                Header(source + "  ·  " + inv.TotalWeight.ToString("0.0") + " kg");
                 var inv2 = inv;
                 Row("Vender todo de " + source.ToLower() + " (" + inv.Items.Count + " objetos)", "Todo  $" + total, () => _d.Trade.SellAll(inv2));
-                foreach (var it in new List<ItemInstance>(inv.Items))
+                var sorted = new List<ItemInstance>(inv.Items);
+                sorted.Sort((x, y) => _d.Trade.PriceOf(y).CompareTo(_d.Trade.PriceOf(x)));   // lo mas valioso primero
+                foreach (var it in sorted)
                 {
                     var item = it;
                     Row(Name(item), "Vender  $" + _d.Trade.PriceOf(item), () => _d.Trade.Sell(inv2, item.Uid));

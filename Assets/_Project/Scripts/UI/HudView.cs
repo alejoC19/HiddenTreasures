@@ -29,6 +29,8 @@ namespace HuesoOxido.UI
         public GameInput Input;
         public QuestManager Quests;
         public PlayerStateMachine PlayerFsm;
+        /// <summary>Oculta todo el HUD (p. ej. detras del menu principal cinematico).</summary>
+        public Func<bool> Hidden;
     }
 
     public sealed class HudView : MonoBehaviour
@@ -36,6 +38,7 @@ namespace HuesoOxido.UI
         struct Toast { public string Text; public float Until; }
 
         HudContext _c;
+        GameObject _hudRoot;
         Text _questTitle, _questProgress;
         Text _energyText, _packText, _moneyText, _timeText, _prompt, _digMessage, _toastText, _speedText, _help;
         RectTransform _energyFill, _packFill, _signalFill, _digFill, _fuelFill;
@@ -47,6 +50,7 @@ namespace HuesoOxido.UI
             _c = ctx;
             var root = UiFactory.Rect("HUD", canvas);
             UiFactory.Stretch(root);
+            _hudRoot = root.gameObject;
 
             // Panel de estado (arriba a la izquierda)
             var status = UiFactory.Panel(root, "Status", new Color(0.04f, 0.04f, 0.03f, 0.55f));
@@ -155,6 +159,9 @@ namespace HuesoOxido.UI
         void Update()
         {
             if (_c == null) return;
+            bool hide = _c.Hidden != null && _c.Hidden();
+            if (_hudRoot != null && _hudRoot.activeSelf == hide) _hudRoot.SetActive(!hide);
+            if (hide) return;
             if (_c.Quests != null && _c.Quests.HasQuest)
             {
                 _questTitle.text = _c.Quests.TitleText;

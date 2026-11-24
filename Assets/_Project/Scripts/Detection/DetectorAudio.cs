@@ -1,4 +1,5 @@
 using UnityEngine;
+using HuesoOxido.Core;
 
 namespace HuesoOxido.Detection
 {
@@ -22,18 +23,12 @@ namespace HuesoOxido.Detection
             _beep = BuildBeep();
         }
 
+        const float BaseHz = 660f;
+
         static AudioClip BuildBeep()
         {
-            const int rate = 22050;
-            int n = (int)(rate * 0.12f);
-            var data = new float[n];
-            for (int i = 0; i < n; i++)
-            {
-                float t = i / (float)rate;
-                float env = Mathf.Clamp01(i / 120f) * Mathf.Clamp01((n - i) / 600f);
-                data[i] = Mathf.Sin(2f * Mathf.PI * 880f * t) * env * 0.8f;
-            }
-            var clip = AudioClip.Create("detector_beep", n, 1, rate, false);
+            var data = ProceduralSounds.Beep(BaseHz, 0.12f);
+            var clip = AudioClip.Create("detector_beep", data.Length, 1, ProceduralSounds.Rate, false);
             clip.SetData(data, 0);
             return clip;
         }
@@ -46,9 +41,10 @@ namespace HuesoOxido.Detection
 
             _timer -= Time.deltaTime;
             if (_timer > 0f) return;
-            _src.pitch = Mathf.Lerp(0.7f, 1.9f, s);
+            // Mas cerca: bip mas agudo (520 -> 1500 Hz) y mas rapido (1,1 s -> 0,07 s entre bips).
+            _src.pitch = ProceduralSounds.DetectorFrequency(s) / BaseHz;
             _src.PlayOneShot(_beep, volume * Mathf.Lerp(0.5f, 1f, s));
-            _timer = Mathf.Lerp(1.1f, 0.07f, Mathf.Pow(s, 0.8f));
+            _timer = ProceduralSounds.DetectorInterval(s);
         }
     }
 }

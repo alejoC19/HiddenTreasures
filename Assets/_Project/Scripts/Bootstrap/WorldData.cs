@@ -22,6 +22,14 @@ namespace HuesoOxido.Core
             return dr < 9f;
         }
 
+        /// <summary>Superficie bajo los pies: piedra en las ruinas, tierra en camino/campamento, pasto en el resto.</summary>
+        public SurfaceKind SurfaceAt(float x, float z)
+        {
+            float dr = Mathf.Sqrt((x - RuinsCenter.x) * (x - RuinsCenter.x) + (z - RuinsCenter.z) * (z - RuinsCenter.z));
+            if (dr < 8f) return SurfaceKind.Stone;
+            return IsSoftGround(x, z) ? SurfaceKind.Dirt : SurfaceKind.Grass;
+        }
+
         public Vector3 CampPosition;
         public Vector3 RuinsCenter;
         public Vector3 PlayerSpawn;

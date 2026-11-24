@@ -33,7 +33,7 @@ namespace HuesoOxido.UI
         IMenuActions _a;
         GameObject _root;
         RectTransform _column;
-        Image _dim;
+        Image _dim, _side;
         Mode _mode = Mode.None, _before = Mode.Main;
 
         public Mode Current => _mode;
@@ -45,6 +45,9 @@ namespace HuesoOxido.UI
             _dim = UiFactory.Panel(canvas, "MenuView", new Color(0.02f, 0.02f, 0.015f, 0.8f));
             _root = _dim.gameObject;
             UiFactory.Stretch(_dim.rectTransform);
+            // Franja oscura a la izquierda (solo menu principal): deja ver la escena cinematica a la derecha.
+            _side = UiFactory.Panel(_dim.transform, "Side", new Color(0.02f, 0.02f, 0.015f, 0.62f));
+            UiFactory.Region(_side.rectTransform, 0f, 0f, 0.44f, 1f);
             _column = UiFactory.Rect("Column", _dim.transform);
             UiFactory.Place(_column, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 760f));
             var v = _column.gameObject.AddComponent<VerticalLayoutGroup>();
@@ -68,7 +71,11 @@ namespace HuesoOxido.UI
         void Show()
         {
             _root.SetActive(true);
-            _dim.color = _mode == Mode.Main ? new Color(0.02f, 0.02f, 0.015f, 0.72f) : new Color(0.02f, 0.02f, 0.015f, 0.82f);
+            bool main = _mode == Mode.Main;
+            _dim.color = main ? new Color(0.02f, 0.02f, 0.015f, 0.12f) : new Color(0.02f, 0.02f, 0.015f, 0.82f);
+            _side.gameObject.SetActive(main);
+            if (main) UiFactory.Place(_column, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(110f, 0f), new Vector2(520f, 760f));
+            else UiFactory.Place(_column, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 760f));
             UiFactory.Clear(_column);
             switch (_mode)
             {
@@ -103,14 +110,17 @@ namespace HuesoOxido.UI
 
         void BuildMain()
         {
-            Title("HIDDEN TREASURES", 60, UiFactory.Accent, 90f);
-            Title("Expedición al Bosque de las Ruinas", 24, UiFactory.Muted, 40f);
-            Spacer(30f);
-            Btn("Continuar", () => _a.ContinueGame(), _a.HasSave);
-            Btn("Nueva partida", () => _a.StartNewGame());
+            Title("HIDDEN TREASURES", 58, UiFactory.Accent, 90f).alignment = TextAnchor.MiddleLeft;
+            Title("Expedición al Bosque de las Ruinas", 24, UiFactory.Muted, 40f).alignment = TextAnchor.MiddleLeft;
+            Spacer(40f);
+            var cont = Btn("Continuar", () => _a.ContinueGame(), _a.HasSave);
+            var fresh = Btn("Nueva partida", () => _a.StartNewGame());
             Btn("Controles", () => { _before = Mode.Main; _mode = Mode.Controls; Show(); });
             SensitivityRow();
             Btn("Salir", () => _a.QuitGame());
+            // Con partida guardada, "Continuar" queda seleccionado; si no, "Nueva partida".
+            var es = UnityEngine.EventSystems.EventSystem.current;
+            if (es != null) es.SetSelectedGameObject((_a.HasSave ? cont : fresh).gameObject);
         }
 
         void BuildPause()

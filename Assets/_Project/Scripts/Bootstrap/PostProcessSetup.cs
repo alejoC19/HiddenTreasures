@@ -46,11 +46,11 @@ namespace HuesoOxido.Core
                 Set(bloom, "tint", new Color(1f, 0.92f, 0.8f));
 
                 var color = Add("ColorAdjustments");
-                Set(color, "postExposure", 0.35f); Set(color, "contrast", 14f); Set(color, "saturation", 10f);
+                Set(color, "postExposure", 0.3f); Set(color, "contrast", 22f); Set(color, "saturation", 6f);
                 Set(color, "colorFilter", new Color(1f, 0.96f, 0.9f));
 
                 var vignette = Add("Vignette");
-                Set(vignette, "intensity", 0.22f); Set(vignette, "smoothness", 0.55f);
+                Set(vignette, "intensity", 0.32f); Set(vignette, "smoothness", 0.5f);
 
                 var tone = Add("Tonemapping");
                 SetEnum(tone, "mode", "ACES");

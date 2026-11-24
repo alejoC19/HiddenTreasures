@@ -2,7 +2,11 @@
   "name": "HuesoOxido.SaveSystem",
   "rootNamespace": "HuesoOxido.SaveSystem",
   "references": [
-    "HuesoOxido.Core"
+    "HuesoOxido.Core",
+    "HuesoOxido.Inventory",
+    "HuesoOxido.Economy",
+    "HuesoOxido.Collection",
+    "HuesoOxido.Survival"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

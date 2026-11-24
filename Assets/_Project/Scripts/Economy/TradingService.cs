@@ -12,6 +12,9 @@ namespace HuesoOxido.Economy
         readonly Wallet _wallet;
         readonly CollectionLog _collection;
 
+        /// <summary>Se dispara tras vender (total cobrado, cantidad de objetos). Lo usan el audio y el autoguardado.</summary>
+        public event Action<int, int> Sold;
+
         public TradingService(IItemLookup lookup, Wallet wallet, CollectionLog collection)
         {
             _lookup = lookup; _wallet = wallet; _collection = collection;
@@ -32,17 +35,21 @@ namespace HuesoOxido.Economy
             if (!from.Remove(uid, out var item)) return -1;
             int price = PriceOf(item);
             _wallet.Add(price);
+            Sold?.Invoke(price, 1);
             return price;
         }
 
         public int SellAll(InventoryModel from)
         {
-            int total = 0;
+            int total = 0, count = 0;
             foreach (var it in new System.Collections.Generic.List<ItemInstance>(from.Items))
             {
-                int p = Sell(from, it.Uid);
-                if (p > 0) total += p;
+                if (!from.Remove(it.Uid, out var removed)) continue;
+                int p = PriceOf(removed);
+                _wallet.Add(p);
+                total += p; count++;
             }
+            if (count > 0) Sold?.Invoke(total, count);
             return total;
         }
 

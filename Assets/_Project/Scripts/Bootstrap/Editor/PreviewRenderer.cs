@@ -92,6 +92,10 @@ namespace HuesoOxido.Core.EditorTools
                 Shot(st, dir, "15_bosque_interior", 16.6f, WeatherKind.Clear, OnGround(st, -20f, 30f, 1.7f), OnGround(st, 10f, 60f, 2.5f), 70f);
                 Shot(st, dir, "16_vista_aerea_densa", 17.5f, WeatherKind.Clear, new Vector3(-150f, 95f, -150f), new Vector3(0f, 8f, 0f), 60f);
                 Shot(st, dir, "17_bosque_niebla", 8.0f, WeatherKind.Fog, camp + new Vector3(36f, 1.8f, 24f), ruins + new Vector3(-6f, 3f, -20f), 66f);
+                MenuCinematic.Pose(camp + new Vector3(0f, 0f, -1.5f), st.World.HeightAt, 12f, out var mp, out var ml);
+                Shot(st, dir, "20_menu_cinematico_a", 17.0f, WeatherKind.Clear, mp, ml, 52f);
+                MenuCinematic.Pose(camp + new Vector3(0f, 0f, -1.5f), st.World.HeightAt, 45f, out mp, out ml);
+                Shot(st, dir, "21_menu_cinematico_b", 17.6f, WeatherKind.Clear, mp, ml, 52f);
                 Shot(st, dir, "18_borde_del_mapa", 17.2f, WeatherKind.Clear, OnGround(st, 110f, 0f, 1.8f), OnGround(st, 160f, 0f, 6f), 66f);
             }
             if (!onlyForest && st.Char != null)

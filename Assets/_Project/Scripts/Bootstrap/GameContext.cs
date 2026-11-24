@@ -35,6 +35,13 @@ namespace HuesoOxido.Core
         public readonly FuelTank Fuel = new FuelTank(BaseFuel);
         public readonly TradingService Trade;
 
+        /// <summary>Los modelos que forman la partida, para el guardado.</summary>
+        public SaveBundle SaveState => new SaveBundle
+        {
+            Wallet = Wallet, Backpack = Backpack, Trunk = Trunk, Upgrades = Upgrades, Permits = Permits, Collection = Collection,
+            Energy = Energy, Clock = Clock, Weather = Weather, Fuel = Fuel, Quests = Quests,
+        };
+
         public GameServices(int seed)
         {
             Backpack = new InventoryModel("Mochila", BaseBackpackKg, Catalog);

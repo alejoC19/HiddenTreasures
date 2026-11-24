@@ -49,6 +49,7 @@ namespace HuesoOxido.SaveSystem
         public bool HasPositions;
         public List<GroundItemDto> GroundItems = new List<GroundItemDto>();
         // Mision actual
+        public int WorldSeed;          // 0 = guardado viejo sin semilla
         public string QuestId;
         public int QuestProgress;
         public bool QuestCompleted;
