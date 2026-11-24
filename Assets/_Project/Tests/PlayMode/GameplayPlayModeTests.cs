@@ -44,7 +44,7 @@ namespace HuesoOxido.Tests.PlayMode
 
             _director = Object.FindFirstObjectByType<GameDirector>();
             Assert.NotNull(_director);
-            Assert.NotNull(C.World.Terrain, "terreno");
+            Assert.NotNull(C.World.Ground, "suelo"); Assert.NotNull(C.World.Field, "campo de alturas");
             Assert.GreaterOrEqual(C.World.Sites.Sites.Count, 25, "sitios enterrados");
             Assert.NotNull(C.Player); Assert.NotNull(C.Motor); Assert.NotNull(C.Rig); Assert.NotNull(C.Look);
             Assert.NotNull(C.Detector); Assert.NotNull(C.Dig); Assert.NotNull(C.Sensor); Assert.NotNull(C.Vehicle);
@@ -149,7 +149,7 @@ namespace HuesoOxido.Tests.PlayMode
             InputSystem.QueueStateEvent(_kb, new KeyboardState());
             float dist = Vector3.Distance(Flat(start), Flat(v.transform.position));
             Assert.Greater(dist, 6f, "el vehiculo no avanzo con W (suspension/traccion)");
-            Assert.Greater(v.transform.position.y, C.World.Terrain.SampleHeight(v.transform.position) - 1f, "el vehiculo atraveso el terreno");
+            Assert.Greater(v.transform.position.y, C.World.HeightAt(v.transform.position) - 1f, "el vehiculo atraveso el terreno");
             Assert.Less(Mathf.Abs(Vector3.Dot(v.transform.up, Vector3.up) - 1f), 0.4f, "el vehiculo volco al avanzar recto");
             Assert.Less(v.Fuel.Fraction, 1f, "no consumio combustible");
 

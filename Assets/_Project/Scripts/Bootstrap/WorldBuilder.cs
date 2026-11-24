@@ -10,152 +10,137 @@ namespace HuesoOxido.Core
     /// </summary>
     public sealed class WorldBuilder
     {
-        public const float Size = 320f;
-        public const float MaxHeight = 36f;
-        const int HeightRes = 257;
+        public const float Size = HeightField.Size;
         const string ZoneId = "forest_ruins";
 
         readonly System.Random _rng;
         readonly int _seed;
-        Terrain _terrain;
-        TerrainData _td;
-        Vector2 _camp = new Vector2(-70f, -70f);
-        Vector2 _ruins = new Vector2(55f, 45f);
+        readonly PerlinNoise _noise;
+        HeightField _field;
+        Vector2 _camp = new Vector2(WorldLayout.CampX, WorldLayout.CampZ);
+        Vector2 _ruins = new Vector2(WorldLayout.RuinsX, WorldLayout.RuinsZ);
         readonly List<Vector2> _treePositions = new List<Vector2>();
-        bool[,] _forestMask;
+        float[,] _forestMask;
         const int MapRes = 256;
 
-        public WorldBuilder(int seed) { _seed = seed; _rng = new System.Random(seed); }
+        public WorldBuilder(int seed) { _seed = seed; _rng = new System.Random(seed); _noise = new PerlinNoise(seed); }
 
-        public WorldData Build(IReadOnlyList<IItemInfo> items, Transform parent)
+        public WorldData Build(IReadOnlyList<IItemInfo> items, Transform parent, HuesoOxido.Survival.GameClock clock = null)
         {
             var data = new WorldData();
-            _forestMask = new bool[MapRes, MapRes];
-            BuildTerrain(parent, data);
+            _forestMask = new float[MapRes, MapRes];
+            data.Road = WorldLayout.CreateRoad(_noise);
+            _field = HeightField.Generate(_seed, WorldLayout.CampX, WorldLayout.CampZ, WorldLayout.RuinsX, WorldLayout.RuinsZ, data.Road);
+            data.Field = _field;
+            data.Ground = GroundBuilder.BuildMesh(_field, parent);
+            BuildBounds(parent);
+            BuildSkirt(parent);
             ScatterTrees(parent);
             ScatterRocks(parent);
+            new VegetationBuilder(_field, _forestMask, _noise, _seed).Build(parent);
             BuildRuins(parent, data);
-            var camp = CampBuilder.Build(parent, GroundAt(_camp), data);
+            var camp = CampBuilder.Build(parent, GroundAt(_camp), data, clock);
             data.CampPosition = camp;
             data.PlayerSpawn = GroundAt(_camp + new Vector2(4f, 5f)) + Vector3.up * 0.2f;
             data.VehicleSpawn = GroundAt(_camp + new Vector2(11f, 2f)) + Vector3.up * 1.2f;
             data.RuinsCenter = GroundAt(_ruins);
             PlaceSites(parent, data, items);
             BuildLighting(parent, data);
+            GroundBuilder.ApplyMaterial(data.Ground, _field, _forestMask, _noise);
             data.MapTexture = BuildMapTexture(data);
             data.MapBounds = new Rect(-Size * 0.5f, -Size * 0.5f, Size, Size);
             return data;
         }
 
-        // ---------- Terreno ----------
-        float Raw(float x, float z)
+        /// <summary>Plano enorme verde oscuro bajo el borde: desde las alturas no se ve el vacio fuera del mundo.</summary>
+        void BuildSkirt(Transform parent)
         {
-            float ox = _seed * 0.37f, oz = _seed * 0.61f;
-            float n = Mathf.PerlinNoise(ox + x * 3.1f, oz + z * 3.1f) * 0.6f
-                    + Mathf.PerlinNoise(ox + x * 8f, oz + z * 8f) * 0.28f
-                    + Mathf.PerlinNoise(ox + x * 21f, oz + z * 21f) * 0.07f;
-            return 0.12f + n * 0.3f;
-        }
-
-        float HeightAt01(float nx, float nz, float campH, float ruinsH)
-        {
-            float h = Raw(nx, nz);
-            float wx = (nx - 0.5f) * Size, wz = (nz - 0.5f) * Size;
-            float dc = Vector2.Distance(new Vector2(wx, wz), _camp);
-            float dr = Vector2.Distance(new Vector2(wx, wz), _ruins);
-            h = Mathf.Lerp(campH, h, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(20f, 48f, dc)));
-            h = Mathf.Lerp(ruinsH, h, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(26f, 52f, dr)));
-            return h;
-        }
-
-        void BuildTerrain(Transform parent, WorldData data)
-        {
-            _td = new TerrainData { heightmapResolution = HeightRes };
-            _td.size = new Vector3(Size, MaxHeight, Size);
-            float campH = Raw((_camp.x / Size) + 0.5f, (_camp.y / Size) + 0.5f);
-            float ruinsH = Raw((_ruins.x / Size) + 0.5f, (_ruins.y / Size) + 0.5f);
-            var heights = new float[HeightRes, HeightRes];
-            for (int z = 0; z < HeightRes; z++)
-                for (int x = 0; x < HeightRes; x++)
-                    heights[z, x] = HeightAt01(x / (HeightRes - 1f), z / (HeightRes - 1f), campH, ruinsH);
-            _td.SetHeights(0, 0, heights);
-
-            var grass = new TerrainLayer { diffuseTexture = ProceduralArt.NoiseTexture(256, new Color(0.17f, 0.25f, 0.10f), new Color(0.30f, 0.36f, 0.16f), 14f, _seed + 1, 1.4f), tileSize = new Vector2(7f, 7f) };
-            var dirt = new TerrainLayer { diffuseTexture = ProceduralArt.NoiseTexture(256, new Color(0.26f, 0.19f, 0.12f), new Color(0.40f, 0.31f, 0.20f), 10f, _seed + 2, 1.3f), tileSize = new Vector2(5f, 5f) };
-            _td.terrainLayers = new[] { grass, dirt };
-
-            int ar = 256;
-            _td.alphamapResolution = ar;
-            var alpha = new float[ar, ar, 2];
-            for (int y = 0; y < ar; y++)
-            {
-                for (int x = 0; x < ar; x++)
-                {
-                    float nx = x / (ar - 1f), ny = y / (ar - 1f);
-                    float steep = _td.GetSteepness(nx, ny);
-                    float wx = (nx - 0.5f) * Size, wz = (ny - 0.5f) * Size;
-                    float d = Mathf.Min(Vector2.Distance(new Vector2(wx, wz), _camp) / 18f, Vector2.Distance(new Vector2(wx, wz), _ruins) / 24f);
-                    float dirtW = Mathf.Clamp01((steep - 16f) / 14f) * 0.9f + (1f - Mathf.Clamp01(d)) * 0.7f
-                                  + Mathf.PerlinNoise(nx * 18f + _seed, ny * 18f) * 0.18f;
-                    dirtW = Mathf.Clamp01(dirtW);
-                    alpha[y, x, 0] = 1f - dirtW;
-                    alpha[y, x, 1] = dirtW;
-                }
-            }
-            _td.SetAlphamaps(0, 0, alpha);
-
-            var go = Terrain.CreateTerrainGameObject(_td);
-            go.name = "Terrain";
+            var go = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            go.name = "Skirt";
+            MaterialUtil.Dispose(go.GetComponent<Collider>());
             go.transform.SetParent(parent, false);
-            go.transform.position = new Vector3(-Size * 0.5f, 0f, -Size * 0.5f);
-            _terrain = go.GetComponent<Terrain>();
-            _terrain.drawInstanced = true;
-            _terrain.heightmapPixelError = 8f;
-            data.Terrain = _terrain;
+            go.transform.position = new Vector3(0f, 1f, 0f);
+            go.transform.localScale = new Vector3(400f, 1f, 400f);
+            var r = go.GetComponent<MeshRenderer>();
+            r.sharedMaterial = MaterialUtil.Lit(new Color(0.10f, 0.17f, 0.09f), 0.02f);
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
-        public Vector3 GroundAt(Vector2 xz)
+        /// <summary>Muros invisibles en el borde: el jugador y el vehiculo no pueden salir del mundo.</summary>
+        void BuildBounds(Transform parent)
         {
-            float y = _terrain.SampleHeight(new Vector3(xz.x, 0f, xz.y)) + _terrain.transform.position.y;
-            return new Vector3(xz.x, y, xz.y);
+            var root = new GameObject("WorldBounds").transform;
+            root.SetParent(parent, false);
+            float h = 90f, t = 6f, e = Size * 0.5f - 3f;
+            foreach (var (pos, scale) in new[] {
+                (new Vector3(0f, h * 0.5f, e + t * 0.5f), new Vector3(Size + 2f * t, h, t)),
+                (new Vector3(0f, h * 0.5f, -e - t * 0.5f), new Vector3(Size + 2f * t, h, t)),
+                (new Vector3(e + t * 0.5f, h * 0.5f, 0f), new Vector3(t, h, Size + 2f * t)),
+                (new Vector3(-e - t * 0.5f, h * 0.5f, 0f), new Vector3(t, h, Size + 2f * t)) })
+            {
+                var w = new GameObject("Wall").AddComponent<BoxCollider>();
+                w.transform.SetParent(root, false);
+                w.transform.localPosition = pos; w.size = scale;
+            }
         }
 
-        float Slope(Vector2 xz)
-        {
-            return _td.GetSteepness((xz.x + Size * 0.5f) / Size, (xz.y + Size * 0.5f) / Size);
-        }
+        // ---------- Suelo ----------
+        public Vector3 GroundAt(Vector2 xz) => new Vector3(xz.x, _field.HeightAt(xz.x, xz.y), xz.y);
+
+        float Slope(Vector2 xz) => _field.SlopeDegrees(xz.x, xz.y);
+
+        float RoadDistance(Vector2 xz) => _field.Road != null ? _field.Road.DistanceTo(xz.x, xz.y) : 99f;
 
         // ---------- Arboles ----------
         sealed class Chunk
         {
-            public readonly List<CombineInstance> Trunks = new List<CombineInstance>();
-            public readonly List<CombineInstance> Pine = new List<CombineInstance>();
-            public readonly List<CombineInstance> Broad = new List<CombineInstance>();
-            public readonly List<CombineInstance> Autumn = new List<CombineInstance>();
+            public readonly Dictionary<string, List<CombineInstance>> Lists = new Dictionary<string, List<CombineInstance>>();
+            public void Add(string key, Mesh m, Matrix4x4 t)
+            {
+                if (!Lists.TryGetValue(key, out var l)) { l = new List<CombineInstance>(); Lists[key] = l; }
+                l.Add(new CombineInstance { mesh = m, transform = t });
+            }
         }
 
         void ScatterTrees(Transform parent)
         {
             var root = new GameObject("Forest").transform;
             root.SetParent(parent, false);
-            var cylinder = ProceduralArt.PrimitiveMesh(PrimitiveType.Cylinder);
-            var sphere = ProceduralArt.PrimitiveMesh(PrimitiveType.Sphere);
-            var cone = ProceduralArt.Cone(9);
+
+            var conifers = new TreeVariant[5];
+            for (int i = 0; i < conifers.Length; i++) conifers[i] = TreeFactory.Conifer(_seed + i * 31, 9.5f + i * 0.9f);
+            var broads = new TreeVariant[3];
+            for (int i = 0; i < broads.Length; i++) broads[i] = TreeFactory.Broadleaf(_seed + 500 + i * 17, 7.5f + i * 0.9f);
+
+            var needleTex = new[] { FoliageTextures.Conifer(_seed + 1), FoliageTextures.Conifer(_seed + 2) };
+            var leafTex = new[] { FoliageTextures.LeafCluster(_seed + 3), FoliageTextures.LeafCluster(_seed + 4) };
+            var mats = new Dictionary<string, Material>
+            {
+                { "bark_pine", ArtMaterials.Textured("bark_pine", new Color(0.85f, 0.8f, 0.75f), 0.08f) },
+                { "bark_broad", ArtMaterials.Textured("bark_broadleaf", new Color(0.8f, 0.78f, 0.72f), 0.08f) },
+                { "conifer_a", ArtMaterials.Foliage(needleTex[0], new Color(0.82f, 0.95f, 0.8f), "cA") },
+                { "conifer_b", ArtMaterials.Foliage(needleTex[1], new Color(0.95f, 1f, 0.8f), "cB") },
+                { "broad_green", ArtMaterials.Foliage(leafTex[0], new Color(0.9f, 1f, 0.8f), "bG") },
+                { "broad_yellow", ArtMaterials.Foliage(leafTex[1], new Color(0.95f, 1f, 0.62f), "bY") },
+                { "broad_autumn", ArtMaterials.Foliage(leafTex[0], new Color(1f, 0.62f, 0.32f), "bA") },
+            };
+
             var chunks = new Dictionary<Vector2Int, Chunk>();
             var grid = new Dictionary<Vector2Int, Vector2>();
-            const float cell = 4.2f;
+            const float cell = 4.4f;
             var colliders = new GameObject("TreeColliders").transform;
             colliders.SetParent(root, false);
 
-            for (int attempt = 0; attempt < 3200 && _treePositions.Count < 560; attempt++)
+            for (int attempt = 0; attempt < 4200 && _treePositions.Count < 520; attempt++)
             {
-                var p = new Vector2(Rnd(-Size * 0.48f, Size * 0.48f), Rnd(-Size * 0.48f, Size * 0.48f));
+                var p = new Vector2(Rnd(-Size * 0.485f, Size * 0.485f), Rnd(-Size * 0.485f, Size * 0.485f));
                 if (Vector2.Distance(p, _camp) < 24f) continue;
                 if (Vector2.Distance(p, _ruins) < 12f) continue;
-                if (Slope(p) > 26f) continue;
-                // Mas denso lejos de las ruinas, claros ocasionales.
-                float clearing = Mathf.PerlinNoise(p.x * 0.03f + _seed, p.y * 0.03f);
-                if (clearing > 0.72f) continue;
+                float edge = Mathf.Max(Mathf.Abs(p.x), Mathf.Abs(p.y)) / (Size * 0.5f);
+                if (RoadDistance(p) < 4.8f) continue;
+                if (edge < 0.8f && Slope(p) > 26f) continue;
+                float clearing = _noise.Noise(p.x * 0.03f + _seed, p.y * 0.03f);
+                if (edge < 0.85f && clearing > 0.74f) continue;
 
                 var cellKey = new Vector2Int(Mathf.FloorToInt(p.x / cell), Mathf.FloorToInt(p.y / cell));
                 bool blocked = false;
@@ -168,56 +153,41 @@ namespace HuesoOxido.Core
                 _treePositions.Add(p);
 
                 var g = GroundAt(p);
-                float h = Rnd(7f, 13.5f);
-                float yaw = Rnd(0f, 360f);
-                var rot = Quaternion.Euler(0f, yaw, 0f);
+                float scale = Rnd(0.8f, 1.3f);
+                var rot = Quaternion.Euler(0f, Rnd(0f, 360f), 0f);
+                var m = Matrix4x4.TRS(g - Vector3.up * 0.15f, rot, Vector3.one * scale);
                 var chunkKey = new Vector2Int(Mathf.FloorToInt((p.x + Size * 0.5f) / 80f), Mathf.FloorToInt((p.y + Size * 0.5f) / 80f));
                 if (!chunks.TryGetValue(chunkKey, out var ch)) { ch = new Chunk(); chunks[chunkKey] = ch; }
 
-                float trunkR = h * 0.022f;
-                ch.Trunks.Add(Instance(cylinder, Matrix4x4.TRS(g + Vector3.up * (h * 0.3f), rot, new Vector3(trunkR * 2f, h * 0.3f, trunkR * 2f))));
-                bool pine = _rng.NextDouble() < 0.7;
-                if (pine)
+                TreeVariant v;
+                if (_rng.NextDouble() < 0.68)
                 {
-                    for (int k = 0; k < 3; k++)
-                    {
-                        float baseY = h * (0.22f + 0.21f * k);
-                        float r = h * (0.30f - 0.07f * k) * Rnd(0.9f, 1.1f);
-                        ch.Pine.Add(Instance(cone, Matrix4x4.TRS(g + Vector3.up * baseY, rot, new Vector3(r, h * 0.4f, r))));
-                    }
+                    v = conifers[_rng.Next(conifers.Length)];
+                    ch.Add("bark_pine", v.Trunk, m);
+                    ch.Add(_rng.NextDouble() < 0.5 ? "conifer_a" : "conifer_b", v.Foliage, m);
                 }
                 else
                 {
-                    var list = _rng.NextDouble() < 0.18 ? ch.Autumn : ch.Broad;
-                    float r = h * Rnd(0.3f, 0.38f);
-                    list.Add(Instance(sphere, Matrix4x4.TRS(g + Vector3.up * (h * 0.72f), rot, new Vector3(r * 2f, r * 1.7f, r * 2f))));
-                    list.Add(Instance(sphere, Matrix4x4.TRS(g + new Vector3(Rnd(-1f, 1f), h * 0.58f, Rnd(-1f, 1f)), rot, new Vector3(r * 1.3f, r * 1.1f, r * 1.3f))));
+                    v = broads[_rng.Next(broads.Length)];
+                    double r = _rng.NextDouble();
+                    ch.Add("bark_broad", v.Trunk, m);
+                    ch.Add(r < 0.78 ? "broad_green" : (r < 0.94 ? "broad_yellow" : "broad_autumn"), v.Foliage, m);
                 }
 
                 var col = new GameObject("T").AddComponent<CapsuleCollider>();
                 col.transform.SetParent(colliders, false);
                 col.transform.position = g + Vector3.up * 1.6f;
-                col.radius = Mathf.Max(0.3f, trunkR * 1.3f);
+                col.radius = Mathf.Max(0.3f, v.TrunkRadius * scale * 1.2f);
                 col.height = 3.2f;
                 MarkForest(p, 2);
             }
 
-            var bark = MaterialUtil.Lit(new Color(0.22f, 0.15f, 0.10f), 0.08f, 0f, ProceduralArt.NoiseTexture(64, new Color(0.15f, 0.1f, 0.07f), new Color(0.3f, 0.2f, 0.13f), 6f, _seed + 5, 1.6f));
-            var pineMat = MaterialUtil.Lit(new Color(0.09f, 0.22f, 0.12f), 0.1f);
-            var broadMat = MaterialUtil.Lit(new Color(0.22f, 0.33f, 0.11f), 0.1f);
-            var autumnMat = MaterialUtil.Lit(new Color(0.62f, 0.38f, 0.10f), 0.1f);
             foreach (var kv in chunks)
-            {
-                Emit(root, "Trunks", kv.Value.Trunks, bark);
-                Emit(root, "Pines", kv.Value.Pine, pineMat);
-                Emit(root, "Broadleaf", kv.Value.Broad, broadMat);
-                Emit(root, "Autumn", kv.Value.Autumn, autumnMat);
-            }
+                foreach (var l in kv.Value.Lists)
+                    Emit(root, l.Key, l.Value, mats[l.Key], l.Key.StartsWith("bark"));
         }
 
-        static CombineInstance Instance(Mesh m, Matrix4x4 t) => new CombineInstance { mesh = m, transform = t };
-
-        static void Emit(Transform parent, string name, List<CombineInstance> list, Material mat)
+        static void Emit(Transform parent, string name, List<CombineInstance> list, Material mat, bool castShadows)
         {
             if (list.Count == 0) return;
             var go = new GameObject(name);
@@ -225,7 +195,9 @@ namespace HuesoOxido.Core
             var mesh = new Mesh { name = name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
             mesh.CombineMeshes(list.ToArray(), true, true);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            go.AddComponent<MeshRenderer>().sharedMaterial = mat;
+            var r = go.AddComponent<MeshRenderer>();
+            r.sharedMaterial = mat;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
             go.isStatic = true;
         }
 
@@ -239,7 +211,7 @@ namespace HuesoOxido.Core
                 for (int dx = -radius; dx <= radius; dx++)
                 {
                     int x = cx + dx, y = cy + dy;
-                    if (x >= 0 && y >= 0 && x < MapRes && y < MapRes) _forestMask[y, x] = true;
+                    if (x >= 0 && y >= 0 && x < MapRes && y < MapRes) _forestMask[y, x] = 1f;
                 }
         }
 
@@ -248,18 +220,32 @@ namespace HuesoOxido.Core
         {
             var root = new GameObject("Rocks").transform;
             root.SetParent(parent, false);
-            var rock = MaterialUtil.Lit(new Color(0.38f, 0.37f, 0.35f), 0.15f, 0f, ProceduralArt.NoiseTexture(64, new Color(0.3f, 0.3f, 0.29f), new Color(0.5f, 0.49f, 0.46f), 5f, _seed + 7, 1.5f));
-            for (int i = 0; i < 90; i++)
+            var rockMat = ArtMaterials.Textured("rock", new Color(0.9f, 0.9f, 0.85f), 0.2f);
+            var variants = new Mesh[7];
+            for (int i = 0; i < variants.Length; i++)
+                variants[i] = MeshKit.Rock(_seed + 70 + i, 1f, new Vector3(Rnd(0.9f, 1.5f), Rnd(0.55f, 0.95f), Rnd(0.8f, 1.3f)));
+            int placed = 0;
+            for (int i = 0; i < 400 && placed < 120; i++)
             {
-                var p = new Vector2(Rnd(-Size * 0.48f, Size * 0.48f), Rnd(-Size * 0.48f, Size * 0.48f));
-                if (Vector2.Distance(p, _camp) < 16f) continue;
+                Vector2 p;
+                bool cluster = _rng.NextDouble() < 0.35;
+                if (cluster) p = _ruins + new Vector2(Rnd(-30f, 30f), Rnd(-30f, 30f));
+                else p = new Vector2(Rnd(-Size * 0.46f, Size * 0.46f), Rnd(-Size * 0.46f, Size * 0.46f));
+                if (Vector2.Distance(p, _camp) < 16f || RoadDistance(p) < 3f) continue;
+                if (Vector2.Distance(p, _ruins) < 9f) continue;
                 var g = GroundAt(p);
-                var go = MaterialUtil.Primitive(PrimitiveType.Sphere, "Rock", root, rock, true);
-                float s = Rnd(0.6f, 2.2f);
-                go.transform.position = g + Vector3.up * (s * 0.18f);
-                go.transform.rotation = Quaternion.Euler(Rnd(0f, 25f), Rnd(0f, 360f), Rnd(0f, 25f));
-                go.transform.localScale = new Vector3(s * Rnd(0.9f, 1.4f), s * 0.6f, s * Rnd(0.8f, 1.2f));
+                float s = Rnd(0.45f, 2.0f);
+                var go = new GameObject("Rock");
+                go.transform.SetParent(root, false);
+                go.transform.position = g + Vector3.up * (s * 0.08f);
+                go.transform.rotation = Quaternion.Euler(Rnd(-6f, 6f), Rnd(0f, 360f), Rnd(-6f, 6f));
+                go.transform.localScale = Vector3.one * s;
+                var mesh = variants[_rng.Next(variants.Length)];
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                go.AddComponent<MeshRenderer>().sharedMaterial = rockMat;
+                go.AddComponent<MeshCollider>().sharedMesh = mesh;
                 go.isStatic = true;
+                placed++;
             }
         }
 
@@ -268,8 +254,8 @@ namespace HuesoOxido.Core
         {
             var root = new GameObject("Ruins").transform;
             root.SetParent(parent, false);
-            var stone = MaterialUtil.Lit(new Color(0.5f, 0.48f, 0.43f), 0.12f, 0f, ProceduralArt.NoiseTexture(128, new Color(0.36f, 0.35f, 0.32f), new Color(0.6f, 0.58f, 0.52f), 7f, _seed + 9, 1.6f));
-            var moss = MaterialUtil.Lit(new Color(0.22f, 0.32f, 0.14f), 0.05f);
+            var stone = ArtMaterials.Textured("ruin_stone", new Color(1.35f, 1.3f, 1.2f), 0.10f);
+            var moss = ArtMaterials.Textured("ruin_blocks", new Color(0.82f, 0.88f, 0.78f), 0.08f);
             var c = GroundAt(_ruins);
 
             // Losas de piedra alrededor de la plaza; el centro queda abierto (ahi esta el hallazgo mas valioso).
@@ -308,9 +294,13 @@ namespace HuesoOxido.Core
                 float a = i * Mathf.PI * 2f / 6f;
                 var pos = c + new Vector3(Mathf.Cos(a) * 4.2f, 0f, Mathf.Sin(a) * 4.2f);
                 float h = _rng.NextDouble() < 0.5 ? Rnd(2.5f, 4f) : Rnd(0.8f, 1.6f);
-                var col = MaterialUtil.Primitive(PrimitiveType.Cylinder, "Column", root, stone, true);
-                col.transform.position = pos + Vector3.up * (h * 0.5f + 0.3f);
-                col.transform.localScale = new Vector3(0.9f, h * 0.5f, 0.9f);
+                var col = new GameObject("Column");
+                col.transform.SetParent(root, false);
+                col.transform.position = pos + Vector3.up * 0.3f;
+                var cm = MeshKit.Trunk(h, 0.55f, 0.48f, 14, 3, 4.2f, 0f, i);
+                col.AddComponent<MeshFilter>().sharedMesh = cm;
+                col.AddComponent<MeshRenderer>().sharedMaterial = stone;
+                var cc = col.AddComponent<CapsuleCollider>(); cc.radius = 0.55f; cc.height = h; cc.center = new Vector3(0f, h * 0.5f, 0f);
                 col.isStatic = true;
             }
             Block(root, "ArchL", stone, c + new Vector3(-1.6f, 2.4f, -8f), new Vector3(0.9f, 4.8f, 0.9f), 0f);
@@ -330,10 +320,13 @@ namespace HuesoOxido.Core
 
         static GameObject Block(Transform parent, string name, Material mat, Vector3 pos, Vector3 scale, float yaw)
         {
-            var go = MaterialUtil.Primitive(PrimitiveType.Cube, name, parent, mat, true);
-            go.transform.position = pos;
-            go.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
-            go.transform.localScale = scale;
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.SetPositionAndRotation(pos, Quaternion.Euler(0f, yaw, 0f));
+            var mesh = MeshKit.Box(scale, 4.2f);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            go.AddComponent<MeshRenderer>().sharedMaterial = mat;
+            go.AddComponent<BoxCollider>().size = scale;
             go.isStatic = true;
             return go;
         }
@@ -359,7 +352,7 @@ namespace HuesoOxido.Core
                 Vector2 p = nearRuins
                     ? _ruins + new Vector2(Rnd(-34f, 34f), Rnd(-34f, 34f))
                     : new Vector2(Rnd(-Size * 0.42f, Size * 0.42f), Rnd(-Size * 0.42f, Size * 0.42f));
-                if (Vector2.Distance(p, _camp) < 30f || Slope(p) > 24f) continue;
+                if (Vector2.Distance(p, _camp) < 30f || Slope(p) > 24f || RoadDistance(p) < 2.5f) continue;
                 if (nearRuins && Mathf.Abs(p.x - _ruins.x) < 9f && Mathf.Abs(p.y - _ruins.y) < 9f) continue;
                 if (TooClose(placed, p, 5f) || NearTree(p, 1.6f)) continue;
                 var info = LootTable.Pick(picks, _rng);
@@ -414,18 +407,23 @@ namespace HuesoOxido.Core
         {
             var tex = new Texture2D(MapRes, MapRes, TextureFormat.RGBA32, false);
             var px = new Color[MapRes * MapRes];
+            float cell = Size / (MapRes - 1);
             for (int y = 0; y < MapRes; y++)
             {
                 for (int x = 0; x < MapRes; x++)
                 {
-                    float nx = x / (MapRes - 1f), ny = y / (MapRes - 1f);
-                    float h = _td.GetInterpolatedHeight(nx, ny) / MaxHeight;
-                    float hx = _td.GetInterpolatedHeight(Mathf.Min(1f, nx + 0.01f), ny) / MaxHeight;
-                    float shade = Mathf.Clamp01(0.5f + (h - hx) * 28f);
-                    Color baseC = Color.Lerp(new Color(0.20f, 0.30f, 0.16f), new Color(0.50f, 0.46f, 0.30f), Mathf.InverseLerp(0.1f, 0.5f, h));
-                    if (_forestMask[y, x]) baseC = Color.Lerp(baseC, new Color(0.08f, 0.2f, 0.1f), 0.7f);
-                    px[y * MapRes + x] = baseC * (0.65f + shade * 0.7f);
-                    px[y * MapRes + x].a = 1f;
+                    float wx = -Size * 0.5f + x * cell, wz = -Size * 0.5f + y * cell;
+                    float h = _field.HeightAt(wx, wz);
+                    float shade = Mathf.Clamp01(0.55f + (_field.HeightAt(wx - cell, wz - cell) - h) * 0.10f);
+                    float hn = Mathf.InverseLerp(3f, 24f, h);
+                    Color c = Color.Lerp(new Color(0.24f, 0.34f, 0.18f), new Color(0.58f, 0.52f, 0.36f), hn);
+                    c = Color.Lerp(c, new Color(0.10f, 0.22f, 0.12f), Mathf.Clamp01(_forestMask[y, x]) * 0.65f);
+                    if (_field.Road != null && _field.Road.DistanceTo(wx, wz) < 2.2f) c = new Color(0.78f, 0.66f, 0.45f);
+                    float dr = Mathf.Sqrt((wx - _ruins.x) * (wx - _ruins.x) + (wz - _ruins.y) * (wz - _ruins.y));
+                    if (dr < 13f) c = Color.Lerp(c, new Color(0.66f, 0.38f, 0.26f), 0.7f);
+                    c = c * (0.6f + shade * 0.8f);
+                    c.a = 1f;
+                    px[y * MapRes + x] = c;
                 }
             }
             tex.SetPixels(px);

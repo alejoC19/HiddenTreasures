@@ -139,10 +139,10 @@ namespace HuesoOxido.Survival
             {
                 switch (Current)
                 {
-                    case WeatherKind.Fog: return 0.035f;
-                    case WeatherKind.Rain: return 0.018f;
-                    case WeatherKind.Cloudy: return 0.008f;
-                    default: return 0.004f;
+                    case WeatherKind.Fog: return 0.028f;
+                    case WeatherKind.Rain: return 0.011f;
+                    case WeatherKind.Cloudy: return 0.004f;
+                    default: return 0.0022f;
                 }
             }
         }

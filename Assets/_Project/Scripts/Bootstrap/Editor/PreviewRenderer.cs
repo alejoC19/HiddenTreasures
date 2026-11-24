@@ -30,7 +30,7 @@ namespace HuesoOxido.Core.EditorTools
         sealed class Stage
         {
             public WorldData World; public UnityEngine.Camera Cam; public DayNightCycle Day;
-            public GameClock Clock; public WeatherModel Weather; public GameObject Player, Vehicle;
+            public GameClock Clock; public WeatherModel Weather; public GameObject Player, Vehicle; public AtmosphereFx Atmo;
         }
 
         [MenuItem("Hidden Treasures/Generar vistas previas")]
@@ -59,10 +59,15 @@ namespace HuesoOxido.Core.EditorTools
         static void Generate(string dir)
         {
             Directory.CreateDirectory(dir);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             var st = BuildStage();
+            Debug.Log("[PREVIEW] mundo construido en " + sw.ElapsedMilliseconds + " ms (Mono del Editor, sin GPU)");
             File.WriteAllBytes(Path.Combine(dir, "00_mapa.png"), st.World.MapTexture.EncodeToPNG());
 
             var camp = st.World.CampPosition; var ruins = st.World.RuinsCenter;
+            // El primer cuadro tras construir en modo edicion sale sin luz ambiente calculada: se descarta.
+            st.Cam.transform.position = camp + Vector3.up * 3f; st.Day.ApplyNow(); DynamicGI.UpdateEnvironment();
+            Capture(st.Cam, Path.Combine(dir, "_warmup.png")); File.Delete(Path.Combine(dir, "_warmup.png"));
             Shot(st, dir, "01_campamento_hora_dorada", 17.2f, WeatherKind.Clear, camp + new Vector3(12f, 2.4f, -7f), camp + new Vector3(-1f, 1.6f, 6f), 62f);
             Shot(st, dir, "02_ruinas_hora_dorada", 17.4f, WeatherKind.Clear, ruins + new Vector3(7f, 2.6f, -21f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
             Shot(st, dir, "03_ruinas_interior", 17.0f, WeatherKind.Clear, ruins + new Vector3(0f, 1.7f, -12f), ruins + new Vector3(0f, 1.8f, 8f), 70f);
@@ -71,6 +76,8 @@ namespace HuesoOxido.Core.EditorTools
             Shot(st, dir, "06_vehiculo", 17.3f, WeatherKind.Clear, st.Vehicle.transform.position + new Vector3(-4.5f, 1.6f, -4.5f), st.Vehicle.transform.position + Vector3.up * 0.8f, 55f);
             Shot(st, dir, "07_niebla_manana", 7.0f, WeatherKind.Fog, camp + new Vector3(12f, 2.4f, -7f), camp + new Vector3(-1f, 1.6f, 6f), 62f);
             Shot(st, dir, "08_campamento_noche", 22.0f, WeatherKind.Clear, camp + new Vector3(9f, 2.2f, -6f), camp + new Vector3(0f, 1.2f, 0f), 62f);
+            Shot(st, dir, "10_props_campamento", 17.4f, WeatherKind.Clear, camp + new Vector3(3f, 1.5f, 2.5f), camp + new Vector3(0.5f, 0.5f, 7f), 60f);
+            Shot(st, dir, "11_fogata_cerca", 17.6f, WeatherKind.Clear, camp + new Vector3(2.2f, 1.3f, -4.4f), camp + new Vector3(0f, 0.3f, -1.5f), 55f);
             Shot(st, dir, "09_lluvia_nublado", 14.0f, WeatherKind.Rain, ruins + new Vector3(7f, 2.6f, -21f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
             Debug.Log("[PREVIEW] listo en " + dir);
         }
@@ -80,7 +87,9 @@ namespace HuesoOxido.Core.EditorTools
             var st = new Stage();
             var items = DefaultItems.Specs().Cast<IItemInfo>().ToList();
             var root = new GameObject("World").transform;
-            st.World = new WorldBuilder(1337).Build(items, root);
+            st.Clock = new GameClock(17f, 1);
+            st.Weather = new WeatherModel(7);
+            st.World = new WorldBuilder(1337).Build(items, root, st.Clock);
 
             st.Player = new GameObject("Player");
             var ch = st.Player.AddComponent<PlaceholderCharacter>(); ch.Build();
@@ -98,10 +107,10 @@ namespace HuesoOxido.Core.EditorTools
             st.Cam.clearFlags = CameraClearFlags.Skybox;
             PostProcessSetup.Apply(st.Cam);
 
-            st.Clock = new GameClock(17f, 1);
-            st.Weather = new WeatherModel(7);
             st.Day = new GameObject("DayNight").AddComponent<DayNightCycle>();
             st.Day.Initialize(st.World.Sun, st.World.Moon, st.Clock, st.Weather, st.World.Skybox, st.Cam);
+            st.Atmo = new GameObject("Atmosphere").AddComponent<AtmosphereFx>();
+            st.Atmo.Initialize(st.Cam.transform, st.World.Sun, st.Clock, st.Weather, st.World.HeightAt);
             return st;
         }
 
@@ -110,9 +119,13 @@ namespace HuesoOxido.Core.EditorTools
             st.Clock.Set(hour, 1);
             st.Weather.Set(weather);
             st.Day.ApplyNow();
+            DynamicGI.UpdateEnvironment();
             st.Cam.transform.position = pos;
             st.Cam.transform.LookAt(look);
             st.Cam.fieldOfView = fov;
+            st.Atmo.ApplyNow();
+            st.Atmo.PrewarmForPreview(40f);
+            st.Atmo.ApplyNow();
             string path = Path.Combine(dir, name + ".png");
             Capture(st.Cam, path);
             Debug.Log("[PREVIEW] " + name + "  hora=" + hour + " clima=" + weather);

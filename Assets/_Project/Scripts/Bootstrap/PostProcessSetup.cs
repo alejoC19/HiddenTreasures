@@ -42,11 +42,11 @@ namespace HuesoOxido.Core
                 object Add(string typeName) => add.Invoke(profile, new object[] { Type.GetType("UnityEngine.Rendering.Universal." + typeName + ", " + Urp), true });
 
                 var bloom = Add("Bloom");
-                Set(bloom, "intensity", 0.28f); Set(bloom, "threshold", 1.0f); Set(bloom, "scatter", 0.65f);
+                Set(bloom, "intensity", 0.45f); Set(bloom, "threshold", 0.9f); Set(bloom, "scatter", 0.7f);
                 Set(bloom, "tint", new Color(1f, 0.92f, 0.8f));
 
                 var color = Add("ColorAdjustments");
-                Set(color, "postExposure", 0.15f); Set(color, "contrast", 10f); Set(color, "saturation", 6f);
+                Set(color, "postExposure", 0.35f); Set(color, "contrast", 14f); Set(color, "saturation", 10f);
                 Set(color, "colorFilter", new Color(1f, 0.96f, 0.9f));
 
                 var vignette = Add("Vignette");

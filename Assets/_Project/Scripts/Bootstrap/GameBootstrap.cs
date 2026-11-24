@@ -48,7 +48,7 @@ namespace HuesoOxido.Core
             var worldRoot = new GameObject("World").transform;
             var allItems = new List<IItemInfo>();
             foreach (var d in s.Catalog.Items) allItems.Add(d);
-            ctx.World = new WorldBuilder(worldSeed).Build(allItems, worldRoot);
+            ctx.World = new WorldBuilder(worldSeed).Build(allItems, worldRoot, s.Clock);
 
             // Jugador
             ctx.Player = new GameObject("Player");
@@ -75,6 +75,7 @@ namespace HuesoOxido.Core
             clockComp.Initialize(s.Clock, s.Weather, () => ctx.Input.UiMode);
             var rain = new GameObject("Rain").AddComponent<RainEffect>();
             rain.Initialize(ctx.Cam.transform, s.Weather);
+            systems.AddComponent<AtmosphereFx>().Initialize(ctx.Cam.transform, ctx.World.Sun, s.Clock, s.Weather, ctx.World.HeightAt);
             systems.AddComponent<DayNightCycle>().Initialize(ctx.World.Sun, ctx.World.Moon, s.Clock, s.Weather, ctx.World.Skybox, ctx.Cam);
 
             // Vehiculo

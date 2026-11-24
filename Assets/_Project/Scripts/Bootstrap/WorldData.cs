@@ -5,7 +5,13 @@ namespace HuesoOxido.Core
 {
     public sealed class WorldData
     {
-        public Terrain Terrain;
+        public HeightField Field;
+        public RoadPath Road;
+        public GameObject Ground;
+
+        public float HeightAt(float x, float z) => Field.HeightAt(x, z);
+        public float HeightAt(Vector3 p) => Field.HeightAt(p.x, p.z);
+
         public Vector3 CampPosition;
         public Vector3 RuinsCenter;
         public Vector3 PlayerSpawn;
