@@ -5,9 +5,21 @@ Namespaces técnicos internos: `HuesoOxido.*`. Estado detallado, qué está veri
 
 > **Importante:** el proyecto se **abrió, importó y compiló en un Editor de Unity 6 real** (0 errores, 0 advertencias) y `Main.unity` se resuelve bien, pero **nunca se ejecutó en Play Mode** (el Editor exige licencia para eso y el entorno de desarrollo no tiene). La primera ejecución es la prueba real; ver `INFORME_TECNICO.md` y el checklist de `STATUS.md`.
 
-## Primera apertura
-Pasos exactos, riesgos y la evidencia de qué se verificó en un Editor real: **[`INFORME_TECNICO.md`](INFORME_TECNICO.md)** (sección 10).
-Resumen: instalá **Unity 6000.0.58f2** (cualquier 6000.0.x), abrí la carpeta desde Unity Hub, esperá la importación, ejecutá **Hidden Treasures → Verificar proyecto** (debe dar OK), corré los tests (Test Runner) y abrí `Main.unity` → **Play**.
+## Clonar y abrir (Windows)
+**Checklist completo paso a paso: [`PRIMERA_EJECUCION_WINDOWS.md`](PRIMERA_EJECUCION_WINDOWS.md).** Evidencia y riesgos: [`INFORME_TECNICO.md`](INFORME_TECNICO.md).
+
+1. Instalá **Git for Windows**, **Unity Hub** (con licencia Personal) y **Unity 6000.0.58f2** (Hub → Installs → Install Editor → Archive).
+2. Clonalo en una ruta corta y fuera de OneDrive (el repo es privado: Git pedirá iniciar sesión en GitHub):
+   ```powershell
+   git clone -b stable https://github.com/alejoC19/HiddenTreasures.git C:\Dev\HiddenTreasures
+   ```
+3. Unity Hub → **Add → Add project from disk** → `C:\Dev\HiddenTreasures` → abrir con **6000.0.58f2** (no uses otra serie que 6000.0.x). Esperá la primera importación.
+4. Menú **Hidden Treasures → Verificar proyecto** (debe dar `=> OK`), después **Window → General → Test Runner** (EditMode y PlayMode), y por último abrí `Assets/_Project/Scenes/Main.unity` → **Play**.
+
+### Cómo ejecutar los tests
+- **En el Editor:** Window → General → **Test Runner** → pestaña **EditMode** → *Run All* (**34** tests de lógica) y pestaña **PlayMode** → *Run All* (**11** tests que arrancan el juego real, conducen el vehículo, excavan, guardan y cargan; tardan 2–3 min; no toques teclado/mouse mientras corren; dependen entre sí y corren en orden).
+- **Por línea de comandos (Editor cerrado):** ver la sección E de `PRIMERA_EJECUCION_WINDOWS.md`.
+- **Sin Unity (solo lógica):** `tools/validate.sh` (Linux/macOS/Git Bash) compila con .NET y corre los 34 tests puros.
 
 - El proyecto ya trae la configuración oficial de Unity 6 + URP (`ProjectSettings` y URP Assets de la plantilla): **no hace falta reiniciar el Editor** ni configurar el Input System (queda en «Both»).
 - Si algo se ve **magenta**: **Hidden Treasures → Desactivar URP (usar pipeline integrado)**. El juego funciona en ambos pipelines (solo se pierde el post-proceso). **Hidden Treasures → Configurar proyecto** repite los ajustes.

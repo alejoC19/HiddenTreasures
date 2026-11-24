@@ -3,7 +3,7 @@
 **Versión:** demo v0.1.0 (primera apertura pendiente). **Ramas:** `stable` (consolidada) y `claude/focused-darwin-ps2pj7` (desarrollo).
 
 ## Lo único que importa: qué se verificó y qué no
-Detalle completo, con evidencia y riesgos: **[`INFORME_TECNICO.md`](INFORME_TECNICO.md)**.
+Detalle completo, con evidencia y riesgos: **[`INFORME_TECNICO.md`](INFORME_TECNICO.md)**. Primera ejecución en Windows: **[`PRIMERA_EJECUCION_WINDOWS.md`](PRIMERA_EJECUCION_WINDOWS.md)**.
 
 | Verificación | Resultado | Entorno |
 |---|---|---|

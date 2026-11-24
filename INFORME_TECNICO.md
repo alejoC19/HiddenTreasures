@@ -77,6 +77,8 @@ Auditado: **no hay** `Resources.Load`, `StreamingAssets`, carga de escenas, tags
 | R10. Licencia de Unity del usuario | — | Bloquea | Unity Personal es gratuita; se necesita iniciar sesión en el Hub. |
 
 ## 10. Pasos exactos para la primera ejecución
+> La versión para Windows, con casillas y soluciones rápidas, está en [`PRIMERA_EJECUCION_WINDOWS.md`](PRIMERA_EJECUCION_WINDOWS.md). Lo siguiente es el resumen técnico.
+
 1. **Instalar el Editor.** Unity Hub → *Installs* → *Install Editor* → elegir **6000.0.58f2** (si no aparece, *Archive/Download archive*; sirve cualquier 6000.0.x). Iniciar sesión en el Hub y activar una licencia Personal si Unity la pide.
 2. **Obtener el proyecto:** `git clone -b stable https://github.com/alejoC19/HiddenTreasures.git` (la rama `stable` es la consolidada).
 3. **Abrir:** Hub → *Add* → *Add project from disk* → la carpeta clonada → abrir con 6000.0.58f2. Si ofrece «cambiar de versión», aceptá solo si es una 6000.0.x.
