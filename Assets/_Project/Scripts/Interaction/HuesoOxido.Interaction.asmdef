@@ -1,7 +1,9 @@
 {
   "name": "HuesoOxido.Interaction",
   "rootNamespace": "HuesoOxido.Interaction",
-  "references": ["HuesoOxido.Core", "Unity.InputSystem"],
+  "references": [
+    "HuesoOxido.Core"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

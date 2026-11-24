@@ -1,7 +1,9 @@
 {
   "name": "HuesoOxido.Player",
   "rootNamespace": "HuesoOxido.Player",
-  "references": ["HuesoOxido.Core", "Unity.InputSystem"],
+  "references": [
+    "HuesoOxido.Core"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

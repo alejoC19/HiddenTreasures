@@ -1,7 +1,9 @@
 {
   "name": "HuesoOxido.Core",
   "rootNamespace": "HuesoOxido.Core",
-  "references": [],
+  "references": [
+    "Unity.InputSystem"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

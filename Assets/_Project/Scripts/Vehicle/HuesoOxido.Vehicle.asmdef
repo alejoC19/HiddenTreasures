@@ -1,7 +1,13 @@
 {
   "name": "HuesoOxido.Vehicle",
   "rootNamespace": "HuesoOxido.Vehicle",
-  "references": ["HuesoOxido.Core"],
+  "references": [
+    "HuesoOxido.Core",
+    "HuesoOxido.Player",
+    "HuesoOxido.Camera",
+    "HuesoOxido.Interaction",
+    "HuesoOxido.Inventory"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

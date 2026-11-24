@@ -1,7 +1,12 @@
 {
   "name": "HuesoOxido.Economy",
   "rootNamespace": "HuesoOxido.Economy",
-  "references": ["HuesoOxido.Core"],
+  "references": [
+    "HuesoOxido.Core",
+    "HuesoOxido.Inventory",
+    "HuesoOxido.Interaction",
+    "HuesoOxido.Collection"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

@@ -1,7 +1,20 @@
 {
   "name": "HuesoOxido.UI",
   "rootNamespace": "HuesoOxido.UI",
-  "references": ["HuesoOxido.Core"],
+  "references": [
+    "HuesoOxido.Core",
+    "HuesoOxido.Inventory",
+    "HuesoOxido.Economy",
+    "HuesoOxido.Collection",
+    "HuesoOxido.Survival",
+    "HuesoOxido.Detection",
+    "HuesoOxido.Digging",
+    "HuesoOxido.Vehicle",
+    "HuesoOxido.Interaction",
+    "HuesoOxido.SaveSystem",
+    "UnityEngine.UI",
+    "Unity.InputSystem"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

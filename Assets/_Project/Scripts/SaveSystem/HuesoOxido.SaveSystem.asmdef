@@ -1,7 +1,9 @@
 {
   "name": "HuesoOxido.SaveSystem",
   "rootNamespace": "HuesoOxido.SaveSystem",
-  "references": ["HuesoOxido.Core"],
+  "references": [
+    "HuesoOxido.Core"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

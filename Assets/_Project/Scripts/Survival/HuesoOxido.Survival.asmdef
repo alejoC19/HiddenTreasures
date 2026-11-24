@@ -1,7 +1,10 @@
 {
   "name": "HuesoOxido.Survival",
   "rootNamespace": "HuesoOxido.Survival",
-  "references": ["HuesoOxido.Core"],
+  "references": [
+    "HuesoOxido.Core",
+    "HuesoOxido.Player"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

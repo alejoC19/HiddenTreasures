@@ -1,14 +1,29 @@
 {
   "name": "HuesoOxido.Tests.EditMode",
   "rootNamespace": "HuesoOxido.Tests",
-  "references": ["HuesoOxido.Core", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
-  "includePlatforms": ["Editor"],
+  "references": [
+    "HuesoOxido.Core",
+    "HuesoOxido.Inventory",
+    "HuesoOxido.Economy",
+    "HuesoOxido.Collection",
+    "HuesoOxido.Survival",
+    "HuesoOxido.SaveSystem",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": true,
-  "precompiledReferences": ["nunit.framework.dll"],
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
   "autoReferenced": false,
-  "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
   "versionDefines": [],
   "noEngineReferences": false
 }

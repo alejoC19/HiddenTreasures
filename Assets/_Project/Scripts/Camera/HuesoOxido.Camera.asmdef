@@ -1,7 +1,10 @@
 {
   "name": "HuesoOxido.Camera",
   "rootNamespace": "HuesoOxido.Camera",
-  "references": ["HuesoOxido.Core", "HuesoOxido.Player", "Unity.InputSystem", "Unity.Cinemachine"],
+  "references": [
+    "HuesoOxido.Core",
+    "HuesoOxido.Player"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
