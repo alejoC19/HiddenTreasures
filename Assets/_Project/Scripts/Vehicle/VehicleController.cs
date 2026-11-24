@@ -27,7 +27,7 @@ namespace HuesoOxido.Vehicle
         [SerializeField] float maxSteerDegrees = 30f;
         [SerializeField] float lateralGrip = 11f;
         [SerializeField] float tractionCoefficient = 1.15f;
-        [SerializeField] float rollingResistance = 0.35f;
+        [SerializeField] float rollingResistance = 0.25f;
 
         static readonly Vector3[] Mounts =
         {
@@ -46,6 +46,7 @@ namespace HuesoOxido.Vehicle
         PlayerMotor _motor;
         float _steer;
         float _flipTimer;
+        int _enterFrame = -1;
 
         public bool HasDriver { get; private set; }
         public float SpeedKmh => _rb == null ? 0f : _rb.GetPointVelocity(_rb.worldCenterOfMass).magnitude * 3.6f;
@@ -71,6 +72,7 @@ namespace HuesoOxido.Vehicle
             if (motor == null || HasDriver) return;
             _player = actor; _motor = motor;
             HasDriver = true;
+            _enterFrame = Time.frameCount;
             _motor.ControlEnabled = false;
             _player.SetActive(false);
             _rig.EnterVehicle(transform, 7.2f);
@@ -101,7 +103,7 @@ namespace HuesoOxido.Vehicle
         void Update()
         {
             if (!HasDriver) return;
-            if (_input.InteractPressed && SpeedKmh < 12f) ExitVehicle();
+            if (_input.InteractPressed && Time.frameCount != _enterFrame && SpeedKmh < 12f) ExitVehicle();
 
             // Autoenderezado si volco.
             if (Vector3.Dot(transform.up, Vector3.up) < 0.25f && SpeedKmh < 4f) _flipTimer += Time.deltaTime; else _flipTimer = 0f;
@@ -164,7 +166,7 @@ namespace HuesoOxido.Vehicle
                 else
                 {
                     float resist = parked ? 6f : rollingResistance;
-                    force += -wf * vFwd * (mass * 0.25f) * resist * 4f;
+                    force += -wf * vFwd * (mass * 0.25f) * resist;
                 }
 
                 float maxTraction = spring * tractionCoefficient + 50f;

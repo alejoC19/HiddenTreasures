@@ -272,9 +272,14 @@ namespace HuesoOxido.Core
             var moss = MaterialUtil.Lit(new Color(0.22f, 0.32f, 0.14f), 0.05f);
             var c = GroundAt(_ruins);
 
-            // Plataforma central.
-            var floor = Block(root, "Platform", stone, c + new Vector3(0f, 0.15f, 0f), new Vector3(16f, 0.3f, 16f), 0f);
-            Block(root, "Step1", stone, c + new Vector3(0f, 0.05f, -8.8f), new Vector3(7f, 0.2f, 1.6f), 0f);
+            // Losas de piedra alrededor de la plaza; el centro queda abierto (ahi esta el hallazgo mas valioso).
+            for (int i = 0; i < 16; i++)
+            {
+                float a = i * Mathf.PI * 2f / 16f + Rnd(-0.15f, 0.15f);
+                float r = Rnd(4.6f, 7.2f);
+                var g = GroundAt(new Vector2(c.x + Mathf.Cos(a) * r, c.z + Mathf.Sin(a) * r));
+                Block(root, "Flagstone", stone, g + Vector3.up * 0.04f, new Vector3(Rnd(1.6f, 2.4f), 0.14f, Rnd(1.4f, 2.1f)), Rnd(0f, 360f));
+            }
 
             // Muros perimetrales en ruinas: tramos con huecos y alturas dispares.
             for (int side = 0; side < 4; side++)

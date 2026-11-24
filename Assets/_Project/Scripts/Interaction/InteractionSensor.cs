@@ -15,6 +15,7 @@ namespace HuesoOxido.Interaction
         Transform _cam;
         Transform _player;
         IInteractable _current;
+        int _skipFrame = -1;
 
         public IInteractable Current => _current;
         public event Action<IInteractable> FocusChanged;
@@ -24,9 +25,18 @@ namespace HuesoOxido.Interaction
             _input = input; _cam = camera; _player = player;
         }
 
+        void OnEnable() { _skipFrame = Time.frameCount; }
+
+        void OnDisable()
+        {
+            if (_current == null) return;
+            _current = null;
+            FocusChanged?.Invoke(null);
+        }
+
         void Update()
         {
-            if (_input == null || _cam == null) return;
+            if (_input == null || _cam == null || Time.frameCount == _skipFrame) return;
             var next = _input.GameplayBlocked ? null : Probe();
             if (!ReferenceEquals(next, _current))
             {
