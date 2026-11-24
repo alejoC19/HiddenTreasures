@@ -3,7 +3,7 @@
 # Uso: tools/run_unity_tests.sh <carpeta-del-Editor> <EditMode|PlayMode> [salida]
 # Trabaja sobre una COPIA del proyecto para no ensuciar el repo con Library/.
 set -euo pipefail
-EDITOR_DIR=$1; PLATFORM=${2:-PlayMode}; OUT=${3:-/tmp/unity-tests}
+EDITOR_DIR=$1; PLATFORM=${2:-PlayMode}; OUT=${3:-${TMPDIR:-/tmp}/unity-tests}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 mkdir -p "$OUT"; rm -rf "$OUT/project"; mkdir -p "$OUT/project"
 cp -r "$ROOT/Assets" "$ROOT/Packages" "$ROOT/ProjectSettings" "$OUT/project/"

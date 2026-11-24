@@ -75,9 +75,10 @@ namespace HuesoOxido.Tests.PlayMode
         [UnityTest, Order(3)]
         public IEnumerator T03_RealInput_MovesPlayer_AndTogglesView()
         {
-            if (Keyboard.current == null) InputSystem.AddDevice<Keyboard>();
-            if (Mouse.current == null) InputSystem.AddDevice<Mouse>();
-            _kb = Keyboard.current; _mouse = Mouse.current;
+            // Dispositivos virtuales propios: el test no depende del teclado/mouse fisico ni de que la vista Game tenga el foco.
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            _kb = InputSystem.AddDevice<Keyboard>("HT_TestKeyboard");
+            _mouse = InputSystem.AddDevice<Mouse>("HT_TestMouse");
             Assert.NotNull(_kb, "no hay teclado virtual");
             Cursor.lockState = CursorLockMode.Locked;
 
@@ -263,6 +264,8 @@ namespace HuesoOxido.Tests.PlayMode
             Assert.AreEqual(MenuView.Mode.None, C.Ui.MenuMode);
             Assert.AreEqual(4242, C.Services.Wallet.Money, "Continuar no restauro la partida");
             C.Save.DeleteSave();
+            if (_kb != null) InputSystem.RemoveDevice(_kb);
+            if (_mouse != null) InputSystem.RemoveDevice(_mouse);
         }
     }
 }

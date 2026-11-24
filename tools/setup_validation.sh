@@ -2,10 +2,10 @@
 # Prepara lo necesario para tools/validate.sh en una maquina sin Unity (Linux/macOS):
 #  - .NET SDK 8 (si no hay `dotnet`) y
 #  - Unity.InputSystem.dll compilado desde el codigo fuente oficial del paquete.
-# Uso: tools/setup_validation.sh [work_dir]   (por defecto /home/user/tools/val)
+# Uso: tools/setup_validation.sh [work_dir]   (por defecto ~/.cache/hidden-treasures/val)
 set -euo pipefail
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
-WORK=${1:-/home/user/tools/val}
+WORK=${1:-$HOME/.cache/hidden-treasures/val}
 TOOLS=$(dirname "$WORK")
 INPUT_SYSTEM_VERSION=1.11.2
 mkdir -p "$WORK" "$TOOLS/dl"

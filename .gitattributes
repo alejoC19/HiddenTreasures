@@ -8,6 +8,16 @@
 *.asset merge=unityyamlmerge eol=lf
 *.mat merge=unityyamlmerge eol=lf
 *.meta text eol=lf
+# Fin de linea estable entre Windows y Linux (Unity y los scripts de shell requieren LF)
+*.sh text eol=lf
+*.py text eol=lf
+*.ps1 text eol=crlf
+*.txt text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.inputactions text eol=lf
+ProjectSettings/** text eol=lf
+Packages/** text eol=lf
 # Git LFS: binarios pesados
 *.png filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text

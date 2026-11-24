@@ -2,7 +2,7 @@
 # Valida compilacion y tests puros con .NET. Uso: tools/validate.sh [work_dir]
 set -e
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
-WORK=${1:-/home/user/tools/val}
+WORK=${1:-$HOME/.cache/hidden-treasures/val}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 python3 "$ROOT/tools/gen_meta.py" "$ROOT" >/dev/null
 python3 "$ROOT/tools/audit_repo.py" "$ROOT"
