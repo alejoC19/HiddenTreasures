@@ -31,6 +31,7 @@ namespace HuesoOxido.Core
 
         public IInventoryActions InventoryActions { get; private set; }
         public ISessionActions Session { get; private set; }
+        public IMenuActions Menu { get; private set; }
 
         // ---------- Montaje ----------
         public void Prepare(GameContext ctx)
@@ -38,6 +39,7 @@ namespace HuesoOxido.Core
             _c = ctx; _s = ctx.Services;
             InventoryActions = new InventoryActionsImpl(this);
             Session = new SessionActionsImpl(this);
+            Menu = new MenuActionsImpl(this);
         }
 
         public void Begin()
@@ -67,12 +69,7 @@ namespace HuesoOxido.Core
             _c.Save.Message += _s.Notifier.Post;
             ApplyUpgrades();
 
-            if (_c.Save.HasSave && _c.Save.Load()) { }
-            else
-            {
-                _s.Notifier.Post("Comprá el permiso de excavación en el mostrador del campamento (E).");
-                _s.Notifier.Post("Subí a la camioneta (E), buscá con el detector y excavá cuando la señal sea fuerte.");
-            }
+            _c.Ui.OpenMainMenu();
             _lastAutosave = Time.time;
         }
 
@@ -201,7 +198,14 @@ namespace HuesoOxido.Core
         void Update()
         {
             if (_c == null) return;
-            if (_c.Input.SavePressed) _c.Save.Save();
+            if (_c.Ui.MenuMode == MenuView.Mode.Main)
+            {
+                // Camara lenta alrededor del campamento detras del menu principal.
+                _c.Look.SetRotation(_c.Look.Yaw + 7f * Time.unscaledDeltaTime, 14f);
+                _c.Rig.SetMode(ViewMode.ThirdPerson);
+                return;
+            }
+            if (_c.Input.SavePressed && !_c.Input.UiMode) _c.Save.Save();
 
             bool inCamp = (_c.Player.transform.position - _c.World.CampPosition).sqrMagnitude < 14f * 14f && !_c.Vehicle.HasDriver;
             if (inCamp && !_wasInCamp && Time.time - _lastAutosave > 60f)
@@ -357,6 +361,36 @@ namespace HuesoOxido.Core
             }
 
             public void DepositAll() => _d.DepositAll();
+        }
+
+        sealed class MenuActionsImpl : IMenuActions
+        {
+            readonly GameDirector _d;
+            public MenuActionsImpl(GameDirector d) { _d = d; }
+            public bool HasSave => _d._c.Save.HasSave;
+            public float Sensitivity
+            {
+                get => _d._c.Look.Sensitivity;
+                set { _d._c.Look.Sensitivity = value; _d._c.Look.SaveSensitivity(); }
+            }
+            public void StartNewGame() { _d.NewGame(); _d._c.Ui.CloseAll(); _d._lastAutosave = Time.unscaledTime; }
+            public void ContinueGame()
+            {
+                if (_d._c.Save.Load()) { _d._c.Ui.CloseAll(); _d._lastAutosave = Time.unscaledTime; }
+            }
+            public void ContinueFromPause() => _d._c.Ui.CloseAll();
+            public void SaveGame() => _d._c.Save.Save();
+            public void LoadGame() { if (_d._c.Save.Load()) _d._c.Ui.CloseAll(); }
+            public void ReturnToMainMenu()
+            {
+                _d._c.Save.Save();
+                _d._c.Ui.OpenMainMenu();
+            }
+            public void QuitGame()
+            {
+                if (Application.isEditor) _d._s.Notifier.Post("Salir cierra la aplicación compilada. En el Editor, detené el modo Play.");
+                else Application.Quit();
+            }
         }
 
         sealed class SessionActionsImpl : ISessionActions

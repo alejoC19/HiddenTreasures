@@ -37,8 +37,7 @@ namespace HuesoOxido.Survival
             r.velocityScale = 0.04f;
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             r.receiveShadows = false;
-            var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (shader == null) shader = Shader.Find("Sprites/Default");
+            var shader = HuesoOxido.Core.MaterialUtil.ParticleShader();
             if (shader != null) r.sharedMaterial = new Material(shader) { color = new Color(0.85f, 0.9f, 1f, 0.4f) };
             _ps.Play();
         }

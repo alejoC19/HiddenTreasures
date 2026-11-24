@@ -17,7 +17,7 @@ namespace HuesoOxido.Core
     /// <summary>Modelos y servicios de la partida (logica pura, sin MonoBehaviours).</summary>
     public sealed class GameServices
     {
-        public const float BaseBackpackKg = 12f, BaseTrunkKg = 40f, BaseEnergy = 100f, BaseFuel = 40f;
+        public const float BaseBackpackKg = 8f, BaseTrunkKg = 40f, BaseEnergy = 100f, BaseFuel = 40f;
         public const int StartMoney = 120;
 
         public readonly Notifier Notifier = new Notifier();

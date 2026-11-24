@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace HuesoOxido.Core
 {
@@ -8,19 +9,33 @@ namespace HuesoOxido.Core
     {
         static readonly Dictionary<string, Material> Cache = new Dictionary<string, Material>();
         static Shader _lit;
+        static bool _litForUrp;
+
+        /// <summary>True si hay un pipeline scriptable (URP) activo. Los shaders de URP se ven magenta con el pipeline integrado.</summary>
+        public static bool UsingScriptablePipeline => GraphicsSettings.currentRenderPipeline != null;
 
         static Shader LitShader()
         {
-            if (_lit != null) return _lit;
-            _lit = Shader.Find("Universal Render Pipeline/Lit");
+            bool urp = UsingScriptablePipeline;
+            if (_lit != null && _litForUrp == urp) return _lit;
+            _litForUrp = urp;
+            _lit = urp ? Shader.Find("Universal Render Pipeline/Lit") : Shader.Find("Standard");
+            if (_lit == null) _lit = Shader.Find("Universal Render Pipeline/Lit");
             if (_lit == null) _lit = Shader.Find("Standard");
             if (_lit == null) _lit = Shader.Find("Sprites/Default");
             return _lit;
         }
 
+        /// <summary>Shader sin iluminacion con transparencia, valido en ambos pipelines (particulas, lluvia).</summary>
+        public static Shader ParticleShader()
+        {
+            Shader s = UsingScriptablePipeline ? Shader.Find("Universal Render Pipeline/Particles/Unlit") : Shader.Find("Particles/Standard Unlit");
+            return s != null ? s : Shader.Find("Sprites/Default");
+        }
+
         public static Material Lit(Color color, float smoothness = 0.15f, float metallic = 0f, Texture2D texture = null)
         {
-            string key = ColorUtility.ToHtmlStringRGBA(color) + smoothness.ToString("0.00") + metallic.ToString("0.00")
+            string key = (UsingScriptablePipeline ? "u" : "b") + ColorUtility.ToHtmlStringRGBA(color) + smoothness.ToString("0.00") + metallic.ToString("0.00")
                          + (texture != null ? texture.GetInstanceID().ToString() : "");
             if (Cache.TryGetValue(key, out var m) && m != null) return m;
             m = new Material(LitShader()) { color = color };

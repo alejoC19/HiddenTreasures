@@ -387,7 +387,7 @@ namespace HuesoOxido.Core
         // ---------- Iluminacion ----------
         void BuildLighting(Transform parent, WorldData data)
         {
-            foreach (var l in Object.FindObjectsOfType<Light>())
+            foreach (var l in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
                 if (l.type == LightType.Directional && l.transform.parent == null) l.gameObject.SetActive(false);
 
             var sunGo = new GameObject("Sun");

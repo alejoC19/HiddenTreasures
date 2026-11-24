@@ -17,6 +17,8 @@ namespace HuesoOxido.Core.EditorTools
     {
         const string ScenePath = "Assets/_Project/Scenes/Main.unity";
         const string SettingsDir = "Assets/_Project/Settings";
+        const string UrpPackagePath = "Packages/com.unity.render-pipelines.universal";
+        static string UrpOptOutKey => "HT_UrpOptOut_" + Application.dataPath.GetHashCode();
 
         static ProjectSetup()
         {
@@ -70,9 +72,26 @@ namespace HuesoOxido.Core.EditorTools
         }
 
         // ---- URP ----
+        [MenuItem("Hidden Treasures/Activar URP")]
+        static void EnableUrpFromMenu()
+        {
+            EditorPrefs.DeleteKey(UrpOptOutKey);
+            EnsureUrp();
+        }
+
+        [MenuItem("Hidden Treasures/Desactivar URP (usar pipeline integrado)")]
+        static void DisableUrpFromMenu()
+        {
+            EditorPrefs.SetBool(UrpOptOutKey, true);
+            GraphicsSettings.defaultRenderPipeline = null;
+            QualitySettings.renderPipeline = null;
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Hidden Treasures] URP desactivado: el juego usa el pipeline integrado (sin post-proceso). Para volver: Hidden Treasures > Activar URP.");
+        }
+
         static void EnsureUrp()
         {
-            if (GraphicsSettings.defaultRenderPipeline != null) return;
+            if (GraphicsSettings.defaultRenderPipeline != null || EditorPrefs.GetBool(UrpOptOutKey, false)) return;
             try
             {
                 var assetType = Type.GetType("UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset, Unity.RenderPipelines.Universal.Runtime");
@@ -80,42 +99,39 @@ namespace HuesoOxido.Core.EditorTools
                 var baseRendererType = Type.GetType("UnityEngine.Rendering.Universal.ScriptableRendererData, Unity.RenderPipelines.Universal.Runtime");
                 if (assetType == null || rendererType == null || baseRendererType == null)
                 {
-                    Debug.LogWarning("[Hidden Treasures] El paquete URP no está instalado todavía; reabrí el proyecto cuando termine de importar.");
+                    Debug.LogWarning("[Hidden Treasures] El paquete URP todavía no está disponible. Cuando termine de importar: menú Hidden Treasures > Activar URP. Mientras tanto el juego funciona con el pipeline integrado.");
                     return;
                 }
 
                 if (!AssetDatabase.IsValidFolder(SettingsDir)) AssetDatabase.CreateFolder("Assets/_Project", "Settings");
                 var renderer = ScriptableObject.CreateInstance(rendererType);
                 AssetDatabase.CreateAsset(renderer, SettingsDir + "/HT_Renderer.asset");
+                ReloadNullResources(renderer);
 
                 var create = assetType.GetMethod("Create", BindingFlags.Public | BindingFlags.Static, null, new[] { baseRendererType }, null);
                 var pipeline = create?.Invoke(null, new object[] { renderer }) as RenderPipelineAsset;
-                if (pipeline == null) { Debug.LogWarning("[Hidden Treasures] No se pudo crear el URP Asset."); return; }
+                if (pipeline == null) { Debug.LogWarning("[Hidden Treasures] No se pudo crear el URP Asset. Usá el pipeline integrado o creá uno con Assets > Create > Rendering > URP Asset (with Universal Renderer)."); return; }
                 AssetDatabase.CreateAsset(pipeline, SettingsDir + "/HT_URP.asset");
-
-                // Ajustes moderados: sombras suaves y alcance razonable.
-                var so = new SerializedObject(pipeline);
-                SetIfExists(so, "m_ShadowDistance", 110f);
-                SetIfExists(so, "m_MainLightShadowmapResolution", 2048);
-                so.ApplyModifiedPropertiesWithoutUndo();
+                ReloadNullResources(pipeline);
 
                 GraphicsSettings.defaultRenderPipeline = pipeline;
                 QualitySettings.renderPipeline = pipeline;
                 AssetDatabase.SaveAssets();
-                Debug.Log("[Hidden Treasures] URP configurado (" + SettingsDir + "/HT_URP.asset). Para el ambient occlusion: HT_Renderer → Add Renderer Feature → Screen Space Ambient Occlusion.");
+                Debug.Log("[Hidden Treasures] URP configurado (" + SettingsDir + "/HT_URP.asset). Si la escena se ve magenta: Hidden Treasures > Desactivar URP. Para ambient occlusion: HT_Renderer > Add Renderer Feature > Screen Space Ambient Occlusion.");
             }
             catch (Exception e)
             {
-                Debug.LogWarning("[Hidden Treasures] No se pudo configurar URP automáticamente: " + e.Message);
+                Debug.LogWarning("[Hidden Treasures] No se pudo configurar URP automáticamente (" + e.Message + "). El juego funciona con el pipeline integrado.");
             }
         }
 
-        static void SetIfExists(SerializedObject so, string name, float v)
+        /// <summary>Equivale a lo que hace el menu oficial de Unity al crear un URP Asset: carga los shaders/recursos que faltan.</summary>
+        static void ReloadNullResources(UnityEngine.Object asset)
         {
-            var p = so.FindProperty(name);
-            if (p == null) return;
-            if (p.propertyType == SerializedPropertyType.Float) p.floatValue = v;
-            else if (p.propertyType == SerializedPropertyType.Integer) p.intValue = (int)v;
+            var reloader = Type.GetType("UnityEngine.Rendering.ResourceReloader, Unity.RenderPipelines.Core.Runtime");
+            var m = reloader?.GetMethod("ReloadAllNullIn", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object), typeof(string) }, null);
+            m?.Invoke(null, new object[] { asset, UrpPackagePath });
+            EditorUtility.SetDirty(asset);
         }
 
         // ---- Escena ----

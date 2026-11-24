@@ -99,7 +99,7 @@ namespace HuesoOxido.UI
             UiFactory.Place(_toastText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -40f), new Vector2(1100f, 160f));
 
             // Ayuda
-            _help = UiFactory.Label(root, "WASD mover · Shift correr · C agacharse · V cámara · Clic mantener: excavar · E interactuar · Tab inventario · M mapa · F5 guardar",
+            _help = UiFactory.Label(root, "WASD mover · Shift correr · C agacharse · V cámara · Clic mantener: excavar · E interactuar · Tab inventario · M mapa · F5 guardar · Esc pausa",
                 14, new Color(1f, 1f, 1f, 0.45f), TextAnchor.LowerLeft);
             UiFactory.Place(_help.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(24f, 18f), new Vector2(1500f, 30f));
 

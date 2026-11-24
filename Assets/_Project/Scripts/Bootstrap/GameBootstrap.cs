@@ -25,7 +25,7 @@ namespace HuesoOxido.Core
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void AutoCreate()
         {
-            if (FindObjectOfType<GameBootstrap>() != null) return;
+            if (FindFirstObjectByType<GameBootstrap>() != null) return;
             new GameObject("GameBootstrap").AddComponent<GameBootstrap>();
         }
 
@@ -39,6 +39,7 @@ namespace HuesoOxido.Core
             var systems = new GameObject("Systems");
             ctx.Input = systems.AddComponent<GameInput>();
             ctx.Save = systems.AddComponent<SaveManager>();
+            systems.AddComponent<InputDiagnostics>();
 
             // Mundo
             var worldRoot = new GameObject("World").transform;
@@ -158,7 +159,9 @@ namespace HuesoOxido.Core
                 new MapMarker { Label = "Ruinas", Color = new Color(0.8f, 0.8f, 0.75f), Position = () => ruins },
                 new MapMarker { Label = "Vehículo", Color = new Color(0.5f, 0.9f, 0.4f), Position = () => ctx.Vehicle.transform.position },
             });
-            ctx.Ui.Bind(inventory, shop, ctx.Map);
+            var menu = uiGo.AddComponent<MenuView>();
+            menu.Initialize(canvas, director.Menu);
+            ctx.Ui.Bind(inventory, shop, ctx.Map, menu);
         }
     }
 }
