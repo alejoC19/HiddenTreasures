@@ -60,6 +60,11 @@ Con **F1** se muestra un panel con FPS, estado, mision y más. Con el panel abie
 | 17 | **F6** varias veces | Nublado → Lluvia (efecto de lluvia, más viento, sin pájaros) → Niebla (muy densa). |
 | 18 | **Esc** (pausa) | Sensibilidad, controles y reanudar funcionan; el fondo no es cinemático (solo en el menú principal). |
 
+### Calidad gráfica y rendimiento
+- Hay **tres niveles** (Bajo / Medio / Alto) en el menú principal y en la pausa ("Calidad gráfica: …"). El juego arranca en **Medio** en una GPU de 8 GB (como la RX 580) y, si los FPS promedio quedan por debajo de 40 durante ~6 s de juego, **baja solo un escalón** y te avisa.
+- El proyecto ahora usa **DirectX 11** en Windows (antes Unity elegía DirectX 12). Si en tu PC se ve mal o va peor, cambialo en *Edit → Project Settings → Player → Other Settings → Auto Graphics API*.
+- Con **F1** mirá FPS y "Plantas dibujadas". Mandame esos números por nivel (Bajo/Medio/Alto).
+
 ## 3. Lo que más probablemente falle (y qué hacer)
 
 | Síntoma | Causa probable | Acción |

@@ -8,6 +8,7 @@ namespace HuesoOxido.Core
         public HeightField Field;
         public RoadPath Road;
         public GameObject Ground;
+        public InstancedVegetation Vegetation;
 
         public float HeightAt(float x, float z) => Field.HeightAt(x, z);
         public float HeightAt(Vector3 p) => Field.HeightAt(p.x, p.z);

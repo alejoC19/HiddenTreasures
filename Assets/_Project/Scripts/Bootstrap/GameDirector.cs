@@ -394,6 +394,8 @@ namespace HuesoOxido.Core
             readonly GameDirector _d;
             public MenuActionsImpl(GameDirector d) { _d = d; }
             public bool HasSave => _d._c.Save.HasSave;
+            public string QualityLabel => _d._c.Quality != null ? _d._c.Quality.TierName : "-";
+            public void CycleQuality() { if (_d._c.Quality != null) _d._c.Quality.Cycle(); }
             public float Sensitivity
             {
                 get => _d._c.Look.Sensitivity;

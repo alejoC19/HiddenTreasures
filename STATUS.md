@@ -85,3 +85,10 @@ Para cada fallo: copiar el texto de la Console.
 - **Tarjeta de hallazgo** (`UI/FindCardView.cs` + `Core/FindPresentation.cs`, 5 tests): al terminar de limpiar la pieza (tras recoger y cepillar) aparece arriba al centro con el color de la rareza, nombre, categoría, descripción, valor estimado y "¡NUEVA EN TU COLECCIÓN!" si corresponde. Dura más cuanto más rara (3,5 s común … 7,3 s leyendaria; las reliquias, +0,6 s).
 - **Timbre del detector**: la frecuencia sigue indicando la proximidad; el *timbre* (armónicos) indica el tipo de objetivo cuando la señal es fuerte (≥ 0,55): opaco (común), con brillo (poco común), cristalino (raro o mejor) y con vibrato (reliquia).
 - **Verificado**: 67 tests .NET y compilación real en Unity 6. **No verificado**: cómo se ve la tarjeta y cómo suenan los timbres (sin Play Mode).
+
+## Rendimiento (RX 580) y calidad gráfica (última etapa)
+
+- **Causa probable del lag**: relleno de pantalla del follaje con transparencia, 4 cascadas de sombras de 2048, sombras suaves, SSAO a resolución completa y profundidad de campo; el conteo de triángulos es moderado (~1 000 por conífera).
+- **Cambios**: LOD de árboles (`TreeFactory` con parámetro `detail`: 992 → 424 y 750 → 350 triángulos; se usa a más de ~85 m), sombras de árboles solo hasta ~55 m, distancias de dibujo de plantas más cortas (la niebla las oculta), base de URP más barata (2 cascadas de 1024, 40 m, sombras suaves bajas, SSAO a media resolución), **DirectX 11** como API en Windows.
+- **Niveles de calidad** (`Core/QualityProfile.cs`, `Bootstrap/GraphicsQuality.cs`, 7 tests): Bajo / Medio / Alto (escala de render, distancias, sombras, SSAO, profundidad de campo), botón en el menú, nivel inicial según la memoria de video y **bajada automática** si los FPS son bajos (`AdaptiveQuality`). Los ajustes de URP se restauran al salir.
+- **No verificado**: el efecto real en FPS (sin GPU real); lo medirá tu PC con F1.

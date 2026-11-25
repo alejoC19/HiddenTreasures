@@ -11,6 +11,8 @@ namespace HuesoOxido.Core
     /// </summary>
     public static class PostProcessSetup
     {
+        static readonly System.Collections.Generic.Dictionary<string, object> Effects = new System.Collections.Generic.Dictionary<string, object>();
+
         const string Urp = "Unity.RenderPipelines.Universal.Runtime";
         const string CoreRp = "Unity.RenderPipelines.Core.Runtime";
 
@@ -39,7 +41,7 @@ namespace HuesoOxido.Core
                 var profile = ScriptableObject.CreateInstance(profileType);
                 var add = profileType.GetMethod("Add", new[] { typeof(Type), typeof(bool) });
 
-                object Add(string typeName) => add.Invoke(profile, new object[] { Type.GetType("UnityEngine.Rendering.Universal." + typeName + ", " + Urp), true });
+                object Add(string typeName) { var c = add.Invoke(profile, new object[] { Type.GetType("UnityEngine.Rendering.Universal." + typeName + ", " + Urp), true }); Effects[typeName] = c; return c; }
 
                 var bloom = Add("Bloom");
                 Set(bloom, "intensity", 0.45f); Set(bloom, "threshold", 0.9f); Set(bloom, "scatter", 0.7f);
@@ -65,6 +67,16 @@ namespace HuesoOxido.Core
             {
                 Debug.LogWarning("[PostProcess] No se pudo configurar el post-procesado: " + e.Message);
             }
+        }
+
+        /// <summary>Enciende o apaga un efecto del Volume global ("DepthOfField", "Bloom", "Vignette"...). Si no existe, no hace nada.</summary>
+        public static void SetEffect(string typeName, bool on)
+        {
+            if (!Effects.TryGetValue(typeName, out var c) || c == null) return;
+            var t = c.GetType();
+            var f = t.GetField("active");
+            if (f != null) { f.SetValue(c, on); return; }
+            t.GetProperty("active")?.SetValue(c, on);
         }
 
         static void Set(object component, string field, object value)

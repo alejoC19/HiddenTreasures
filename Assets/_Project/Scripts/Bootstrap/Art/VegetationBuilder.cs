@@ -93,15 +93,15 @@ namespace HuesoOxido.Core
             var leafTex = FoliageTextures.LeafCluster(_seed + 13);
             var flowerTex = FoliageTextures.Flower();
             void Layer(string key, Mesh mesh, Material mat, float dist) => _layers[key] = _veg.AddLayer(key, mesh, mat, dist, false);
-            Layer("grass_a", grassMesh, ArtMaterials.Foliage(grassTex, new Color(0.85f, 1f, 0.75f), "gA"), 80f);
-            Layer("grass_b", grassMesh, ArtMaterials.Foliage(grassTex, new Color(1f, 0.95f, 0.65f), "gB"), 80f);
-            Layer("tall_a", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.62f, 0.78f, 0.5f), "tA"), 100f);
-            Layer("tall_b", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.78f, 0.78f, 0.45f), "tB"), 100f);
-            Layer("fern", fernMesh, ArtMaterials.Foliage(fernTex, new Color(0.85f, 1f, 0.8f), "fern"), 115f);
-            Layer("bush", bushMesh, ArtMaterials.Foliage(leafTex, new Color(0.62f, 0.8f, 0.55f), "bush"), 160f);
-            Layer("flower_white", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 1f, 1f), "fW"), 55f);
-            Layer("flower_yellow", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 0.86f, 0.25f), "fY"), 55f);
-            Layer("flower_violet", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(0.78f, 0.6f, 1f), "fV"), 55f);
+            Layer("grass_a", grassMesh, ArtMaterials.Foliage(grassTex, new Color(0.85f, 1f, 0.75f), "gA"), 60f);
+            Layer("grass_b", grassMesh, ArtMaterials.Foliage(grassTex, new Color(1f, 0.95f, 0.65f), "gB"), 60f);
+            Layer("tall_a", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.62f, 0.78f, 0.5f), "tA"), 75f);
+            Layer("tall_b", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.78f, 0.78f, 0.45f), "tB"), 75f);
+            Layer("fern", fernMesh, ArtMaterials.Foliage(fernTex, new Color(0.85f, 1f, 0.8f), "fern"), 85f);
+            Layer("bush", bushMesh, ArtMaterials.Foliage(leafTex, new Color(0.62f, 0.8f, 0.55f), "bush"), 120f);
+            Layer("flower_white", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 1f, 1f), "fW"), 40f);
+            Layer("flower_yellow", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 0.86f, 0.25f), "fY"), 40f);
+            Layer("flower_violet", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(0.78f, 0.6f, 1f), "fV"), 40f);
 
             int grass = 0;
             for (int i = 0; i < 130000 && grass < GrassCount; i++)

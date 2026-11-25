@@ -76,8 +76,11 @@ namespace HuesoOxido.Core
             }
         }
 
-        public static TreeVariant Conifer(int seed, float height)
+        /// <param name="detail">1 = modelo completo; &lt;1 = version simple para lejos (menos ramas y lados, tarjetas mas anchas).</param>
+        public static TreeVariant Conifer(int seed, float height, float detail = 1f)
         {
+            int sides = detail < 1f ? 5 : 9;
+            float sizeK = Mathf.Clamp(1f / Mathf.Sqrt(detail), 1f, 1.8f);
             var rng = new System.Random(seed);
             var trunk = new Buf(); var fol = new Buf();
             float lean = ((float)rng.NextDouble() - 0.5f) * 0.05f * height;
@@ -88,7 +91,7 @@ namespace HuesoOxido.Core
             {
                 float k = i / 6f;
                 Vector3 p = new Vector3(lean * k * k, height * 0.99f * k, lean * 0.4f * k * k);
-                Limb(trunk, prev, p, Mathf.Lerp(baseR, 0.03f, Mathf.Pow((i - 1) / 6f, 0.8f)) * (i == 1 ? 1.15f : 1f), Mathf.Lerp(baseR, 0.03f, Mathf.Pow(k, 0.8f)), 9, 1.4f);
+                Limb(trunk, prev, p, Mathf.Lerp(baseR, 0.03f, Mathf.Pow((i - 1) / 6f, 0.8f)) * (i == 1 ? 1.15f : 1f), Mathf.Lerp(baseR, 0.03f, Mathf.Pow(k, 0.8f)), sides, 1.4f);
                 prev = p;
             }
             // Raices expuestas (pequenas) para romper la base recta.
@@ -98,7 +101,7 @@ namespace HuesoOxido.Core
                 Limb(trunk, new Vector3(Mathf.Cos(a) * baseR * 0.6f, 0.25f, Mathf.Sin(a) * baseR * 0.6f), new Vector3(Mathf.Cos(a) * baseR * 2.1f, -0.1f, Mathf.Sin(a) * baseR * 2.1f), baseR * 0.45f, baseR * 0.15f, 5, 1.4f);
             }
 
-            int whorls = 16; float golden = 2.39996f; float yaw0 = (float)rng.NextDouble() * 6.28f;
+            int whorls = Mathf.Max(6, Mathf.RoundToInt(16 * detail)); float golden = 2.39996f; float yaw0 = (float)rng.NextDouble() * 6.28f;
             Vector3 center = new Vector3(0, height * 0.55f, 0);
             for (int w = 0; w < whorls; w++)
             {
@@ -118,7 +121,7 @@ namespace HuesoOxido.Core
                     {
                         float roll = (c == 0 ? 1f : -1f) * (0.35f + (float)rng.NextDouble() * 0.2f);
                         Vector3 s2 = Quaternion.AngleAxis(roll * Mathf.Rad2Deg, dir) * side;
-                        Card(fol, root, dir, s2, Lb, Lb * 0.66f, droop, center, 0.45f);
+                        Card(fol, root, dir, s2, Lb, Lb * 0.66f * sizeK, droop, center, 0.45f);
                     }
                 }
             }
@@ -130,8 +133,10 @@ namespace HuesoOxido.Core
             return new TreeVariant { Trunk = trunk.ToMesh("ConiferTrunk" + seed), Foliage = fol.ToMesh("ConiferFoliage" + seed), Height = height, TrunkRadius = baseR };
         }
 
-        public static TreeVariant Broadleaf(int seed, float height)
+        public static TreeVariant Broadleaf(int seed, float height, float detail = 1f)
         {
+            int sides = detail < 1f ? 6 : 10;
+            float sizeK = Mathf.Clamp(1f / Mathf.Sqrt(detail), 1f, 1.8f);
             var rng = new System.Random(seed);
             var trunk = new Buf(); var fol = new Buf();
             float baseR = height * 0.032f;
@@ -142,7 +147,7 @@ namespace HuesoOxido.Core
             {
                 float k = i / 4f;
                 Vector3 p = new Vector3(lean * k * k, stemH * k, 0);
-                Limb(trunk, prev, p, Mathf.Lerp(baseR, baseR * 0.7f, (i - 1) / 4f) * (i == 1 ? 1.18f : 1f), Mathf.Lerp(baseR, baseR * 0.7f, k), 10, 1.4f);
+                Limb(trunk, prev, p, Mathf.Lerp(baseR, baseR * 0.7f, (i - 1) / 4f) * (i == 1 ? 1.18f : 1f), Mathf.Lerp(baseR, baseR * 0.7f, k), sides, 1.4f);
                 prev = p;
             }
             Vector3 crown = new Vector3(lean, stemH, 0);
@@ -161,7 +166,7 @@ namespace HuesoOxido.Core
                 tips.Add(tip);
             }
             // Racimos de hojas: pares de tarjetas cruzadas dentro de un elipsoide.
-            int clusters = 70;
+            int clusters = Mathf.Max(18, Mathf.RoundToInt(70 * detail));
             for (int i = 0; i < clusters; i++)
             {
                 Vector3 p;
@@ -171,7 +176,7 @@ namespace HuesoOxido.Core
                     float u = (float)rng.NextDouble() * Mathf.PI * 2f, v = Mathf.Acos(2f * (float)rng.NextDouble() - 1f), r = Mathf.Pow((float)rng.NextDouble(), 0.45f);
                     p = center + new Vector3(Mathf.Sin(v) * Mathf.Cos(u) * rx * r, Mathf.Cos(v) * ry * r, Mathf.Sin(v) * Mathf.Sin(u) * rx * r);
                 }
-                float size = height * (0.13f + (float)rng.NextDouble() * 0.06f);
+                float size = height * (0.13f + (float)rng.NextDouble() * 0.06f) * sizeK;
                 float yaw = (float)rng.NextDouble() * 360f, tilt = ((float)rng.NextDouble() - 0.5f) * 50f;
                 for (int c = 0; c < 2; c++)
                 {

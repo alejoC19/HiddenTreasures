@@ -38,6 +38,7 @@ namespace HuesoOxido.Core
             BuildBounds(parent);
             BuildSkirt(parent);
             _veg = new GameObject("Vegetation").AddComponent<InstancedVegetation>();
+            data.Vegetation = _veg;
             _veg.transform.SetParent(parent, false);
             ScatterTrees(parent);
             ScatterRocks(parent);
@@ -107,7 +108,14 @@ namespace HuesoOxido.Core
             for (int i = 0; i < conifers.Length; i++) conifers[i] = TreeFactory.Conifer(_seed + i * 31, 9.5f + i * 0.9f);
             var broads = new TreeVariant[3];
             for (int i = 0; i < broads.Length; i++) broads[i] = TreeFactory.Broadleaf(_seed + 500 + i * 17, 7.5f + i * 0.9f);
+            // Versiones simples para lejos (LOD): mismas formas con ~35 % de la geometria.
+            var conifersLod = new TreeVariant[conifers.Length];
+            for (int i = 0; i < conifers.Length; i++) conifersLod[i] = TreeFactory.Conifer(_seed + i * 31, 9.5f + i * 0.9f, 0.35f);
+            var broadsLod = new TreeVariant[broads.Length];
+            for (int i = 0; i < broads.Length; i++) broadsLod[i] = TreeFactory.Broadleaf(_seed + 500 + i * 17, 7.5f + i * 0.9f, 0.35f);
 
+            Debug.Log("[VEG] triangulos por arbol: conifera " + (conifers[0].Foliage.triangles.Length + conifers[0].Trunk.triangles.Length) / 3 + " -> LOD " + (conifersLod[0].Foliage.triangles.Length + conifersLod[0].Trunk.triangles.Length) / 3
+                      + " | latifoliado " + (broads[0].Foliage.triangles.Length + broads[0].Trunk.triangles.Length) / 3 + " -> LOD " + (broadsLod[0].Foliage.triangles.Length + broadsLod[0].Trunk.triangles.Length) / 3);
             var needleTex = new[] { FoliageTextures.Conifer(_seed + 1), FoliageTextures.Conifer(_seed + 2) };
             var leafTex = new[] { FoliageTextures.LeafCluster(_seed + 3), FoliageTextures.LeafCluster(_seed + 4) };
             var mats = new Dictionary<string, Material>
@@ -123,19 +131,25 @@ namespace HuesoOxido.Core
 
             // Una capa instanciada por (malla, material): troncos y copas de cada variante.
             var treeLayers = new Dictionary<string, InstancedVegetation.Layer>();
-            const float treeDist = 280f;
+            const float treeDist = 260f, lodDist = 85f, shadowDist = 55f;
+            InstancedVegetation.Layer TreeLayer(string name, Mesh mesh, Mesh lod, Material mat)
+            {
+                var l = _veg.AddLayer(name, mesh, mat, treeDist, true, true);
+                l.LodMesh = lod; l.LodDistance = lodDist; l.ShadowDistance = shadowDist;
+                return l;
+            }
             for (int i = 0; i < conifers.Length; i++)
             {
-                treeLayers["pt" + i] = _veg.AddLayer("pine_trunk_" + i, conifers[i].Trunk, mats["bark_pine"], treeDist, true, true);
-                treeLayers["pa" + i] = _veg.AddLayer("pine_a_" + i, conifers[i].Foliage, mats["conifer_a"], treeDist, true, true);
-                treeLayers["pb" + i] = _veg.AddLayer("pine_b_" + i, conifers[i].Foliage, mats["conifer_b"], treeDist, true, true);
+                treeLayers["pt" + i] = TreeLayer("pine_trunk_" + i, conifers[i].Trunk, conifersLod[i].Trunk, mats["bark_pine"]);
+                treeLayers["pa" + i] = TreeLayer("pine_a_" + i, conifers[i].Foliage, conifersLod[i].Foliage, mats["conifer_a"]);
+                treeLayers["pb" + i] = TreeLayer("pine_b_" + i, conifers[i].Foliage, conifersLod[i].Foliage, mats["conifer_b"]);
             }
             for (int i = 0; i < broads.Length; i++)
             {
-                treeLayers["bt" + i] = _veg.AddLayer("broad_trunk_" + i, broads[i].Trunk, mats["bark_broad"], treeDist, true, true);
-                treeLayers["bg" + i] = _veg.AddLayer("broad_green_" + i, broads[i].Foliage, mats["broad_green"], treeDist, true, true);
-                treeLayers["by" + i] = _veg.AddLayer("broad_yellow_" + i, broads[i].Foliage, mats["broad_yellow"], treeDist, true, true);
-                treeLayers["ba" + i] = _veg.AddLayer("broad_autumn_" + i, broads[i].Foliage, mats["broad_autumn"], treeDist, true, true);
+                treeLayers["bt" + i] = TreeLayer("broad_trunk_" + i, broads[i].Trunk, broadsLod[i].Trunk, mats["bark_broad"]);
+                treeLayers["bg" + i] = TreeLayer("broad_green_" + i, broads[i].Foliage, broadsLod[i].Foliage, mats["broad_green"]);
+                treeLayers["by" + i] = TreeLayer("broad_yellow_" + i, broads[i].Foliage, broadsLod[i].Foliage, mats["broad_yellow"]);
+                treeLayers["ba" + i] = TreeLayer("broad_autumn_" + i, broads[i].Foliage, broadsLod[i].Foliage, mats["broad_autumn"]);
             }
 
             var grid = new Dictionary<Vector2Int, Vector2>();

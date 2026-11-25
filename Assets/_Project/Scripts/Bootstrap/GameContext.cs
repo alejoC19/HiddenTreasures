@@ -72,6 +72,7 @@ namespace HuesoOxido.Core
         public EnergyComponent EnergyComp;
         public UiRoot Ui;
         public FindCardView FindCard;
+        public GraphicsQuality Quality;
         public MapView Map;
     }
 }

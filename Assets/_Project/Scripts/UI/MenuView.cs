@@ -8,6 +8,8 @@ namespace HuesoOxido.UI
     {
         bool HasSave { get; }
         float Sensitivity { get; set; }
+        string QualityLabel { get; }
+        void CycleQuality();
         void StartNewGame();
         void ContinueGame();
         void ContinueFromPause();
@@ -117,6 +119,7 @@ namespace HuesoOxido.UI
             var fresh = Btn("Nueva partida", () => _a.StartNewGame());
             Btn("Controles", () => { _before = Mode.Main; _mode = Mode.Controls; Show(); });
             SensitivityRow();
+            Btn("Calidad gráfica: " + _a.QualityLabel, () => { _a.CycleQuality(); Show(); });
             Btn("Salir", () => _a.QuitGame());
             // Con partida guardada, "Continuar" queda seleccionado; si no, "Nueva partida".
             var es = UnityEngine.EventSystems.EventSystem.current;
@@ -132,6 +135,7 @@ namespace HuesoOxido.UI
             Btn("Cargar última partida", () => _a.LoadGame(), _a.HasSave);
             Btn("Controles", () => { _before = Mode.Pause; _mode = Mode.Controls; Show(); });
             SensitivityRow();
+            Btn("Calidad gráfica: " + _a.QualityLabel, () => { _a.CycleQuality(); Show(); });
             Btn("Menú principal", () => _a.ReturnToMainMenu());
             Btn("Salir", () => _a.QuitGame());
         }

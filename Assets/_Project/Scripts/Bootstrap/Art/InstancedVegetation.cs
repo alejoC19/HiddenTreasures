@@ -16,6 +16,10 @@ namespace HuesoOxido.Core
         public sealed class Layer
         {
             public string Name; public Mesh Mesh; public Material Material; public float MaxDistance; public bool CastShadows; public bool ReceiveShadows;
+            /// <summary>Version simple de la malla para lejos (null = sin LOD) y desde que distancia se usa.</summary>
+            public Mesh LodMesh; public float LodDistance;
+            /// <summary>Las sombras solo se proyectan hasta esta distancia (0 = siempre que CastShadows).</summary>
+            public float ShadowDistance;
             internal readonly Dictionary<Vector2Int, List<Matrix4x4>> Pending = new Dictionary<Vector2Int, List<Matrix4x4>>();
             internal readonly List<Page> Pages = new List<Page>();
             public int Count;
@@ -27,6 +31,11 @@ namespace HuesoOxido.Core
         const int MaxPerCall = 1000;
         readonly List<Layer> _layers = new List<Layer>();
         readonly Plane[] _planes = new Plane[6];
+
+        /// <summary>Escalas por calidad grafica (1 = completo).</summary>
+        public float DistanceScale { get; set; } = 1f;
+        public float LodScale { get; set; } = 1f;
+        public float ShadowScale { get; set; } = 1f;
 
         public int InstanceCount { get; private set; }
         public int DrawnLastFrame { get; private set; }
@@ -90,11 +99,12 @@ namespace HuesoOxido.Core
             int drawn = 0;
             foreach (var l in _layers)
             {
-                float maxSq = l.MaxDistance * l.MaxDistance;
+                float maxD = l.MaxDistance * DistanceScale, maxSq = maxD * maxD;
+                float lodD = l.LodDistance * LodScale, lodSq = lodD * lodD;
+                float shD = l.ShadowDistance * ShadowScale, shSq = shD * shD;
                 var rp = new RenderParams(l.Material)
                 {
                     camera = cam,
-                    shadowCastingMode = l.CastShadows ? ShadowCastingMode.On : ShadowCastingMode.Off,
                     receiveShadows = l.ReceiveShadows,
                     lightProbeUsage = LightProbeUsage.Off,
                     reflectionProbeUsage = ReflectionProbeUsage.Off,
@@ -102,10 +112,13 @@ namespace HuesoOxido.Core
                 };
                 foreach (var page in l.Pages)
                 {
-                    if (page.Bounds.SqrDistance(cp) > maxSq) continue;
+                    float d2 = page.Bounds.SqrDistance(cp);
+                    if (d2 > maxSq) continue;
                     if (!GeometryUtility.TestPlanesAABB(_planes, page.Bounds)) continue;
                     rp.worldBounds = page.Bounds;
-                    Graphics.RenderMeshInstanced(rp, l.Mesh, 0, page.Matrices);
+                    rp.shadowCastingMode = l.CastShadows && (l.ShadowDistance <= 0f || d2 <= shSq) ? ShadowCastingMode.On : ShadowCastingMode.Off;
+                    var mesh = l.LodMesh != null && d2 > lodSq ? l.LodMesh : l.Mesh;
+                    Graphics.RenderMeshInstanced(rp, mesh, 0, page.Matrices);
                     drawn += page.Matrices.Length;
                 }
             }

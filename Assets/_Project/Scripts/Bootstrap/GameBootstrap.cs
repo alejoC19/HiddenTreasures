@@ -119,6 +119,8 @@ namespace HuesoOxido.Core
             director.Prepare(ctx);
             director.SetWorldSeed(worldSeed);
             BuildUi(ctx, uiGo, director, allItems);
+            ctx.Quality = systems.AddComponent<GraphicsQuality>();
+            ctx.Quality.Initialize(ctx.World.Vegetation, () => !ctx.Input.UiMode, s.Notifier.Post);
             var cinematic = systems.AddComponent<MenuCinematic>();
             cinematic.Initialize(ctx.Cam, ctx.Ui, ctx.World.CampPosition + new Vector3(0f, 0f, -1.5f), ctx.World.HeightAt);
             systems.AddComponent<DebugTools>().Initialize(ctx);
