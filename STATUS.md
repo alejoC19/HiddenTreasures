@@ -79,3 +79,9 @@ Para cada fallo: copiar el texto de la Console.
 - **Guardado**: `SaveSystem/GameSaveCodec.cs` pasa todos los modelos puros a `SaveData` y de vuelta (dinero, mochila, baúl, mejoras, permisos, colección, energía, hora, clima, combustible, misión); el director agrega posiciones, sitios excavados (de ahí sale la libreta) y objetos en el suelo; se guarda además la semilla del mundo. Autoguardado: al vender, al dormir, al llegar al campamento (cada 60 s como mínimo) y con F5. Tests de ida y vuelta.
 - **Menú principal cinemático** (`Bootstrap/MenuCinematic.cs`): la cámara orbita el campamento con fuego y bruma vivos (tiempo sin escala), HUD oculto, título a la izquierda, "Continuar" seleccionado si hay partida. El juego es de una sola escena (`Main.unity`), así que Continuar / Nueva partida no cambian de escena: cargan o reinician el estado. Etalonaje con más contraste y viñeta.
 - **Verificado**: 62 tests .NET y compilación real en Unity 6; cuadros del recorrido del menú. **No verificado** (sin Play Mode): cómo suenan los sonidos, el menú en movimiento, el autoguardado jugando y la carga desde disco real.
+
+## Presentación de hallazgos y timbre del detector (última etapa)
+
+- **Tarjeta de hallazgo** (`UI/FindCardView.cs` + `Core/FindPresentation.cs`, 5 tests): al terminar de limpiar la pieza (tras recoger y cepillar) aparece arriba al centro con el color de la rareza, nombre, categoría, descripción, valor estimado y "¡NUEVA EN TU COLECCIÓN!" si corresponde. Dura más cuanto más rara (3,5 s común … 7,3 s leyendaria; las reliquias, +0,6 s).
+- **Timbre del detector**: la frecuencia sigue indicando la proximidad; el *timbre* (armónicos) indica el tipo de objetivo cuando la señal es fuerte (≥ 0,55): opaco (común), con brillo (poco común), cristalino (raro o mejor) y con vibrato (reliquia).
+- **Verificado**: 67 tests .NET y compilación real en Unity 6. **No verificado**: cómo se ve la tarjeta y cómo suenan los timbres (sin Play Mode).

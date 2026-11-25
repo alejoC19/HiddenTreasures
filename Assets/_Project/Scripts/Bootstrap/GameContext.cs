@@ -71,6 +71,7 @@ namespace HuesoOxido.Core
         public VehicleController Vehicle;
         public EnergyComponent EnergyComp;
         public UiRoot Ui;
+        public FindCardView FindCard;
         public MapView Map;
     }
 }

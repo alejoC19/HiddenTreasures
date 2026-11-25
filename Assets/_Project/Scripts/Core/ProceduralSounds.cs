@@ -51,6 +51,29 @@ namespace HuesoOxido.Core
             return 1.1f + (0.07f - 1.1f) * (float)Math.Pow(s, 0.8);
         }
 
+        /// <summary>Bip con timbre segun el objetivo: grave y opaco (comun), con armonicos (valioso) y con brillo y vibrato (reliquia).</summary>
+        public static float[] Beep(float frequency, DetectorTone tone, float seconds = 0.12f)
+        {
+            float h2, h3, vib;
+            switch (tone)
+            {
+                case DetectorTone.Mid: h2 = 0.35f; h3 = 0f; vib = 0f; break;
+                case DetectorTone.High: h2 = 0.5f; h3 = 0.3f; vib = 0f; break;
+                case DetectorTone.Relic: h2 = 0.55f; h3 = 0.4f; vib = 0.012f; break;
+                default: h2 = 0f; h3 = 0f; vib = 0f; break;
+            }
+            var d = Alloc(seconds);
+            float norm = 1f / (1f + h2 + h3);
+            for (int i = 0; i < d.Length; i++)
+            {
+                float t = i / (float)Rate;
+                double ph = 2.0 * Math.PI * frequency * t * (1.0 + vib * Math.Sin(2.0 * Math.PI * 28.0 * t));
+                float v = (float)(Math.Sin(ph) + h2 * Math.Sin(2.0 * ph) + h3 * Math.Sin(3.0 * ph)) * norm;
+                d[i] = v * Fade(i, d.Length, 120, 600) * 0.8f;
+            }
+            return d;
+        }
+
         public static float[] Beep(float frequency, float seconds = 0.12f)
         {
             var d = Alloc(seconds);

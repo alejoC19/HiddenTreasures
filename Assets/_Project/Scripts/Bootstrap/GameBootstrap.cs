@@ -90,7 +90,7 @@ namespace HuesoOxido.Core
             // Deteccion y excavacion
             ctx.Detector = systems.AddComponent<MetalDetector>();
             ctx.Detector.Initialize(ctx.World.Sites, ctx.Player.transform);
-            systems.AddComponent<DetectorAudio>().Initialize(ctx.Detector);
+            systems.AddComponent<DetectorAudio>().Initialize(ctx.Detector, s.Catalog);
             ctx.Dig = systems.AddComponent<DigController>();
             ctx.Dig.Initialize(ctx.Input, ctx.Detector, s.Permits, ctx.EnergyComp,
                 () => !ctx.Vehicle.HasDriver && ctx.Motor.IsGrounded && !ctx.Motor.IsSprinting,
@@ -159,6 +159,9 @@ namespace HuesoOxido.Core
                 Energy = s.Energy, Backpack = s.Backpack, Wallet = s.Wallet, Clock = s.Clock, Weather = s.Weather,
                 Detector = ctx.Detector, Dig = ctx.Dig, Sensor = ctx.Sensor, Vehicle = ctx.Vehicle, Notifier = s.Notifier, Input = ctx.Input, Quests = s.Quests, PlayerFsm = ctx.PlayerState.Machine, Hidden = () => ctx.Ui.MenuMode == MenuView.Mode.Main,
             });
+
+            ctx.FindCard = uiGo.AddComponent<FindCardView>();
+            ctx.FindCard.Initialize(canvas);
 
             var inventory = uiGo.AddComponent<InventoryView>();
             inventory.Initialize(canvas, s.Backpack, director.InventoryActions, s.Catalog, s.Collection, s.Trade);

@@ -28,6 +28,7 @@ namespace HuesoOxido.Core
         bool _faintMarkerActive;
         bool _wasInCamp = true;
         float _lastAutosave;
+        FindCardData _pendingCard;
         int _worldSeed = 1337;
         public void SetWorldSeed(int seed) { _worldSeed = seed; }
 
@@ -52,6 +53,11 @@ namespace HuesoOxido.Core
             _c.Dig.FindUnearthed += OnFound;
             _c.Dig.FindUnearthed += (_, __) => _c.PlayerState.Machine.NotifyFind();
             AddRelicMarkers();
+            // La tarjeta de hallazgo aparece al terminar de limpiar la pieza (tras recoger y cepillar).
+            _c.PlayerState.Machine.Changed += (from, to) =>
+            {
+                if (from == PlayerAction.Cleaning && _pendingCard != null) { _c.FindCard.Show(_pendingCard); _pendingCard = null; }
+            };
             _s.Quests.Completed += OnQuestCompleted;
             _s.Trade.Sold += OnSold;
             if (!_s.Quests.HasQuest) _s.Quests.Start(QuestManager.RelicHunt());
@@ -118,6 +124,7 @@ namespace HuesoOxido.Core
             string tail = res.IsDuplicate ? "duplicado" : "¡nueva en tu colección!";
             bool isRelic = item.DefinitionId != null && item.DefinitionId.StartsWith(QuestManager.RelicPrefix, StringComparison.Ordinal);
             FindReveal.Spawn(site.transform.position, info != null ? info.Rarity : Rarity.Common, isRelic);
+            if (info != null) _pendingCard = FindPresentation.BuildCard(info, _s.Trade.PriceOf(item), !res.IsDuplicate);
             string msg = "¡Hallazgo! <color=#" + color + ">" + name + "</color> (" + rarity + ") · " + tail;
 
             if (_s.Quests.ReportFind(item.DefinitionId) && !_s.Quests.IsCompleted)
