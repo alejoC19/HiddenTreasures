@@ -82,3 +82,15 @@ Modificados para el juego: decimados, divididos en LOD, escalados a medidas real
 Poly Haven (modelos, ya en metros): rock_07, rock_09, stone_01, rock_moss_set_01, rock_moss_set_02, tree_stump_01, tree_stump_02, dead_tree_trunk, shrub_03, shrub_04, fern_02, nettle_plant, weed_plant_02, dry_branches_medium_01. Descarga: `tools/fetch_polyhaven_models.py`.
 
 ambientCG (texturas 2K, CC0, aún sin integrar): Moss002, Ground068, Ground037, Ground071, Gravel041, Gravel043, Rock064, Ground011, ScatteredLeaves009, Bark014. Descarga: `tools/fetch_ambientcg.py`.
+
+### Añadidos: cactus y detector (Sketchfab, CC BY 4.0)
+
+| Uso | Título | Autor |
+|---|---|---|
+| saguaro1..4 | [Realistic HD Saguaro cactus (27/30)](https://sketchfab.com/3d-models/realistic-hd-saguaro-cactus-2730-124202937a8c45e091f3af365446a087) | PlantCatalog |
+| saguaro1..4 | [Realistic HD Saguaro cactus (7/30)](https://sketchfab.com/3d-models/realistic-hd-saguaro-cactus-730-24416333c66b4c34ab042cd93ac44a32) | PlantCatalog |
+| saguaro1..4 | [Realistic HD Saguaro cactus (26/30)](https://sketchfab.com/3d-models/realistic-hd-saguaro-cactus-2630-f59d9c31832246819f718088ca654664) | PlantCatalog |
+| saguaro1..4 | [Realistic HD Saguaro cactus (17/30)](https://sketchfab.com/3d-models/realistic-hd-saguaro-cactus-1730-c9310cae729f471e82c355a15efebed9) | PlantCatalog |
+| detector | [Metal Detector](https://sketchfab.com/3d-models/metal-detector-2527ebf908e94ee88d00aad6fa062377) | Tr0n |
+
+Variante nevada del pino (`pine_snow`): derivada de Pine Tree [Game-ready] (Wenedi), con color mezclado hacia blanco (`tools/art/make_snow_variant.py`).

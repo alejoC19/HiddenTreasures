@@ -23,6 +23,12 @@ run $R/desertcliff.glb $W/desertcliff desertcliff 6 0.6,0.25
 run $R/fallentrunk.glb $W/fallentrunk fallentrunk 1.3 0.2,0.08
 run $R/logpile.glb $W/logpile logpile 0.7 1,0.5
 run $R/sandarch.glb $W/sandarch sandarch 5 0.4,0.15
+run $R/saguaro1.glb $W/saguaro1 saguaro1 6.5 0.35,0.12
+run $R/saguaro2.glb $W/saguaro2 saguaro2 5.5 0.4,0.15
+run $R/saguaro3.glb $W/saguaro3 saguaro3 3.5 0.7,0.3
+run $R/saguaro4.glb $W/saguaro4 saguaro4 5 0.5,0.2
+run $R/detector.glb $W/detector detector 1.3 0.5,0.2
+python3 make_snow_variant.py $W pine_wenedi pine_snow 0.75
 # --- Poly Haven (ya vienen en metros) ---
 P=$R/ph
 run $P/rock_07/rock_07_2k.gltf $W/rock_07 rock_07 0 0.25,0.1

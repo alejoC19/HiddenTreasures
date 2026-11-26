@@ -37,9 +37,37 @@ namespace HuesoOxido.Detection
             Attach(false);
         }
 
+        /// <summary>Detector real (Sketchfab, CC-BY): se gira para que la bobina apunte adelante y el agarre quede en el origen.</summary>
+        bool BuildArt()
+        {
+            var model = ArtLibrary.Get("detector");
+            if (model == null) return false;
+            var rot = Quaternion.Euler(-90f + 18f, 0f, 0f);
+            var holder = new GameObject("Model").transform;
+            holder.SetParent(_root, false);
+            holder.localRotation = rot;
+            float gripY = model.Height * 0.80f;       // el agarre esta cerca del extremo superior
+            holder.localPosition = -(rot * new Vector3(0f, gripY, 0f));
+            for (int i = 0; i < model.Materials.Length; i++)
+            {
+                if (model.Meshes[0][i] == null) continue;
+                var g = new GameObject("part" + i);
+                g.transform.SetParent(holder, false);
+                g.AddComponent<MeshFilter>().sharedMesh = model.Meshes[0][i];
+                var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = model.Materials[i];
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+            _lamp = MaterialUtil.Emissive(new Color(0.1f, 0.8f, 0.2f));
+            var lamp = MaterialUtil.Primitive(PrimitiveType.Cylinder, "Lamp", _root, _lamp);
+            lamp.transform.localPosition = new Vector3(0f, 0.13f, 0.12f);
+            lamp.transform.localScale = new Vector3(0.016f, 0.005f, 0.016f);
+            return true;
+        }
+
         void Build()
         {
             _root = new GameObject("MetalDetector").transform;
+            if (BuildArt()) return;
             var steel = ProceduralSurfaces.Steel("det_steel", new Color(0.55f, 0.57f, 0.6f), 0.55f, 0.8f);
             var plastic = ProceduralSurfaces.Steel("det_plastic", new Color(0.1f, 0.1f, 0.11f), 0.35f, 0.1f);
             var yellow = ProceduralSurfaces.WornPaint("det_yellow", new Color(0.85f, 0.65f, 0.12f), 0.15f);

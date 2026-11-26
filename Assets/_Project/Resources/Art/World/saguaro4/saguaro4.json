@@ -1,0 +1,57 @@
+{
+ "name": "saguaro4",
+ "height": 5,
+ "size": [
+  0.6835577456829687,
+  5,
+  0.6972166511991835
+ ],
+ "materials": [
+  {
+   "name": "Cactus_spines_01",
+   "diff": "saguaro4_Cactus_spines_01_diff.png",
+   "nor": "saguaro4_Cactus_spines_01_nor.png",
+   "mr": null,
+   "alphaMode": "BLEND",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8933010203369545
+  },
+  {
+   "name": "Carnegiea_bark_04",
+   "diff": "saguaro4_Carnegiea_bark_04_diff.png",
+   "nor": "saguaro4_Carnegiea_bark_04_nor.png",
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8629443272753985
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 7098,
+   "ratio": 0.5
+  },
+  {
+   "level": 1,
+   "tris": 2837,
+   "ratio": 0.2
+  }
+ ]
+}

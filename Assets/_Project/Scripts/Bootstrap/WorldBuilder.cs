@@ -201,7 +201,10 @@ namespace HuesoOxido.Core
             switch (_bp.Trees)
             {
                 case TreeStyle.SnowPine:
-                    Fam(forest, "snowA", "pine_wenedi", new Color(1.5f, 1.6f, 1.7f), 2); Fam(forest, "snowB", "pine_wenedi", new Color(1.25f, 1.4f, 1.5f), 2);
+                    {
+                        string snow = ArtLibrary.Exists("pine_snow") ? "pine_snow" : "pine_wenedi";
+                        Fam(forest, "snowA", snow, new Color(1f, 1.02f, 1.05f), 2); Fam(forest, "snowB", snow, new Color(0.92f, 0.96f, 1f), 2);
+                    }
                     Fam(broad, "snowDead", "deadtree", new Color(0.9f, 0.95f, 1.1f), 1); Fam(broad, "snowDead2", "deadpine", new Color(0.9f, 0.95f, 1.1f), 1);
                     break;
                 case TreeStyle.SwampDead:
@@ -209,7 +212,11 @@ namespace HuesoOxido.Core
                     Fam(broad, "mireBeech", "beech", new Color(0.55f, 0.72f, 0.4f), 2); Fam(broad, "mireBeech2", "beech", new Color(0.7f, 0.78f, 0.38f), 1);
                     break;
                 case TreeStyle.Cactus:
-                    return false;   // los cactus siguen siendo procedurales hasta conseguir un modelo real
+                    if (!ArtLibrary.Exists("saguaro1")) return false;
+                    Fam(forest, "sag1", "saguaro1", new Color(1f, 1f, 0.95f), 2); Fam(forest, "sag2", "saguaro2", Color.white, 2);
+                    Fam(forest, "sag3", "saguaro3", new Color(1f, 1f, 0.9f), 2); Fam(forest, "sag4", "saguaro4", Color.white, 2);
+                    Fam(broad, "desDead", "deadtree", new Color(1.1f, 0.95f, 0.8f), 2);
+                    break;   // los cactus siguen siendo procedurales hasta conseguir un modelo real
                 default:
                     Fam(forest, "pineA", "pine_wenedi", new Color(0.95f, 1.0f, 0.95f), 2); Fam(forest, "pineB", "pine_wenedi", new Color(0.85f, 0.95f, 0.85f), 2); Fam(forest, "pineC", "pine_wenedi", new Color(1.0f, 1.0f, 0.85f), 1);
                     Fam(broad, "beechA", "beech", new Color(0.9f, 1f, 0.85f), 3); Fam(broad, "beechB", "beech", new Color(1.0f, 1.0f, 0.7f), 1); Fam(broad, "beechC", "beech", new Color(1.25f, 0.85f, 0.55f), 1);

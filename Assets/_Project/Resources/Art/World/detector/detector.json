@@ -1,0 +1,193 @@
+{
+ "name": "detector",
+ "height": 1.3,
+ "size": [
+  0.3332167569809189,
+  1.3,
+  0.23959963338161738
+ ],
+ "materials": [
+  {
+   "name": "Wire",
+   "diff": null,
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0.0022471377661035,
+    0.00258307688566875,
+    0.0033389862795,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.3458460366
+  },
+  {
+   "name": "Aluminium",
+   "diff": null,
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0.6218755641,
+    0.6619615456,
+    0.7579697625,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 0.40682164629999995
+  },
+  {
+   "name": "Wire_head",
+   "diff": null,
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.4434070122
+  },
+  {
+   "name": "lambert1",
+   "diff": null,
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0.5,
+    0.5,
+    0.5,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.6
+  },
+  {
+   "name": "Buttons",
+   "diff": null,
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0.663,
+    0.450695,
+    0.157131,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.5531631098
+  },
+  {
+   "name": "Base_color",
+   "diff": null,
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0.6631,
+    0.423,
+    0.091,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.3458460366
+  },
+  {
+   "name": "Black_plastic",
+   "diff": null,
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0.008267376143796,
+    0.00917510487860736,
+    0.011217606708000002,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.4677972561
+  },
+  {
+   "name": "Base_color_Black",
+   "diff": null,
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0.0714838260306927,
+    0.07786450911563521,
+    0.09160230754259634,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 0.28487042679999997
+  },
+  {
+   "name": "Front_Panel",
+   "diff": "detector_Front_Panel_diff.png",
+   "nor": null,
+   "mr": null,
+   "alphaMode": "MASK",
+   "cutoff": 0.0626905487804878,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8942628737
+  },
+  {
+   "name": "Cloth_black",
+   "diff": null,
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0.0243366141,
+    0.0271423757,
+    0.0342184214,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.6785442073
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 8232,
+   "ratio": 0.5
+  },
+  {
+   "level": 1,
+   "tris": 3045,
+   "ratio": 0.2
+  }
+ ]
+}
