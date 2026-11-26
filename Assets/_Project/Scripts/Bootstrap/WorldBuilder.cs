@@ -34,6 +34,7 @@ namespace HuesoOxido.Core
         public WorldData Build(IReadOnlyList<IItemInfo> items, Transform parent, HuesoOxido.Survival.GameClock clock = null)
         {
             var data = new WorldData();
+            _night = clock != null ? (System.Func<float>)(() => HuesoOxido.Survival.NightLight.NightFactor(clock.Hour)) : null;
             _forestMask = new float[MapRes, MapRes];
             data.Road = WorldLayout.CreateRoad(_noise);
             _field = HeightField.Generate(_seed, WorldLayout.CampX, WorldLayout.CampZ, WorldLayout.RuinsX, WorldLayout.RuinsZ, data.Road, _bp);
@@ -80,6 +81,7 @@ namespace HuesoOxido.Core
         }
 
         float _waterLevel = float.NegativeInfinity;
+        System.Func<float> _night;
 
         /// <summary>
         /// Charcas y canales (pantano): un plano de agua oscuro y brillante a una altura calculada del relieve, siempre por debajo del
@@ -364,66 +366,7 @@ namespace HuesoOxido.Core
             root.SetParent(parent, false);
             var stone = ArtMaterials.Textured(_bp.RuinTexture, C(_bp.RuinTint), 0.10f);
             var moss = _bp.IsDefault ? ArtMaterials.Textured("ruin_blocks", new Color(0.82f, 0.88f, 0.78f), 0.08f) : ArtMaterials.Textured(_bp.RuinTexture, C(_bp.RuinTint) * 0.75f, 0.08f);
-            var c = GroundAt(_ruins);
-
-            // Losas de piedra alrededor de la plaza; el centro queda abierto (ahi esta el hallazgo mas valioso).
-            for (int i = 0; i < 16; i++)
-            {
-                float a = i * Mathf.PI * 2f / 16f + Rnd(-0.15f, 0.15f);
-                float r = Rnd(4.6f, 7.2f);
-                var g = GroundAt(new Vector2(c.x + Mathf.Cos(a) * r, c.z + Mathf.Sin(a) * r));
-                Block(root, "Flagstone", stone, g + Vector3.up * 0.04f, new Vector3(Rnd(1.6f, 2.4f), 0.14f, Rnd(1.4f, 2.1f)), Rnd(0f, 360f));
-            }
-
-            // Muros perimetrales en ruinas: tramos con huecos y alturas dispares.
-            for (int side = 0; side < 4; side++)
-            {
-                for (int i = 0; i < 6; i++)
-                {
-                    if (_rng.NextDouble() < 0.28) continue;
-                    float t = (i - 2.5f) * 2.6f;
-                    float h = Rnd(0.8f, 3.4f);
-                    Vector3 off; float yaw;
-                    switch (side)
-                    {
-                        case 0: off = new Vector3(t, 0f, 8f); yaw = 0f; break;
-                        case 1: off = new Vector3(t, 0f, -8f); yaw = 0f; break;
-                        case 2: off = new Vector3(8f, 0f, t); yaw = 90f; break;
-                        default: off = new Vector3(-8f, 0f, t); yaw = 90f; break;
-                    }
-                    if (side == 1 && Mathf.Abs(t) < 3.2f) continue; // entrada
-                    Block(root, "Wall", stone, c + off + Vector3.up * (h * 0.5f), new Vector3(2.5f, h, 0.9f), yaw + Rnd(-3f, 3f));
-                }
-            }
-
-            // Columnas y arco.
-            for (int i = 0; i < 6; i++)
-            {
-                float a = i * Mathf.PI * 2f / 6f;
-                var pos = c + new Vector3(Mathf.Cos(a) * 4.2f, 0f, Mathf.Sin(a) * 4.2f);
-                float h = _rng.NextDouble() < 0.5 ? Rnd(2.5f, 4f) : Rnd(0.8f, 1.6f);
-                var col = new GameObject("Column");
-                col.transform.SetParent(root, false);
-                col.transform.position = pos + Vector3.up * 0.3f;
-                var cm = MeshKit.Trunk(h, 0.55f, 0.48f, 14, 3, 4.2f, 0f, i);
-                col.AddComponent<MeshFilter>().sharedMesh = cm;
-                col.AddComponent<MeshRenderer>().sharedMaterial = stone;
-                var cc = col.AddComponent<CapsuleCollider>(); cc.radius = 0.55f; cc.height = h; cc.center = new Vector3(0f, h * 0.5f, 0f);
-                col.isStatic = true;
-            }
-            Block(root, "ArchL", stone, c + new Vector3(-1.6f, 2.4f, -8f), new Vector3(0.9f, 4.8f, 0.9f), 0f);
-            Block(root, "ArchR", stone, c + new Vector3(1.6f, 2.4f, -8f), new Vector3(0.9f, 4.8f, 0.9f), 0f);
-            Block(root, "ArchTop", stone, c + new Vector3(0.3f, 5.0f, -8f), new Vector3(4.2f, 0.7f, 1f), 4f);
-
-            // Bloques caidos y musgo.
-            for (int i = 0; i < 22; i++)
-            {
-                float a = Rnd(0f, Mathf.PI * 2f), r = Rnd(5f, 14f);
-                var p = c + new Vector3(Mathf.Cos(a) * r, 0f, Mathf.Sin(a) * r);
-                var g = GroundAt(new Vector2(p.x, p.z));
-                var b = Block(root, "Fallen", i % 4 == 0 ? moss : stone, g + Vector3.up * 0.35f, new Vector3(Rnd(0.8f, 1.8f), Rnd(0.5f, 0.9f), Rnd(0.8f, 1.5f)), Rnd(0f, 360f));
-                b.transform.rotation *= Quaternion.Euler(Rnd(-8f, 8f), 0f, Rnd(-8f, 8f));
-            }
+            RuinsBuilder.Build(root, GroundAt(_ruins), GroundAt, stone, moss, _rng, _night);
         }
 
         static GameObject Block(Transform parent, string name, Material mat, Vector3 pos, Vector3 scale, float yaw)
