@@ -6,7 +6,7 @@
 > 3. **PlayMode**: Window → General → Test Runner → PlayMode → *Run All* (hay 12, incluido el de compatibilidad de guardados). Anotá cuáles fallan y el texto del error.
 > 4. **Expedición completa en el Bosque de las Ruinas** (sección 2 de esta guía): permiso → camioneta → ruinas → detector → excavar → mochila/baúl → vender → mejora → dormir → Continuar. Anotá todo lo que moleste, se vea mal o falle.
 > 5. **Rendimiento**: build de rendimiento y `perf_summary.md` (sección «Medir el rendimiento de verdad»), o F9 en el Editor.
-> Qué mandar: errores de la Console, resultados del Test Runner, `perf_summary.md`, capturas de lo que más moleste y si el guardado anterior cargó.
+> Qué mandar: completá [`INFORME_PRUEBA_PC.md`](INFORME_PRUEBA_PC.md) (plantilla con casillas) y adjuntá `perf_summary.md`, la Console y capturas de lo que más moleste.
 > **Recién después** empieza la integración paso a paso (primero Necesidades, ver `INTEGRATION_DESIGN.md`).
 
 Esta guía complementa a `PRIMERA_EJECUCION_WINDOWS.md` (instalación y apertura del proyecto). Lo que cambió desde entonces:
