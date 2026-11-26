@@ -1,0 +1,40 @@
+{
+ "name": "grass_tuft",
+ "height": 0.9,
+ "size": [
+  1.610366842143287,
+  0.9,
+  0.7365225304372004
+ ],
+ "materials": [
+  {
+   "name": "Scene___Root",
+   "diff": "grass_tuft_Scene___Root_diff.png",
+   "nor": "grass_tuft_Scene___Root_nor.png",
+   "mr": "grass_tuft_Scene___Root_mr.png",
+   "alphaMode": "BLEND",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 648,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 324,
+   "ratio": 0.5
+  }
+ ]
+}

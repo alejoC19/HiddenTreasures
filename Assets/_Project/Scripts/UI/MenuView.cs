@@ -22,7 +22,7 @@ namespace HuesoOxido.UI
     /// <summary>Menu principal, pausa y pantalla de controles.</summary>
     public sealed class MenuView : MonoBehaviour
     {
-        public enum Mode { None, Main, Pause, Controls }
+        public enum Mode { None, Main, Pause, Controls, Credits }
 
         const string ControlsText =
             "<b>Moverse</b>   W A S D\n<b>Mirar</b>   mouse\n<b>Correr</b>   Shift\n<b>Agacharse</b>   C o Ctrl\n"
@@ -66,7 +66,7 @@ namespace HuesoOxido.UI
         /// <summary>Esc: vuelve de Controles, o reanuda desde la pausa. En el menu principal no hace nada.</summary>
         public bool Back()
         {
-            if (_mode == Mode.Controls) { _mode = _before; Show(); return false; }
+            if (_mode == Mode.Controls || _mode == Mode.Credits) { _mode = _before; Show(); return false; }
             return _mode == Mode.Pause; // true => hay que cerrar y reanudar
         }
 
@@ -84,6 +84,7 @@ namespace HuesoOxido.UI
                 case Mode.Main: BuildMain(); break;
                 case Mode.Pause: BuildPause(); break;
                 case Mode.Controls: BuildControls(); break;
+                case Mode.Credits: BuildCredits(); break;
             }
         }
 
@@ -118,6 +119,7 @@ namespace HuesoOxido.UI
             var cont = Btn("Continuar", () => _a.ContinueGame(), _a.HasSave);
             var fresh = Btn("Nueva partida", () => _a.StartNewGame());
             Btn("Controles", () => { _before = Mode.Main; _mode = Mode.Controls; Show(); });
+            Btn("Créditos", () => { _before = Mode.Main; _mode = Mode.Credits; Show(); });
             SensitivityRow();
             Btn("Calidad gráfica: " + _a.QualityLabel, () => { _a.CycleQuality(); Show(); });
             Btn("Salir", () => _a.QuitGame());
@@ -134,6 +136,7 @@ namespace HuesoOxido.UI
             Btn("Guardar partida", () => _a.SaveGame());
             Btn("Cargar última partida", () => _a.LoadGame(), _a.HasSave);
             Btn("Controles", () => { _before = Mode.Pause; _mode = Mode.Controls; Show(); });
+            Btn("Créditos", () => { _before = Mode.Pause; _mode = Mode.Credits; Show(); });
             SensitivityRow();
             Btn("Calidad gráfica: " + _a.QualityLabel, () => { _a.CycleQuality(); Show(); });
             Btn("Menú principal", () => _a.ReturnToMainMenu());
@@ -146,6 +149,19 @@ namespace HuesoOxido.UI
             var t = UiFactory.Label(_column, ControlsText, 22, UiFactory.TextColor);
             var le = t.gameObject.AddComponent<LayoutElement>();
             le.preferredHeight = 420f;
+            Btn("Volver", () => { _mode = _before; Show(); });
+        }
+
+        const string CreditsText =
+            "<b>Modelos 3D (Sketchfab, CC BY 4.0; modificados: optimizados y escalados)</b>\n"
+          + "Pine Tree [Game-ready] - Wenedi (^-^)/\nBeech tree - evolveduk\nDead Tree - MaX3Dd\nMid Poly Dead Pine Tree - sujirour\nStone Arch Pillars - Ruins - Unreal Designer\nOld Ruined Temple - Muhammet Gündel\nModular Ancient Stone Archway - PBR Game Ready - Hardframe\nBig Rock 1B - Andrei.D\nRockcliff - DJMaesen\nCliff - DJMaesen\nDesert Cliff 6 - WireframeArt\nPine Tree Fallen Trunk Scan 02 - Pers Scans\nLog Pile (Game Ready / 2K PBR) - Meerschaum Digital\nAncient Ruined Sandstone Archway & Gate - mana5677\nRealistic HD Saguaro cactus (27/30) - PlantCatalog\nMetal Detector - Tr0n\nGrass Bushes (game ready asset) - Aparicio Silva 3D" + "\n\n<b>Poly Haven y ambientCG (CC0)</b>: texturas, rocas, tocones, plantas y props.\n"
+          + "<b>Camioneta</b>: Chevrolet Silverado (Sketchfab, CC BY 4.0). Detalle completo en CREDITS_ASSETS.md.";
+
+        void BuildCredits()
+        {
+            Title("CRÉDITOS", 44, UiFactory.Accent, 64f);
+            var t = UiFactory.Label(_column, CreditsText, 16, UiFactory.TextColor);
+            t.gameObject.AddComponent<LayoutElement>().preferredHeight = 520f;
             Btn("Volver", () => { _mode = _before; Show(); });
         }
 

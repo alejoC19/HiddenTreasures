@@ -91,6 +91,11 @@ namespace HuesoOxido.Core
             float dens = _bp.UnderstoryDensity;
             var vt = new Color(_bp.VegTint.R, _bp.VegTint.G, _bp.VegTint.B);
             int nGrass = (int)(GrassCount * dens), nTall = (int)(TallGrassCount * dens), nFern = _bp.IsDefault ? FernCount : (int)(FernCount * dens * 0.5f), nBush = (int)(BushCount * dens), nFlower = _bp.IsDefault ? FlowerCount : (int)(FlowerCount * dens * 0.4f);
+            if (ArtLibrary.Exists("grass_tuft"))
+            {
+                // Con pasto y plantas reales, las tarjetas caricaturescas quedan solo como relleno lejano.
+                nGrass = (int)(nGrass * 0.22f); nTall = (int)(nTall * 0.3f); nBush = (int)(nBush * 0.12f); nFern = (int)(nFern * 0.35f);
+            }
             var grassMesh = CrossQuads(3, 1.25f, 0.95f, 0.18f);
             var tallMesh = CrossQuads(3, 1.0f, 1.9f, 0.45f);
             var fernMesh = CrossQuads(2, 1.7f, 1.0f, 0.25f);
@@ -198,6 +203,12 @@ namespace HuesoOxido.Core
                     n++;
                 }
             }
+            var tuft = Kit("aTuft", "grass_tuft", new Color(0.95f, 1f, 0.8f), 50f, 20f);
+            var tuftB = Kit("aTuftB", "grass_tuft", new Color(1f, 0.95f, 0.75f), 45f, 18f);
+            var sapling = ArtScatter.AddKit(_veg, "aSapling", "beech", new Color(0.5f, 0.7f, 0.4f) * vt, 90f, true, 30f, 25f, 0.4f);
+            Scatter(tuft, Mathf.RoundToInt(4800 * d), 34f, 1.5f, 0.9f, 1.6f, 0.5f);
+            Scatter(tuftB, Mathf.RoundToInt(3600 * d), 34f, 1.5f, 0.9f, 1.7f, 0.4f);
+            Scatter(sapling, Mathf.RoundToInt(320 * d), 26f, 3.0f, 0.18f, 0.32f, 0.7f);
             Scatter(fern, Mathf.RoundToInt(900 * d), 30f, 2.2f, 0.9f, 1.6f, 0.9f);
             Scatter(shrub3, Mathf.RoundToInt(1100 * d), 30f, 1.8f, 0.8f, 1.5f, 0.6f);
             Scatter(shrub4, Mathf.RoundToInt(1100 * d), 30f, 1.8f, 0.9f, 1.6f, 0.6f);
