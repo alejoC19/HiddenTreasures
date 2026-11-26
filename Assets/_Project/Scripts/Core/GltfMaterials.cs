@@ -26,6 +26,9 @@ namespace HuesoOxido.Core
             }
         }
 
+        /// <summary>Color de la pintura de la carroceria (null = el del modelo).</summary>
+        public static Color? PaintOverride = new Color(0.22f, 0.38f, 0.28f);
+
         static Material Convert(Material m, float smoothCap)
         {
             if (m == null) return null;
@@ -46,7 +49,12 @@ namespace HuesoOxido.Core
             if (n.Contains("tire") || n.Contains("rubber") || n.Contains("plastic") || n.Contains("cuero") || n.Contains("leather") || n.Contains("carpet")
                 || n.Contains("seatbelt") || n.Contains("costuras") || n.Contains("speaker") || n.Contains("interior") || n.Contains("wood") || n == "material_30")
             { metal = 0f; smooth = Mathf.Min(smooth, n.Contains("plastic") ? 0.55f : 0.42f); }
-            else if (paint) { metal = Mathf.Min(metal, 0.3f); smooth = Mathf.Min(smooth, 0.72f); }
+            else if (paint)
+            {
+                metal = Mathf.Min(metal, 0.3f); smooth = Mathf.Min(smooth, 0.6f);
+                // Pintura de expedicion: verde bosque apagado y gastado; el rojo de fabrica parecia de juguete en el bosque.
+                if (PaintOverride.HasValue && baseTex == null) baseCol = PaintOverride.Value;
+            }
             else if (n.Contains("carbon")) { metal = 0.1f; smooth = Mathf.Min(smooth, 0.5f); }
             else if (n.Contains("chrome") || n.Contains("alum")) { metal = Mathf.Max(metal, 0.9f); smooth = Mathf.Clamp(smooth, 0.55f, 0.85f); }
             else if (n.Contains("brushed") || n.Contains("lights") || n == "base" || n == "yell") { metal = Mathf.Max(metal, 0.6f); smooth = Mathf.Min(smooth, 0.65f); }
