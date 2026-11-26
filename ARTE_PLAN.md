@@ -38,3 +38,12 @@ Unos 60 x 60 m alrededor del camino que lleva a las ruinas (camino + ruinas + cl
 - Ningun arbol gratis que encontre iguala a las capturas de referencia (que usan escaneos tipo Megascans). Lo gratis llega a "bien trabajado, convincente"; el salto final seria con plata.
 - Poly Haven no tiene arboles, solo rocas, arbustos, tocones y troncos.
 - Asset Store de Unity: se puede mirar, pero bajar assets requiere tu cuenta.
+
+## Estado de la integración (actualizado)
+Integrado y verificado en render (Unity, software): árboles (pino, haya, muertos, nevado), cactus saguaro, rocas, ruinas (templo, arco, pilares), sotobosque (pasto en macollas, ortigas, ramas), troncos y tocones, carpa, mostrador, surtidor, bidones, detector, camioneta (pintura verde de expedición), texturas PBR de ambientCG para los cuatro suelos. Rendimiento **sin medir** en RX 580.
+
+### Búsquedas sin resultado útil (decisión registrada)
+- **Arbustos grandes reales**: tras dos rondas de búsqueda en Sketchfab (CC0 y CC-BY) y Poly Haven no hay un arbusto realista gratuito de calidad aceptable (solo low-poly estilizado, plantas de maceta o esqueletos secos). Se mantienen los plantines de haya a escala chica como sustituto. **Mejora real = paquete de pago** (Megascans/Fab o Asset Store); decisión de presupuesto del fundador.
+- **Pack de ramas escaneadas** (`Lowpoly Sticks`): 20 materiales de 256² por pieza; no pasa el criterio de materiales (20 capas), descartado.
+- **Cactus no saguaro** y **vegetación propia del desierto/pantano** (agaves, juncos): sin candidatos de calidad probados; el desierto reutiliza saguaros + hierbas con tinte.
+- **Suciedad/daños de la camioneta**: pendiente; requiere shader propio (mezcla de barro por altura) o texturas de suciedad; se hará con los daños del vehículo (Fase 2).
