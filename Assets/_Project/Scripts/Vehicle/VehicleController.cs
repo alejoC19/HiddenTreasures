@@ -53,6 +53,9 @@ namespace HuesoOxido.Vehicle
         public FuelTank Fuel => _fuel;
         public string Prompt => HasDriver ? "" : "Entrar al vehículo";
         public bool CanInteract => !HasDriver;
+        /// <summary>0 = dia, 1 = noche: lo asigna quien arma el juego (las luces dependen de la hora).</summary>
+        public Func<float> Darkness { get; set; }
+        public bool IsBraking { get; private set; }
         public event Action<bool> DriverChanged;
 
         public void Initialize(GameInput input, FuelTank fuel, CameraRig rig)
@@ -64,6 +67,8 @@ namespace HuesoOxido.Vehicle
             _rb.interpolation = RigidbodyInterpolation.Interpolate;
             _rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
             _wheels = PlaceholderVehicle.Build(transform, Mounts);
+            gameObject.AddComponent<VehicleLights>().Initialize(PlaceholderVehicle.FrontLamps, PlaceholderVehicle.RearLamps,
+                () => HasDriver, () => Darkness != null ? Darkness() : 0f, () => IsBraking);
         }
 
         public void Interact(GameObject actor)
@@ -123,6 +128,7 @@ namespace HuesoOxido.Vehicle
             float throttle = move.y;
             bool fuelOk = _fuel != null && !_fuel.IsEmpty;
             if (!fuelOk) throttle = 0f;
+            IsBraking = HasDriver && (move.y < -0.1f && Vector3.Dot(_rb.GetPointVelocity(_rb.worldCenterOfMass), transform.forward) > 0.5f);
 
             float speedRatio = Mathf.Clamp01(SpeedKmh / 3.6f / maxSpeed);
             float steerTarget = move.x * maxSteerDegrees * Mathf.Lerp(1f, 0.35f, speedRatio);

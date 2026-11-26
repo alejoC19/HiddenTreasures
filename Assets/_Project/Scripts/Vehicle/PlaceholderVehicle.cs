@@ -12,6 +12,9 @@ namespace HuesoOxido.Vehicle
     public static class PlaceholderVehicle
     {
         public static float WheelRadius = 0.38f;
+        /// <summary>Posiciones (en el espacio del vehiculo) de faros delanteros y luces traseras; las llena Build.</summary>
+        public static readonly Vector3[] FrontLamps = { new Vector3(-0.7f, 0.5f, 2.0f), new Vector3(0.7f, 0.5f, 2.0f) };
+        public static readonly Vector3[] RearLamps = { new Vector3(-0.8f, 0.55f, -2.0f), new Vector3(0.8f, 0.55f, -2.0f) };
         public const string ModelPath = "Art/Models/WillysJeep";
 
         /// <summary>Crea el cuerpo y devuelve los 4 pivotes de rueda (delanteras primero). Agrega el BoxCollider.</summary>
@@ -123,6 +126,9 @@ namespace HuesoOxido.Vehicle
             float bottom = GroundBelowRoot + 0.55f, top = Mathf.Max(bottom + 0.8f, body.max.y - 0.1f);
             box.center = new Vector3(0f, (bottom + top) * 0.5f, 0f);
             box.size = new Vector3(Mathf.Min(body.size.x * 0.92f, 2.1f), top - bottom, Mathf.Min(body.size.z * 0.94f, PickupLength));
+            float lampY = GroundBelowRoot + 0.9f, halfW = Mathf.Min(body.size.x * 0.32f, 0.75f);
+            FrontLamps[0] = new Vector3(-halfW, lampY, body.max.z - 0.15f); FrontLamps[1] = new Vector3(halfW, lampY, body.max.z - 0.15f);
+            RearLamps[0] = new Vector3(-halfW, lampY + 0.1f, body.min.z + 0.1f); RearLamps[1] = new Vector3(halfW, lampY + 0.1f, body.min.z + 0.1f);
             return pivots;
         }
 

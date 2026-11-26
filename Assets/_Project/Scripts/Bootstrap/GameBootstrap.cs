@@ -86,6 +86,7 @@ namespace HuesoOxido.Core
             vehicleGo.transform.rotation = Quaternion.Euler(0f, 140f, 0f);
             ctx.Vehicle = vehicleGo.AddComponent<VehicleController>();
             ctx.Vehicle.Initialize(ctx.Input, s.Fuel, ctx.Rig);
+            ctx.Vehicle.Darkness = () => NightLight.NightFactor(s.Clock.Hour);
 
             // Deteccion y excavacion
             ctx.Detector = systems.AddComponent<MetalDetector>();

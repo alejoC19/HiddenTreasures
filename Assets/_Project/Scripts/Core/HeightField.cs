@@ -24,7 +24,18 @@ namespace HuesoOxido.Core
         }
 
         public static HeightField Generate(int seed, float campX, float campZ, float ruinsX, float ruinsZ, RoadPath road)
+            => Generate(seed, campX, campZ, ruinsX, ruinsZ, road, null);
+
+        static float Terrace(float h, float step, float sharp)
         {
+            float f = h / step, q = (float)Math.Floor(f), t = f - q;
+            float half = Math.Max(0.05f, 0.5f * (1f - sharp));
+            return (q + Smooth(t, 0.5f - half, 0.5f + half)) * step;
+        }
+
+        public static HeightField Generate(int seed, float campX, float campZ, float ruinsX, float ruinsZ, RoadPath road, BiomeProfile profile)
+        {
+            var bp = profile ?? Biomes.Forest;
             var f = new HeightField { Road = road };
             var noise = new PerlinNoise(seed);
             float ox = seed * 0.37f, oz = seed * 0.61f;
@@ -32,8 +43,15 @@ namespace HuesoOxido.Core
             float Base(float x, float z)
             {
                 float u = x / Size + 0.5f, v = z / Size + 0.5f;
-                float n = noise.Fbm(u * 3.1f + ox, v * 3.1f + oz, 3, 2.2f, 0.5f);
-                return 4f + n * 11f;
+                float n = noise.Fbm(u * bp.Frequency + ox, v * bp.Frequency + oz, 3, 2.2f, 0.5f);
+                if (bp.Ridge > 0f)
+                {
+                    float r = 1f - Math.Abs(2f * noise.Fbm(u * bp.Frequency * 1.3f + ox + 17f, v * bp.Frequency * 1.3f + oz + 9f, 3, 2.1f, 0.5f) - 1f);
+                    n = n + (r * r - n) * bp.Ridge;
+                }
+                float h0 = bp.BaseHeight + n * bp.Amplitude;
+                if (bp.MesaStep > 0f) h0 = Terrace(h0, bp.MesaStep, bp.MesaSharpness);
+                return h0;
             }
 
             float campH = Base(campX, campZ), ruinsH = Base(ruinsX, ruinsZ);
@@ -48,7 +66,7 @@ namespace HuesoOxido.Core
                     h += (campH - h) * (1f - Smooth(dc, 20f, 48f));
                     h += (ruinsH - h) * (1f - Smooth(dr, 26f, 52f));
                     float edge = Math.Max(Math.Abs(x), Math.Abs(z)) / Half;
-                    h += Smooth(edge, 0.80f, 0.98f) * 20f;
+                    h += Smooth(edge, 0.80f, 0.98f) * bp.EdgeRise;
                     f.H[zi, xi] = h;
                 }
             }
