@@ -19,6 +19,21 @@ namespace HuesoOxido.SaveSystem
     public sealed class CollectionEntryDto { public string Id; public int TimesFound; public bool Displayed; }
 
     [Serializable]
+    public sealed class NeedsDto { public bool Has; public float Hydration = 1f, Satiety = 1f, BodyC = 37f; }
+
+    [Serializable]
+    public sealed class LoadoutDto { public bool Has; public List<string> Owned = new List<string>(), Equipped = new List<string>(); public float Water; public int Rations; }
+
+    [Serializable]
+    public sealed class FindStateDto { public string Uid, ItemId; public float Dirt; public bool Identified, Authentic; }
+
+    [Serializable]
+    public sealed class ActiveContractDto { public string Id; public int Delivered, Day; }
+
+    [Serializable]
+    public sealed class ContractsDto { public bool Has; public int Reputation; public List<string> Completed = new List<string>(); public List<ActiveContractDto> Active = new List<ActiveContractDto>(); }
+
+    [Serializable]
     public sealed class Vec3Dto { public float X, Y, Z; public float Yaw; }
 
     [Serializable]
@@ -49,6 +64,11 @@ namespace HuesoOxido.SaveSystem
         public bool HasPositions;
         public List<GroundItemDto> GroundItems = new List<GroundItemDto>();
         // Mision actual
+        // Sistemas de expedicion (opcionales: un guardado anterior no los trae y se usan los valores iniciales)
+        public NeedsDto Needs = new NeedsDto();
+        public LoadoutDto Loadout = new LoadoutDto();
+        public List<FindStateDto> FindStates = new List<FindStateDto>();
+        public ContractsDto Contracts = new ContractsDto();
         public string BiomeId;         // null/vacio = bosque (guardados viejos)
         public int WorldSeed;          // 0 = guardado viejo sin semilla
         public string QuestId;
@@ -72,6 +92,10 @@ namespace HuesoOxido.SaveSystem
             if (data.Player == null) data.Player = new Vec3Dto();
             if (data.Vehicle == null) data.Vehicle = new Vec3Dto();
             if (data.GroundItems == null) data.GroundItems = new List<GroundItemDto>();
+            if (data.Needs == null) data.Needs = new NeedsDto();
+            if (data.Loadout == null) data.Loadout = new LoadoutDto();
+            if (data.FindStates == null) data.FindStates = new List<FindStateDto>();
+            if (data.Contracts == null) data.Contracts = new ContractsDto();
             data.Version = SaveData.CurrentVersion;
             return data;
         }

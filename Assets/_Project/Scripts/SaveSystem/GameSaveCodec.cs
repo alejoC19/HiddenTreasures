@@ -21,6 +21,11 @@ namespace HuesoOxido.SaveSystem
         public WeatherModel Weather;
         public FuelTank Fuel;
         public QuestManager Quests;
+        // Sistemas de expedicion: opcionales (null = no se guardan ni se restauran)
+        public NeedsModel Needs;
+        public Loadout Loadout;
+        public FindWorkbook Workbook;
+        public ContractBoard Contracts;
     }
 
     /// <summary>
@@ -50,6 +55,27 @@ namespace HuesoOxido.SaveSystem
                 data.QuestId = s.Quests.Current.Id; data.QuestProgress = s.Quests.Progress; data.QuestCompleted = s.Quests.IsCompleted;
             }
             else { data.QuestId = null; data.QuestProgress = 0; data.QuestCompleted = false; }
+
+            if (s.Needs != null)
+            {
+                var n = s.Needs.Snapshot();
+                data.Needs = new NeedsDto { Has = true, Hydration = n.hydration, Satiety = n.satiety, BodyC = n.bodyC };
+            }
+            if (s.Loadout != null)
+            {
+                var l = s.Loadout.Snapshot();
+                data.Loadout = new LoadoutDto { Has = true, Owned = l.owned, Equipped = l.equipped, Water = l.water, Rations = l.rations };
+            }
+            data.FindStates.Clear();
+            if (s.Workbook != null)
+                foreach (var f in s.Workbook.Snapshot()) data.FindStates.Add(new FindStateDto { Uid = f.uid, ItemId = f.itemId, Dirt = f.dirt, Identified = f.identified, Authentic = f.authentic });
+            if (s.Contracts != null)
+            {
+                var c = s.Contracts.Snapshot();
+                var dto = new ContractsDto { Has = true, Reputation = c.reputation, Completed = c.completed };
+                foreach (var a in c.active) dto.Active.Add(new ActiveContractDto { Id = a.id, Delivered = a.delivered, Day = a.day });
+                data.Contracts = dto;
+            }
         }
 
         /// <param name="afterUpgrades">Se llama tras restaurar las mejoras y antes de los objetos (para recalcular capacidades).</param>
@@ -79,6 +105,30 @@ namespace HuesoOxido.SaveSystem
             {
                 if (!string.IsNullOrEmpty(data.QuestId)) s.Quests.Restore(data.QuestId, data.QuestProgress, data.QuestCompleted);
                 else s.Quests.Start(QuestManager.RelicHunt());      // guardado viejo sin mision
+            }
+
+            // Sistemas de expedicion: un guardado viejo (Has = false) deja los valores iniciales.
+            if (s.Needs != null) { if (data.Needs != null && data.Needs.Has) s.Needs.Restore(data.Needs.Hydration, data.Needs.Satiety, data.Needs.BodyC); else s.Needs.RestoreAll(); }
+            if (s.Loadout != null)
+            {
+                if (data.Loadout != null && data.Loadout.Has) s.Loadout.Restore(data.Loadout.Owned, data.Loadout.Equipped, data.Loadout.Water, data.Loadout.Rations);
+                else { var st = Loadout.Starter(); var snap = st.Snapshot(); s.Loadout.Restore(snap.owned, snap.equipped, snap.water, snap.rations); }
+            }
+            if (s.Workbook != null)
+            {
+                var states = new List<(string, string, float, bool, bool)>();
+                if (data.FindStates != null) foreach (var f in data.FindStates) states.Add((f.Uid, f.ItemId, f.Dirt, f.Identified, f.Authentic));
+                s.Workbook.Restore(states);
+            }
+            if (s.Contracts != null)
+            {
+                if (data.Contracts != null && data.Contracts.Has)
+                {
+                    var act = new List<(string, int, int)>();
+                    foreach (var a in data.Contracts.Active) act.Add((a.Id, a.Delivered, a.Day));
+                    s.Contracts.Restore(data.Contracts.Reputation, data.Contracts.Completed, act);
+                }
+                else s.Contracts.Restore(0, null, null);
             }
         }
     }
