@@ -24,6 +24,15 @@ namespace HuesoOxido.Economy
             Description = "Autoriza excavar en el bosque y las ruinas durante esta expedición."
         };
 
+        /// <summary>Un permiso por ecosistema, en el orden del registro de biomas.</summary>
+        public static List<PermitDefinition> ForBiomes()
+        {
+            var list = new List<PermitDefinition>();
+            foreach (var b in Biomes.All)
+                list.Add(b.IsDefault ? ForestRuins : new PermitDefinition { Id = b.PermitId, ZoneId = b.ZoneId, Name = "Permiso: " + b.Name, Cost = b.PermitCost, Description = b.Description });
+            return list;
+        }
+
         public IReadOnlyList<PermitDefinition> Definitions => _defs;
         public bool Owns(string permitId) => _owned.Contains(permitId);
 

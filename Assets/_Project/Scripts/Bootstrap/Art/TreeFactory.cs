@@ -187,5 +187,83 @@ namespace HuesoOxido.Core
             }
             return new TreeVariant { Trunk = trunk.ToMesh("BroadTrunk" + seed), Foliage = fol.ToMesh("BroadFoliage" + seed), Height = height, TrunkRadius = baseR };
         }
+
+        /// <summary>Cactus saguaro: columna con puntas redondeadas y 1 a 3 brazos que salen y suben. Todo en la malla del tronco.</summary>
+        public static TreeVariant Cactus(int seed, float height, float detail = 1f)
+        {
+            var rng = new System.Random(seed);
+            var trunk = new Buf();
+            int sides = detail < 1f ? 6 : 10;
+            float r = height * 0.065f;
+            Column(trunk, Vector3.zero, height, r, sides);
+            int arms = 1 + rng.Next(3);
+            for (int a = 0; a < arms; a++)
+            {
+                float yaw = (float)rng.NextDouble() * Mathf.PI * 2f;
+                Vector3 dir = new Vector3(Mathf.Cos(yaw), 0f, Mathf.Sin(yaw));
+                float y = height * (0.32f + (float)rng.NextDouble() * 0.3f);
+                float reach = height * (0.22f + (float)rng.NextDouble() * 0.12f), rise = height * (0.22f + (float)rng.NextDouble() * 0.2f);
+                float ar = r * 0.62f;
+                Vector3 p0 = dir * (r * 0.6f) + Vector3.up * y, p1 = dir * (r + reach) + Vector3.up * y;
+                Limb(trunk, p0, p1, ar, ar, sides, 1.4f);
+                Column(trunk, p1, rise, ar, sides);
+            }
+            return new TreeVariant { Trunk = trunk.ToMesh("Cactus" + seed), Foliage = new Mesh { name = "Empty" }, Height = height, TrunkRadius = r };
+        }
+
+        static void Column(Buf b, Vector3 baseP, float h, float r, int sides)
+        {
+            const int segs = 5;
+            Vector3 prev = baseP; float prevR = r * 0.95f;
+            for (int i = 1; i <= segs; i++)
+            {
+                float k = i / (float)segs;
+                float rr = i == segs ? r * 0.45f : r * (1f - 0.1f * k);
+                Vector3 p = baseP + Vector3.up * (h * (i == segs ? 1.0f : k * 0.97f));
+                Limb(b, prev, p, prevR, rr, sides, 1.4f);
+                prev = p; prevR = rr;
+            }
+            Limb(b, prev, prev + Vector3.up * r * 0.25f, prevR, 0.02f, sides, 1.4f);
+        }
+
+        /// <summary>Arbol muerto: tronco retorcido y ramas peladas en tres niveles, sin follaje (pantano, bosque seco).</summary>
+        public static TreeVariant DeadTree(int seed, float height, float detail = 1f)
+        {
+            var rng = new System.Random(seed);
+            var trunk = new Buf();
+            int sides = detail < 1f ? 5 : 8;
+            float baseR = height * 0.04f;
+            float lean = ((float)rng.NextDouble() - 0.5f) * 0.18f * height;
+            Vector3 prev = Vector3.zero;
+            var points = new List<Vector3>();
+            const int segs = 6;
+            for (int i = 1; i <= segs; i++)
+            {
+                float k = i / (float)segs;
+                var p = new Vector3(lean * k * k + Mathf.Sin(k * 5f + seed) * 0.12f, height * 0.8f * k, Mathf.Cos(k * 4f + seed) * 0.12f);
+                Limb(trunk, prev, p, Mathf.Lerp(baseR, baseR * 0.3f, (i - 1) / (float)segs), Mathf.Lerp(baseR, baseR * 0.3f, k), sides, 1.4f);
+                points.Add(p); prev = p;
+            }
+            int branches = Mathf.Max(5, Mathf.RoundToInt(11 * detail));
+            for (int i = 0; i < branches; i++)
+            {
+                int at = 1 + rng.Next(points.Count - 1);
+                Vector3 root = points[at];
+                float yaw = (float)rng.NextDouble() * Mathf.PI * 2f;
+                float len = height * (0.16f + (float)rng.NextDouble() * 0.2f) * (1f - at * 0.08f);
+                Vector3 dir = new Vector3(Mathf.Cos(yaw), 0.35f + (float)rng.NextDouble() * 0.5f, Mathf.Sin(yaw)).normalized;
+                float br = baseR * 0.38f * (1f - at * 0.1f);
+                Vector3 mid = root + dir * len * 0.55f, tip = mid + (dir + new Vector3(((float)rng.NextDouble() - 0.5f) * 0.6f, 0.3f, ((float)rng.NextDouble() - 0.5f) * 0.6f)).normalized * len * 0.5f;
+                Limb(trunk, root, mid, br, br * 0.6f, 5, 1.4f);
+                Limb(trunk, mid, tip, br * 0.6f, 0.02f, 4, 1.4f);
+                if (detail >= 1f && i % 2 == 0)
+                {
+                    Vector3 twig = mid + new Vector3(((float)rng.NextDouble() - 0.5f), 0.4f, ((float)rng.NextDouble() - 0.5f)).normalized * len * 0.35f;
+                    Limb(trunk, mid, twig, br * 0.4f, 0.015f, 4, 1.4f);
+                }
+            }
+            Limb(trunk, prev, prev + Vector3.up * height * 0.12f, baseR * 0.3f, 0.02f, 5, 1.4f);
+            return new TreeVariant { Trunk = trunk.ToMesh("DeadTree" + seed), Foliage = new Mesh { name = "Empty" }, Height = height, TrunkRadius = baseR };
+        }
     }
 }

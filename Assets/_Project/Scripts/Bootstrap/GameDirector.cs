@@ -28,6 +28,8 @@ namespace HuesoOxido.Core
         bool _faintMarkerActive;
         bool _wasInCamp = true;
         float _lastAutosave;
+        /// <summary>Sitios excavados en otros ecosistemas: se conservan en el guardado aunque este mundo no los contenga.</summary>
+        readonly HashSet<string> _otherSites = new HashSet<string>();
         FindCardData _pendingCard;
         int _worldSeed = 1337;
         public void SetWorldSeed(int seed) { _worldSeed = seed; }
@@ -82,8 +84,27 @@ namespace HuesoOxido.Core
             _c.Save.Message += _s.Notifier.Post;
             ApplyUpgrades();
 
-            _c.Ui.OpenMainMenu();
+            var mode = BiomeSelection.ConsumeMode();
+            if (mode == StartMode.Continue && _c.Save.Load())
+            {
+                _c.Ui.CloseAll();
+                _c.Save.Save();   // fija el ecosistema actual en el guardado
+                _s.Notifier.Post("Llegaste a " + _c.World.Biome.Name + ".");
+            }
+            else if (mode == StartMode.NewGame) { NewGame(); _c.Ui.CloseAll(); }
+            else _c.Ui.OpenMainMenu();
             _lastAutosave = Time.time;
+        }
+
+        /// <summary>Viaja a otro ecosistema: guarda, regenera el mundo con su perfil y retoma la partida en su campamento.</summary>
+        public void TravelTo(string biomeId)
+        {
+            var target = Biomes.ById(biomeId);
+            if (target == _c.World.Biome) { _s.Notifier.Post("Ya estás en " + target.Name + "."); return; }
+            if (!target.IsDefault && !_s.Permits.Owns(target.PermitId)) { _s.Notifier.Post("Te falta el permiso: " + target.Name); return; }
+            if (_c.Vehicle.HasDriver) _c.Vehicle.ExitVehicle();
+            _c.Save.Save();
+            BiomeSelection.SwitchTo(target.Id, StartMode.Continue);
         }
 
         void WireInteractables()
@@ -267,8 +288,26 @@ namespace HuesoOxido.Core
         }
 
         // ---------- Sesion ----------
+        /// <summary>Si el guardado es de otro ecosistema, lo construye (recarga la escena) y devuelve true.</summary>
+        bool SwitchToSavedBiome()
+        {
+            string saved = _c.Save.PeekBiomeId();
+            var target = Biomes.ById(saved);
+            if (!_c.Save.HasSave || target == _c.World.Biome) return false;
+            BiomeSelection.SwitchTo(target.Id, StartMode.Continue);
+            return true;
+        }
+
         void NewGame()
         {
+            if (!_c.World.Biome.IsDefault)
+            {
+                // La partida nueva empieza en el bosque: se borra el guardado y se regenera el mundo.
+                _c.Save.DeleteSave();
+                BiomeSelection.SwitchTo(Biomes.ForestId, StartMode.NewGame);
+                return;
+            }
+            _otherSites.Clear();
             if (_c.Vehicle.HasDriver) _c.Vehicle.ExitVehicle();
             _c.Ui.CloseAll();
             _c.Save.DeleteSave();
@@ -307,7 +346,9 @@ namespace HuesoOxido.Core
                 var s = _d._s; var c = _d._c;
                 GameSaveCodec.Capture(data, s.SaveState);
                 data.WorldSeed = _d._worldSeed;
+                data.BiomeId = c.World.Biome.Id;
                 data.ExcavatedSites.AddRange(c.World.Sites.ExcavatedIds());
+                foreach (var other in _d._otherSites) if (!data.ExcavatedSites.Contains(other)) data.ExcavatedSites.Add(other);
 
                 data.HasPositions = true;
                 var vp = c.Vehicle.transform;
@@ -337,11 +378,16 @@ namespace HuesoOxido.Core
                 c.Ui.CloseAll();
 
                 GameSaveCodec.Restore(data, s.SaveState, _d.ApplyUpgrades);
-                if (data.WorldSeed != 0 && data.WorldSeed != _d._worldSeed)
+                if (data.WorldSeed != 0 && data.WorldSeed != _d._worldSeed && string.IsNullOrEmpty(data.BiomeId))
                     Debug.LogWarning("[Guardado] La partida se creo con otra semilla de mundo (" + data.WorldSeed + "): los sitios excavados pueden no coincidir.");
 
                 var done = new HashSet<string>(data.ExcavatedSites);
                 foreach (var site in c.World.Sites.Sites) site.RestoreState(done.Contains(site.SiteId), _d._initialHints[site.SiteId]);
+                _d._otherSites.Clear();
+                var here = new HashSet<string>();
+                foreach (var site in c.World.Sites.Sites) here.Add(site.SiteId);
+                foreach (var id in data.ExcavatedSites) if (!here.Contains(id)) _d._otherSites.Add(id);
+                bool sameBiome = string.IsNullOrEmpty(data.BiomeId) ? c.World.Biome.IsDefault : data.BiomeId == c.World.Biome.Id;
 
                 _d.ClearPickups();
                 foreach (var g in data.GroundItems)
@@ -349,7 +395,7 @@ namespace HuesoOxido.Core
                 _d._faintMarkerActive = data.GroundItems.Count > 0;
                 if (data.GroundItems.Count > 0) _d._faintSpot = new Vector3(data.GroundItems[0].X, data.GroundItems[0].Y, data.GroundItems[0].Z);
 
-                if (data.HasPositions)
+                if (data.HasPositions && sameBiome)
                 {
                     c.Motor.Teleport(new Vector3(data.Player.X, data.Player.Y + 0.3f, data.Player.Z), data.Player.Yaw);
                     c.Look.SetRotation(data.Player.Yaw, 10f);
@@ -404,11 +450,12 @@ namespace HuesoOxido.Core
             public void StartNewGame() { _d.NewGame(); _d._c.Ui.CloseAll(); _d._lastAutosave = Time.unscaledTime; }
             public void ContinueGame()
             {
+                if (_d.SwitchToSavedBiome()) return;
                 if (_d._c.Save.Load()) { _d._c.Ui.CloseAll(); _d._lastAutosave = Time.unscaledTime; }
             }
             public void ContinueFromPause() => _d._c.Ui.CloseAll();
             public void SaveGame() => _d._c.Save.Save();
-            public void LoadGame() { if (_d._c.Save.Load()) _d._c.Ui.CloseAll(); }
+            public void LoadGame() { if (_d.SwitchToSavedBiome()) return; if (_d._c.Save.Load()) _d._c.Ui.CloseAll(); }
             public void ReturnToMainMenu()
             {
                 _d._c.Save.Save();
@@ -427,8 +474,10 @@ namespace HuesoOxido.Core
             public SessionActionsImpl(GameDirector d) { _d = d; }
             public bool HasSave => _d._c.Save.HasSave;
             public void SaveGame() => _d._c.Save.Save();
-            public void LoadGame() => _d._c.Save.Load();
+            public void LoadGame() { if (!_d.SwitchToSavedBiome()) _d._c.Save.Load(); }
             public void NewGame() => _d.NewGame();
+            public string CurrentBiomeId => _d._c.World.Biome.Id;
+            public void TravelTo(string biomeId) => _d.TravelTo(biomeId);
         }
     }
 }

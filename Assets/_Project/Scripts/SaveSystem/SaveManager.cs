@@ -72,6 +72,19 @@ namespace HuesoOxido.SaveSystem
         }
 
         public void DeleteSave() => _store.Delete();
+
+        /// <summary>Ecosistema del guardado (sin restaurar nada). Vacio si no hay guardado o es de una version vieja (bosque).</summary>
+        public string PeekBiomeId()
+        {
+            try
+            {
+                string json = _store.Read();
+                if (string.IsNullOrEmpty(json)) return null;
+                var d = JsonUtility.FromJson<SaveData>(json);
+                return d != null ? d.BiomeId : null;
+            }
+            catch (Exception) { return null; }
+        }
     }
 
     /// <summary>Acciones de sesion que la UI puede pedir sin conocer el guardado ni el mundo.</summary>
@@ -81,5 +94,7 @@ namespace HuesoOxido.SaveSystem
         void SaveGame();
         void LoadGame();
         void NewGame();
+        string CurrentBiomeId { get; }
+        void TravelTo(string biomeId);
     }
 }

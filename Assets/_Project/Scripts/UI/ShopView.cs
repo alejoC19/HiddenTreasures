@@ -13,7 +13,7 @@ namespace HuesoOxido.UI
     /// <summary>Mostrador del campamento: vender, restaurar, mejoras, permisos, museo y partida. Solo llama a los servicios.</summary>
     public sealed class ShopView : MonoBehaviour
     {
-        enum Page { Sell, Restore, Upgrades, Permits, Museum, Game }
+        enum Page { Sell, Restore, Upgrades, Permits, Travel, Museum, Game }
 
         public sealed class Deps
         {
@@ -22,6 +22,8 @@ namespace HuesoOxido.UI
             public IReadOnlyList<IItemInfo> AllItems;
             public InventoryModel Backpack; public InventoryModel Trunk;
             public ISessionActions Session;
+            public Func<string> CurrentBiome;
+            public Action<string> Travel;
             public Func<float> GetSensitivity;
             public Action<float> SetSensitivity;
         }
@@ -58,6 +60,7 @@ namespace HuesoOxido.UI
             AddTab(tabRow, Page.Restore, "Restaurar");
             AddTab(tabRow, Page.Upgrades, "Mejoras");
             AddTab(tabRow, Page.Permits, "Permisos");
+            AddTab(tabRow, Page.Travel, "Viajar");
             AddTab(tabRow, Page.Museum, "Museo");
             AddTab(tabRow, Page.Game, "Partida");
 
@@ -103,6 +106,7 @@ namespace HuesoOxido.UI
                 case Page.Restore: BuildRestore(); break;
                 case Page.Upgrades: BuildUpgrades(); break;
                 case Page.Permits: BuildPermits(); break;
+                case Page.Travel: BuildTravel(); break;
                 case Page.Museum: BuildMuseum(); break;
                 default: BuildGame(); break;
             }
@@ -208,6 +212,23 @@ namespace HuesoOxido.UI
                 UiFactory.RowText(row, "<b>" + p.Name + "</b>\n<color=#" + UiFactory.Hex(UiFactory.Muted) + ">" + p.Description + "</color>", 20);
                 var b = UiFactory.MakeButton(row, owned ? "ACTIVO" : "Comprar  $" + p.Cost, () => _d.Permits.TryBuy(id, _d.Wallet), 170f, 42f, 18);
                 b.interactable = !owned && _d.Wallet.Money >= p.Cost;
+            }
+        }
+
+        void BuildTravel()
+        {
+            UiFactory.Label(_content, "Cada ecosistema tiene su propio terreno, clima y hallazgos. Necesitás su permiso para viajar. Se guarda la partida antes de partir.", 19, UiFactory.Muted);
+            string here = _d.CurrentBiome != null ? _d.CurrentBiome() : Biomes.ForestId;
+            foreach (var b in Biomes.All)
+            {
+                string id = b.Id;
+                bool isHere = id == here;
+                bool allowed = b.IsDefault || _d.Permits.Owns(b.PermitId);
+                var row = UiFactory.Row(_content, 78f);
+                string status = isHere ? "<color=#" + UiFactory.Hex(UiFactory.Good) + ">Estás aquí</color>" : (allowed ? "" : "<color=#" + UiFactory.Hex(UiFactory.Muted) + ">Requiere: Permiso ($" + b.PermitCost + ", en la pestaña Permisos)</color>");
+                UiFactory.RowText(row, "<b>" + b.Name + "</b>   " + status + "\n<color=#" + UiFactory.Hex(UiFactory.Muted) + ">" + b.Description + "</color>", 20);
+                var btn = UiFactory.MakeButton(row, isHere ? "AQUÍ" : (allowed ? "Viajar" : "Bloqueado"), () => { Close(); _d.Travel?.Invoke(id); }, 170f, 42f, 18);
+                btn.interactable = !isHere && allowed && _d.Travel != null;
             }
         }
 

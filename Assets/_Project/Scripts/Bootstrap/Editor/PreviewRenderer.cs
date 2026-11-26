@@ -79,7 +79,7 @@ namespace HuesoOxido.Core.EditorTools
                 Shot(st, dir, "32_camioneta_atras", 17.0f, WeatherKind.Clear, vt.TransformPoint(new Vector3(4.5f, 1.8f, -7f)), vt.position + Vector3.up * 1.0f, 48f);
                 Shot(st, dir, "33_camioneta_ruedas", 17.3f, WeatherKind.Clear, vt.TransformPoint(new Vector3(-3.2f, 0.7f, 2.6f)), vt.TransformPoint(new Vector3(-1f, 0.45f, 1.6f)), 50f);
             }
-            if (!onlyChar && !onlyForest && !onlyVeh)
+            if (!onlyChar && !onlyForest && !onlyVeh && only != "biome")
             {
             Shot(st, dir, "01_campamento_hora_dorada", 17.2f, WeatherKind.Clear, camp + new Vector3(12f, 2.4f, -7f), camp + new Vector3(-1f, 1.6f, 6f), 62f);
             Shot(st, dir, "02_ruinas_hora_dorada", 17.4f, WeatherKind.Clear, ruins + new Vector3(7f, 2.6f, -21f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
@@ -91,6 +91,17 @@ namespace HuesoOxido.Core.EditorTools
             Shot(st, dir, "08_campamento_noche", 22.0f, WeatherKind.Clear, camp + new Vector3(9f, 2.2f, -6f), camp + new Vector3(0f, 1.2f, 0f), 62f);
             Shot(st, dir, "10_props_campamento", 17.4f, WeatherKind.Clear, camp + new Vector3(3f, 1.5f, 2.5f), camp + new Vector3(0.5f, 0.5f, 7f), 60f);
             Shot(st, dir, "11_fogata_cerca", 17.6f, WeatherKind.Clear, camp + new Vector3(2.2f, 1.3f, -4.4f), camp + new Vector3(0f, 0.3f, -1.5f), 55f);
+            }
+            if (only == "biome")
+            {
+                string t = st.World.Biome.Id;
+                Shot(st, dir, t + "_01_campamento", 17.2f, WeatherKind.Clear, camp + new Vector3(12f, 2.4f, -7f), camp + new Vector3(-1f, 1.6f, 6f), 62f);
+                Shot(st, dir, t + "_02_ruinas", 17.4f, WeatherKind.Clear, OnGround(st, ruins.x + 6f, ruins.z - 15f, 2.6f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
+                Shot(st, dir, t + "_03_camino", 11.0f, WeatherKind.Clear, OnGround(st, camp.x + 30f, camp.z + 20f, 1.8f), OnGround(st, ruins.x - 6f, ruins.z - 20f, 3f), 66f);
+                Shot(st, dir, t + "_04_aerea", 15.0f, WeatherKind.Clear, new Vector3(-150f, 95f, -150f), new Vector3(0f, 8f, 0f), 60f);
+                Shot(st, dir, t + "_05_suelo", 16.0f, WeatherKind.Clear, OnGround(st, -20f, 30f, 1.7f), OnGround(st, 10f, 60f, 2.5f), 70f);
+                Shot(st, dir, t + "_06_niebla", 8.0f, WeatherKind.Fog, camp + new Vector3(36f, 1.8f, 24f), ruins + new Vector3(-6f, 3f, -20f), 66f);
+                Shot(st, dir, t + "_07_noche", 22.0f, WeatherKind.Clear, camp + new Vector3(9f, 2.2f, -6f), camp + new Vector3(0f, 1.2f, 0f), 62f);
             }
             if (onlyForest || only == null || only == "")
             {
@@ -117,7 +128,7 @@ namespace HuesoOxido.Core.EditorTools
                 Shot(st, dir, "13b_excavando_lado", 17.3f, WeatherKind.Clear, pp + st.Player.transform.TransformDirection(new Vector3(4.0f, 1.4f, 0.5f)), pp + Vector3.up * 1.0f, 50f);
                 Shot(st, dir, "13_personaje_excavando", 17.3f, WeatherKind.Clear, pp + st.Player.transform.TransformDirection(new Vector3(-2.8f, 1.5f, 2.2f)), pp + Vector3.up * 1.0f, 50f);
             }
-            Shot(st, dir, "09_lluvia_nublado", 14.0f, WeatherKind.Rain, ruins + new Vector3(7f, 2.6f, -21f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
+            if (only != "biome") Shot(st, dir, "09_lluvia_nublado", 14.0f, WeatherKind.Rain, ruins + new Vector3(7f, 2.6f, -21f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
             Debug.Log("[PREVIEW] listo en " + dir);
         }
 
@@ -128,7 +139,8 @@ namespace HuesoOxido.Core.EditorTools
             var root = new GameObject("World").transform;
             st.Clock = new GameClock(17f, 1);
             st.Weather = new WeatherModel(7);
-            st.World = new WorldBuilder(1337).Build(items, root, st.Clock);
+            var bp = Biomes.ById(System.Environment.GetEnvironmentVariable("HT_BIOME"));
+            st.World = new WorldBuilder(1337 + bp.SeedOffset, bp).Build(items, root, st.Clock);
 
             st.Player = new GameObject("Player");
             var ch = st.Player.AddComponent<PlaceholderCharacter>(); ch.Build();
@@ -157,7 +169,7 @@ namespace HuesoOxido.Core.EditorTools
             PostProcessSetup.Apply(st.Cam);
 
             st.Day = new GameObject("DayNight").AddComponent<DayNightCycle>();
-            st.Day.Initialize(st.World.Sun, st.World.Moon, st.Clock, st.Weather, st.World.Skybox, st.Cam);
+            st.Day.Initialize(st.World.Sun, st.World.Moon, st.Clock, st.Weather, st.World.Skybox, st.Cam, st.World.Biome);
             st.Refl = new GameObject("Reflections").AddComponent<ReflectionBaker>();
             st.Refl.Initialize(st.Player.transform, st.Clock, st.Weather);
             st.Atmo = new GameObject("Atmosphere").AddComponent<AtmosphereFx>();

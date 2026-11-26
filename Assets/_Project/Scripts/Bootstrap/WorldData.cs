@@ -36,6 +36,8 @@ namespace HuesoOxido.Core
         public Vector3 PlayerSpawn;
         public Vector3 VehicleSpawn;
         public SiteRegistry Sites = new SiteRegistry();
+        public BiomeProfile Biome;
+        public float WaterLevel = float.NegativeInfinity;
         public Texture2D MapTexture;
         public Rect MapBounds;
         public Light Sun, Moon;

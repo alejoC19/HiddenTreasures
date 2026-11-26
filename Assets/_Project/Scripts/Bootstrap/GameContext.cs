@@ -24,7 +24,7 @@ namespace HuesoOxido.Core
         public readonly ItemCatalog Catalog = DefaultItems.CreateCatalog();
         public readonly Wallet Wallet = new Wallet(StartMoney);
         public readonly UpgradeService Upgrades = new UpgradeService(DefaultUpgrades.Create());
-        public readonly PermitService Permits = new PermitService(new[] { PermitService.ForestRuins });
+        public readonly PermitService Permits = new PermitService(PermitService.ForBiomes());
         public readonly CollectionLog Collection = new CollectionLog();
         public readonly QuestManager Quests = new QuestManager();
         public readonly InventoryModel Backpack;

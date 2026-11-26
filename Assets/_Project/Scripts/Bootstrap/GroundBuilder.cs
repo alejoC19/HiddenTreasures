@@ -56,8 +56,9 @@ namespace HuesoOxido.Core
         }
 
         /// <summary>Genera el mapa de control (pasto/camino/tierra roja) y el macro de color, y arma el material del suelo.</summary>
-        public static void ApplyMaterial(GameObject ground, HeightField f, float[,] forestMask, PerlinNoise noise)
+        public static void ApplyMaterial(GameObject ground, HeightField f, float[,] forestMask, PerlinNoise noise, BiomeProfile bp = null)
         {
+            bp = bp ?? Biomes.Forest;
             float size = HeightField.Size, half = HeightField.Half;
             // Distancia al camino en una grilla de 1 m (evita recorrer el camino por cada pixel).
             int rg = (int)size + 1;
@@ -88,7 +89,7 @@ namespace HuesoOxido.Core
 
                     float fm = Bilinear(forestMask, (x + half) / size * (mw - 1), (z + half) / size * (mw - 1));
                     float gn = noise.Fbm(x * 0.016f + 7f, z * 0.016f + 3f, 3);
-                    float wGrass = Smooth(gn, 0.40f, 0.54f) * (1f - fm * 0.55f);
+                    float wGrass = Smooth(gn, 0.40f, 0.54f) * (1f - fm * 0.55f) * bp.Ground1Weight;
 
                     wRed *= 1f - wRoad; wGrass *= (1f - wRoad) * (1f - wRed);
                     control[py * MapTex + px] = new Color32((byte)(wGrass * 255f), (byte)(wRoad * 255f), (byte)(wRed * 255f), 255);
@@ -97,7 +98,7 @@ namespace HuesoOxido.Core
                     m *= 1f - 0.30f * fm;
                     float tint = (noise.Fbm(x * 0.011f + 5f, z * 0.011f + 55f, 2) - 0.5f) * 0.16f;
                     macro[py * MapTex + px] = new Color32(
-                        (byte)(Mathf.Clamp01(m * (0.92f + tint)) * 255f), (byte)(Mathf.Clamp01(m * 1.10f) * 255f), (byte)(Mathf.Clamp01(m * (0.85f - tint)) * 255f), 255);
+                        (byte)(Mathf.Clamp01(m * (bp.MacroBase.R - 0f + tint)) * 255f), (byte)(Mathf.Clamp01(m * bp.MacroBase.G) * 255f), (byte)(Mathf.Clamp01(m * (bp.MacroBase.B - tint)) * 255f), 255);
                 }
             }
 
@@ -111,17 +112,19 @@ namespace HuesoOxido.Core
             if (shader == null || !MaterialUtil.UsingScriptablePipeline)
             {
                 // Respaldo (sin URP o sin shader): una sola textura con el color del macro.
-                renderer.sharedMaterial = MaterialUtil.Lit(new Color(0.42f, 0.46f, 0.28f), 0.05f, 0f, macroTex);
+                renderer.sharedMaterial = MaterialUtil.Lit(new Color(bp.MapLow.R, bp.MapLow.G, bp.MapLow.B), 0.05f, 0f, macroTex);
                 return;
             }
             var mat = new Material(shader) { name = "GroundSplat" };
             mat.SetTexture("_Control", ctrlTex);
             mat.SetTexture("_Macro", macroTex);
-            Set(mat, "_Diff0", "_Nor0", "forest_floor");
-            Set(mat, "_Diff1", "_Nor1", "grass");
-            Set(mat, "_Diff2", "_Nor2", "road");
-            Set(mat, "_Diff3", "_Nor3", "red_earth");
-            var rock = TextureLibrary.Get("rock_diff");
+            Set(mat, "_Diff0", "_Nor0", bp.Ground0);
+            Set(mat, "_Diff1", "_Nor1", bp.Ground1);
+            Set(mat, "_Diff2", "_Nor2", bp.GroundRoad);
+            Set(mat, "_Diff3", "_Nor3", bp.GroundRuin);
+            mat.SetColor("_ForestTint", new Color(bp.GroundTint0.R, bp.GroundTint0.G, bp.GroundTint0.B, 1f));
+            mat.SetColor("_GrassTint", new Color(bp.GroundTint1.R, bp.GroundTint1.G, bp.GroundTint1.B, 1f));
+            var rock = TextureLibrary.Get(bp.RockTexture + "_diff");
             if (rock != null) mat.SetTexture("_DiffRock", rock);
             renderer.sharedMaterial = mat;
         }

@@ -17,8 +17,13 @@ namespace HuesoOxido.Core
         InstancedVegetation _veg;
         readonly Dictionary<string, InstancedVegetation.Layer> _layers = new Dictionary<string, InstancedVegetation.Layer>();
 
-        public VegetationBuilder(HeightField field, float[,] forestMask, PerlinNoise noise, int seed)
+        readonly BiomeProfile _bp;
+        /// <summary>Altura del agua del bioma (la fija el constructor del mundo antes de plantar).</summary>
+        public float WaterLevel = float.NegativeInfinity;
+
+        public VegetationBuilder(HeightField field, float[,] forestMask, PerlinNoise noise, int seed, BiomeProfile profile = null)
         {
+            _bp = profile ?? Biomes.Forest;
             _field = field; _forest = forestMask; _noise = noise; _seed = seed; _rng = new System.Random(seed + 4242);
         }
 
@@ -70,6 +75,7 @@ namespace HuesoOxido.Core
             if (dc < 13f) return false;
             float dr = Mathf.Sqrt((x - WorldLayout.RuinsX) * (x - WorldLayout.RuinsX) + (z - WorldLayout.RuinsZ) * (z - WorldLayout.RuinsZ));
             if (dr < 7f) return false;
+            if (_bp.WaterFraction > 0f && _field.HeightAt(x, z) < WaterLevel + 0.2f) return false;
             return _field.SlopeDegrees(x, z) < maxSlope;
         }
 
@@ -82,6 +88,9 @@ namespace HuesoOxido.Core
             var root = new GameObject("Undergrowth").transform;
             root.SetParent(parent, false);
 
+            float dens = _bp.UnderstoryDensity;
+            var vt = new Color(_bp.VegTint.R, _bp.VegTint.G, _bp.VegTint.B);
+            int nGrass = (int)(GrassCount * dens), nTall = (int)(TallGrassCount * dens), nFern = _bp.IsDefault ? FernCount : (int)(FernCount * dens * 0.5f), nBush = (int)(BushCount * dens), nFlower = _bp.IsDefault ? FlowerCount : (int)(FlowerCount * dens * 0.4f);
             var grassMesh = CrossQuads(3, 1.25f, 0.95f, 0.18f);
             var tallMesh = CrossQuads(3, 1.0f, 1.9f, 0.45f);
             var fernMesh = CrossQuads(2, 1.7f, 1.0f, 0.25f);
@@ -93,31 +102,31 @@ namespace HuesoOxido.Core
             var leafTex = FoliageTextures.LeafCluster(_seed + 13);
             var flowerTex = FoliageTextures.Flower();
             void Layer(string key, Mesh mesh, Material mat, float dist) => _layers[key] = _veg.AddLayer(key, mesh, mat, dist, false);
-            Layer("grass_a", grassMesh, ArtMaterials.Foliage(grassTex, new Color(0.85f, 1f, 0.75f), "gA"), 60f);
-            Layer("grass_b", grassMesh, ArtMaterials.Foliage(grassTex, new Color(1f, 0.95f, 0.65f), "gB"), 60f);
-            Layer("tall_a", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.62f, 0.78f, 0.5f), "tA"), 75f);
-            Layer("tall_b", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.78f, 0.78f, 0.45f), "tB"), 75f);
-            Layer("fern", fernMesh, ArtMaterials.Foliage(fernTex, new Color(0.85f, 1f, 0.8f), "fern"), 85f);
-            Layer("bush", bushMesh, ArtMaterials.Foliage(leafTex, new Color(0.62f, 0.8f, 0.55f), "bush"), 120f);
-            Layer("flower_white", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 1f, 1f), "fW"), 40f);
-            Layer("flower_yellow", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 0.86f, 0.25f), "fY"), 40f);
-            Layer("flower_violet", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(0.78f, 0.6f, 1f), "fV"), 40f);
+            Layer("grass_a", grassMesh, ArtMaterials.Foliage(grassTex, new Color(0.85f, 1f, 0.75f) * vt, "gA"), 60f);
+            Layer("grass_b", grassMesh, ArtMaterials.Foliage(grassTex, new Color(1f, 0.95f, 0.65f) * vt, "gB"), 60f);
+            Layer("tall_a", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.62f, 0.78f, 0.5f) * vt, "tA"), 75f);
+            Layer("tall_b", tallMesh, ArtMaterials.Foliage(grassTex, new Color(0.78f, 0.78f, 0.45f) * vt, "tB"), 75f);
+            Layer("fern", fernMesh, ArtMaterials.Foliage(fernTex, new Color(0.85f, 1f, 0.8f) * vt, "fern"), 85f);
+            Layer("bush", bushMesh, ArtMaterials.Foliage(leafTex, new Color(0.62f, 0.8f, 0.55f) * vt, "bush"), 120f);
+            Layer("flower_white", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 1f, 1f) * vt, "fW"), 40f);
+            Layer("flower_yellow", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(1f, 0.86f, 0.25f) * vt, "fY"), 40f);
+            Layer("flower_violet", flowerMesh, ArtMaterials.Foliage(flowerTex, new Color(0.78f, 0.6f, 1f) * vt, "fV"), 40f);
 
             int grass = 0;
-            for (int i = 0; i < 130000 && grass < GrassCount; i++)
+            for (int i = 0; i < 130000 && grass < nGrass; i++)
             {
                 float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
                 if (!Allowed(x, z, 34f, 1.6f)) continue;
                 float f = Forest(x, z);
-                float dens = _noise.Fbm(x * 0.05f + 3f, z * 0.05f + 9f, 2);
-                if (_rng.NextDouble() > 0.5 + dens * 0.8 - f * 0.25) continue;
+                float dn = _noise.Fbm(x * 0.05f + 3f, z * 0.05f + 9f, 2);
+                if (_rng.NextDouble() > 0.5 + dn * 0.8 - f * 0.25) continue;
                 float s = Rnd(0.7f, 1.5f);
                 Add(_rng.NextDouble() < 0.7 ? "grass_a" : "grass_b", new Vector3(x, _field.HeightAt(x, z) - 0.03f, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s * Rnd(0.8f, 1.3f), s));
                 grass++;
             }
             // Pasto alto: mas denso bajo los arboles y en manchones, casi nunca sobre el camino.
             int tall = 0;
-            for (int i = 0; i < 90000 && tall < TallGrassCount; i++)
+            for (int i = 0; i < 90000 && tall < nTall; i++)
             {
                 float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
                 if (!Allowed(x, z, 30f, 2.4f)) continue;
@@ -128,7 +137,7 @@ namespace HuesoOxido.Core
                 tall++;
             }
             int ferns = 0;
-            for (int i = 0; i < 70000 && ferns < FernCount; i++)
+            for (int i = 0; i < 70000 && ferns < nFern; i++)
             {
                 float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
                 if (!Allowed(x, z, 32f, 2.4f)) continue;
@@ -138,7 +147,7 @@ namespace HuesoOxido.Core
                 ferns++;
             }
             int bushes = 0;
-            for (int i = 0; i < 30000 && bushes < BushCount; i++)
+            for (int i = 0; i < 30000 && bushes < nBush; i++)
             {
                 float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
                 if (!Allowed(x, z, 28f, 3.0f)) continue;
@@ -148,7 +157,7 @@ namespace HuesoOxido.Core
                 bushes++;
             }
             int flowers = 0;
-            for (int i = 0; i < 60000 && flowers < FlowerCount; i++)
+            for (int i = 0; i < 60000 && flowers < nFlower; i++)
             {
                 float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
                 if (!Allowed(x, z, 26f, 1.4f)) continue;

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using HuesoOxido.Core;
 
 namespace HuesoOxido.Survival
 {
@@ -11,13 +12,17 @@ namespace HuesoOxido.Survival
         WeatherModel _weather;
         Material _sky;
         UnityEngine.Camera _cam;
+        BiomeProfile _biome = Biomes.Forest;
+
+        static Color C(Rgb c) => new Color(c.R, c.G, c.B);
 
         static readonly Color SunLow = new Color(1.00f, 0.50f, 0.20f);
         static readonly Color SunHigh = new Color(1.00f, 0.96f, 0.88f);
         static readonly Color Moon = new Color(0.45f, 0.55f, 0.85f);
 
-        public void Initialize(Light sun, Light moon, GameClock clock, WeatherModel weather, Material skybox, UnityEngine.Camera cam)
+        public void Initialize(Light sun, Light moon, GameClock clock, WeatherModel weather, Material skybox, UnityEngine.Camera cam, BiomeProfile biome = null)
         {
+            _biome = biome ?? Biomes.Forest;
             _cam = cam;
             _sun = sun; _moon = moon; _clock = clock; _weather = weather; _sky = skybox;
             RenderSettings.sun = sun;
@@ -44,7 +49,7 @@ namespace HuesoOxido.Survival
 
             _sun.transform.rotation = Quaternion.Euler(Mathf.Max(3f, pitch > 180f ? 3f : pitch), 250f, 0f);
             _sun.color = Color.Lerp(SunHigh, SunLow, warm);
-            _sun.intensity = Mathf.Lerp(1.35f, 2.1f, warm) * dayAmt * light;
+            _sun.intensity = Mathf.Lerp(1.35f, 2.1f, warm) * dayAmt * light * _biome.SunIntensity;
             _sun.enabled = _sun.intensity > 0.01f;
 
             _moon.transform.rotation = Quaternion.Euler(48f, 140f, 0f);
@@ -52,18 +57,18 @@ namespace HuesoOxido.Survival
             _moon.intensity = 0.16f * (1f - dayAmt) * Mathf.Lerp(0.6f, 1f, light);
             _moon.enabled = _moon.intensity > 0.005f;
 
-            var daySky = new Color(0.62f, 0.72f, 0.90f);
+            var daySky = C(_biome.SkyDay);
             var duskSky = new Color(0.80f, 0.58f, 0.48f);
             var nightSky = new Color(0.05f, 0.07f, 0.14f);
             Color sky = Color.Lerp(nightSky, Color.Lerp(daySky, duskSky, warm * 0.8f), dayAmt);
             RenderSettings.ambientSkyColor = sky * light * Mathf.Lerp(1f, 0.8f, warm);
             RenderSettings.ambientEquatorColor = Color.Lerp(sky, new Color(0.55f, 0.50f, 0.42f), 0.35f) * 0.85f * light;
-            RenderSettings.ambientGroundColor = new Color(0.26f, 0.22f, 0.16f) * Mathf.Lerp(0.3f, 1f, dayAmt);
+            RenderSettings.ambientGroundColor = C(_biome.AmbientGround) * Mathf.Lerp(0.3f, 1f, dayAmt);
 
-            Color fogDay = Color.Lerp(new Color(0.62f, 0.7f, 0.76f), new Color(0.85f, 0.58f, 0.40f), warm * 0.8f);
+            Color fogDay = Color.Lerp(C(_biome.FogDay), C(_biome.FogDusk), warm * 0.8f);
             RenderSettings.fogColor = Color.Lerp(new Color(0.03f, 0.04f, 0.08f), fogDay, dayAmt) * Mathf.Lerp(0.55f, 1f, light);
             float night = 1f - dayAmt;
-            RenderSettings.fogDensity = (_weather != null ? _weather.FogDensity : 0.006f) * (1f + night * 0.6f);
+            RenderSettings.fogDensity = (_weather != null ? _weather.FogDensity : 0.006f) * (1f + night * 0.6f) * _biome.FogMultiplier;
 
             if (_sky == null && _cam != null)
             {

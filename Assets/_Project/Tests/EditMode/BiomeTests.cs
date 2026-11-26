@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HuesoOxido.Core;
+using HuesoOxido.Economy;
 using NUnit.Framework;
 
 namespace HuesoOxido.Tests
@@ -85,6 +86,39 @@ namespace HuesoOxido.Tests
                     if (dx < 0.35f) flat++;
                 }
             Assert.Greater(flat / (float)total, 0.3f);
+        }
+
+        [Test]
+        public void Permits_OnePerBiome_AndGateDigging()
+        {
+            var defs = PermitService.ForBiomes();
+            Assert.AreEqual(Biomes.All.Count, defs.Count);
+            Assert.AreEqual("permit_forest_ruins", defs[0].Id);
+            var svc = new PermitService(defs);
+            var wallet = new Wallet(10000);
+            foreach (var b in Biomes.All)
+            {
+                Assert.IsFalse(svc.CanDig(b.ZoneId), b.Id);
+                Assert.IsTrue(svc.TryBuy(b.PermitId, wallet), b.Id);
+                Assert.IsTrue(svc.CanDig(b.ZoneId), b.Id);
+            }
+            Assert.Less(wallet.Money, 10000);
+        }
+
+        [Test]
+        public void Permits_GetMoreExpensiveWithEachBiome()
+        {
+            Assert.Less(Biomes.Forest.PermitCost, Biomes.Desert.PermitCost);
+            Assert.Less(Biomes.Desert.PermitCost, Biomes.Snow.PermitCost);
+            Assert.Less(Biomes.Snow.PermitCost, Biomes.Swamp.PermitCost);
+        }
+
+        [Test]
+        public void SeedOffsets_AreUnique_AndForestKeepsLegacySeed()
+        {
+            var seen = new HashSet<int>();
+            foreach (var b in Biomes.All) Assert.IsTrue(seen.Add(b.SeedOffset), b.Id);
+            Assert.AreEqual(0, Biomes.Forest.SeedOffset);
         }
     }
 }

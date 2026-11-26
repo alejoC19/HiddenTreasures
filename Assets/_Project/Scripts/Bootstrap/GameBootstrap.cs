@@ -48,7 +48,8 @@ namespace HuesoOxido.Core
             var worldRoot = new GameObject("World").transform;
             var allItems = new List<IItemInfo>();
             foreach (var d in s.Catalog.Items) allItems.Add(d);
-            ctx.World = new WorldBuilder(worldSeed).Build(allItems, worldRoot, s.Clock);
+            var biome = BiomeSelection.Current;
+            ctx.World = new WorldBuilder(worldSeed + biome.SeedOffset, biome).Build(allItems, worldRoot, s.Clock);
 
             // Jugador
             ctx.Player = new GameObject("Player");
@@ -78,7 +79,7 @@ namespace HuesoOxido.Core
             var rain = new GameObject("Rain").AddComponent<RainEffect>();
             rain.Initialize(ctx.Cam.transform, s.Weather);
             systems.AddComponent<AtmosphereFx>().Initialize(ctx.Cam.transform, ctx.World.Sun, s.Clock, s.Weather, ctx.World.HeightAt);
-            systems.AddComponent<DayNightCycle>().Initialize(ctx.World.Sun, ctx.World.Moon, s.Clock, s.Weather, ctx.World.Skybox, ctx.Cam);
+            systems.AddComponent<DayNightCycle>().Initialize(ctx.World.Sun, ctx.World.Moon, s.Clock, s.Weather, ctx.World.Skybox, ctx.Cam, ctx.World.Biome);
 
             // Vehiculo
             var vehicleGo = new GameObject("Vehicle");
@@ -178,6 +179,7 @@ namespace HuesoOxido.Core
             {
                 Trade = s.Trade, Upgrades = s.Upgrades, Permits = s.Permits, Collection = s.Collection, Wallet = s.Wallet,
                 Lookup = s.Catalog, AllItems = allItems, Backpack = s.Backpack, Trunk = s.Trunk, Session = director.Session,
+                CurrentBiome = () => ctx.World.Biome.Id, Travel = director.Session.TravelTo,
                 GetSensitivity = () => ctx.Look.Sensitivity,
                 SetSensitivity = v => { ctx.Look.Sensitivity = v; ctx.Look.SaveSensitivity(); },
             });
