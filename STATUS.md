@@ -1,5 +1,8 @@
 # Estado del proyecto
 
+> **Documentos vigentes** (esta página conserva el historial de etapas y algunas cifras antiguas): visión [`GAME_VISION.md`](GAME_VISION.md) · sistemas y auditoría [`GAMEPLAY_SYSTEMS.md`](GAMEPLAY_SYSTEMS.md) · regiones [`REGION_DESIGN.md`](REGION_DESIGN.md) · hoja de ruta [`ROADMAP.md`](ROADMAP.md) · arquitectura [`TECHNICAL_ARCHITECTURE.md`](TECHNICAL_ARCHITECTURE.md) · arte [`ARTE_PLAN.md`](ARTE_PLAN.md) · pruebas [`PRUEBAS.md`](PRUEBAS.md).
+> Cifras actuales: **85 tests EditMode** (pasan en .NET), 11 PlayMode escritos y **sin ejecutar**, compilación verificada en Unity 6000.0.58f2, renders verificados por software; gameplay y rendimiento en hardware real **sin verificar**.
+
 **Versión:** demo v0.1.0 (primera apertura pendiente). **Ramas:** `stable` (consolidada) y `claude/focused-darwin-ps2pj7` (desarrollo).
 
 ## Lo único que importa: qué se verificó y qué no
