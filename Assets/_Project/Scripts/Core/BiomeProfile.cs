@@ -40,7 +40,7 @@ namespace HuesoOxido.Core
         /// <summary>Peso de la capa secundaria (pasto, arena clara, nieve limpia) sobre la base.</summary>
         public float Ground1Weight = 1f;
         /// <summary>Tintes del shader de suelo (capa base y secundaria) y color base del macro: sin ellos todo sale verde de bosque.</summary>
-        public Rgb GroundTint0 = new Rgb(0.92f, 1f, 0.82f), GroundTint1 = new Rgb(0.78f, 1f, 0.55f), MacroBase = new Rgb(0.92f, 1.10f, 0.85f);
+        public Rgb GroundTint0 = new Rgb(0.92f, 1f, 0.82f), GroundTint1 = new Rgb(0.9f, 1f, 0.75f), MacroBase = new Rgb(0.92f, 1.10f, 0.85f);
         /// <summary>Fraccion del mapa cubierta de agua (0 = sin agua). El nivel se calcula del relieve sin ahogar el camino ni los campamentos.</summary>
         public float WaterFraction;
         /// <summary>Textura y tinte de la piedra de las ruinas (nombre en TextureLibrary).</summary>

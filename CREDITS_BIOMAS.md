@@ -21,3 +21,8 @@ Todas **CC0** (dominio público) de [Poly Haven](https://polyhaven.com). Descarg
 | `swamp_road` | [brown_mud_02](https://polyhaven.com/a/brown_mud_02) | Rob Tuytel |
 | `swamp_earth` | [muddy_tracks](https://polyhaven.com/a/muddy_tracks) | Amal Kumar |
 | `bark_dead` | [bark_willow](https://polyhaven.com/a/bark_willow) | Dario Barresi, Dimitrios Savva |
+
+
+## Texturas del bosque (ambientCG, CC0)
+
+`forest_floor` = Ground068, `grass` = Ground037, `road` = Ground071, `red_earth` = ScatteredLeaves009 (2K, color + normal GL). https://ambientcg.com
