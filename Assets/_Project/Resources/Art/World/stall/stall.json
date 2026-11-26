@@ -1,0 +1,142 @@
+{
+ "name": "stall",
+ "height": 2.9999999999999996,
+ "size": [
+  3.0562339181785867,
+  2.9999999999999996,
+  5.45802462246707
+ ],
+ "materials": [
+  {
+   "name": "Fabric_22",
+   "diff": "stall_Fabric_22_diff.jpg",
+   "nor": null,
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.5102029128052245,
+   "roughness": 1
+  },
+  {
+   "name": "Dirty_Wood_Planks",
+   "diff": "stall_Dirty_Wood_Planks_diff.jpg",
+   "nor": "stall_Dirty_Wood_Planks_nor.png",
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    0.7667839099278518,
+    0.7667839099278518,
+    0.7667839099278518,
+    1
+   ],
+   "metallic": 0.4307849851244112,
+   "roughness": 1
+  },
+  {
+   "name": "Chestnut_fine_wood_texture",
+   "diff": "stall_Chestnut_fine_wood_texture_diff.png",
+   "nor": "stall_Chestnut_fine_wood_texture_nor.png",
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.7301294817674765,
+   "roughness": 1
+  },
+  {
+   "name": "Dark_iron",
+   "diff": "stall_Dark_iron_diff.jpg",
+   "nor": "stall_Dark_iron_nor.png",
+   "mr": "stall_Dark_iron_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.2780582011228473,
+   "roughness": 1
+  },
+  {
+   "name": "Apples",
+   "diff": "stall_Apples_diff.jpg",
+   "nor": "stall_Apples_nor.png",
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.4,
+   "roughness": 1
+  },
+  {
+   "name": "Bananas",
+   "diff": "stall_Bananas_diff.jpg",
+   "nor": "stall_Bananas_nor.png",
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "Grapes",
+   "diff": "stall_Grapes_diff.jpg",
+   "nor": "stall_Grapes_nor.png",
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.4,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 18742,
+   "ratio": 0.35
+  },
+  {
+   "level": 1,
+   "tris": 18744,
+   "ratio": 0.15
+  }
+ ]
+}

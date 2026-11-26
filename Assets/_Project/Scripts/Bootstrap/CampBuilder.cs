@@ -22,10 +22,18 @@ namespace HuesoOxido.Core
             var shop = new GameObject("ShopStall").transform;
             shop.SetParent(root, false);
             shop.localPosition = new Vector3(0f, 0f, 7f);
-            Part(PrimitiveType.Cube, "Counter", shop, wood, new Vector3(0f, 0.55f, 0f), new Vector3(3.2f, 1.1f, 1.1f), true);
-            Part(PrimitiveType.Cube, "Awning", shop, cloth, new Vector3(0f, 2.5f, 0.2f), new Vector3(3.8f, 0.08f, 2.4f), false).transform.localRotation = Quaternion.Euler(-8f, 0f, 0f);
-            Part(PrimitiveType.Cylinder, "PostL", shop, wood, new Vector3(-1.8f, 1.25f, -0.9f), new Vector3(0.12f, 1.25f, 0.12f), false);
-            Part(PrimitiveType.Cylinder, "PostR", shop, wood, new Vector3(1.8f, 1.25f, -0.9f), new Vector3(0.12f, 1.25f, 0.12f), false);
+            if (ArtProp(shop, "stall", Vector3.zero, 180f, 1.25f))
+            {
+                var col = shop.gameObject.AddComponent<BoxCollider>();   // el mostrador conserva su colision simple
+                col.center = new Vector3(0f, 0.55f, 0f); col.size = new Vector3(3.2f, 1.1f, 1.1f);
+            }
+            else
+            {
+                Part(PrimitiveType.Cube, "Counter", shop, wood, new Vector3(0f, 0.55f, 0f), new Vector3(3.2f, 1.1f, 1.1f), true);
+                Part(PrimitiveType.Cube, "Awning", shop, cloth, new Vector3(0f, 2.5f, 0.2f), new Vector3(3.8f, 0.08f, 2.4f), false).transform.localRotation = Quaternion.Euler(-8f, 0f, 0f);
+                Part(PrimitiveType.Cylinder, "PostL", shop, wood, new Vector3(-1.8f, 1.25f, -0.9f), new Vector3(0.12f, 1.25f, 0.12f), false);
+                Part(PrimitiveType.Cylinder, "PostR", shop, wood, new Vector3(1.8f, 1.25f, -0.9f), new Vector3(0.12f, 1.25f, 0.12f), false);
+            }
             Part(PrimitiveType.Cube, "Scale", shop, steel, new Vector3(-0.8f, 1.2f, 0f), new Vector3(0.5f, 0.2f, 0.4f), false);
             Part(PrimitiveType.Cube, "Crate", shop, wood, new Vector3(1.0f, 1.3f, 0f), new Vector3(0.6f, 0.4f, 0.5f), false);
             data.ShopPoint = Trigger(shop, "ShopTrigger", new Vector3(0f, 1.2f, -0.6f), new Vector3(4f, 2.4f, 3f));
@@ -34,10 +42,13 @@ namespace HuesoOxido.Core
             var tent = new GameObject("Tent").transform;
             tent.SetParent(root, false);
             tent.localPosition = new Vector3(-9f, 0f, 2f);
-            Part(PrimitiveType.Cube, "RoofL", tent, cloth, new Vector3(-0.95f, 1.1f, 0f), new Vector3(2.4f, 0.06f, 3.4f), false).transform.localRotation = Quaternion.Euler(0f, 0f, 48f);
-            Part(PrimitiveType.Cube, "RoofR", tent, cloth, new Vector3(0.95f, 1.1f, 0f), new Vector3(2.4f, 0.06f, 3.4f), false).transform.localRotation = Quaternion.Euler(0f, 0f, -48f);
-            Part(PrimitiveType.Cube, "Floor", tent, wood, new Vector3(0f, 0.04f, 0f), new Vector3(3f, 0.05f, 3.4f), false);
-            Part(PrimitiveType.Cube, "Bedroll", tent, red, new Vector3(0f, 0.15f, 0f), new Vector3(0.8f, 0.2f, 2.2f), false);
+            if (!ArtProp(tent, "tent", Vector3.zero, 90f, 1.15f))
+            {
+                Part(PrimitiveType.Cube, "RoofL", tent, cloth, new Vector3(-0.95f, 1.1f, 0f), new Vector3(2.4f, 0.06f, 3.4f), false).transform.localRotation = Quaternion.Euler(0f, 0f, 48f);
+                Part(PrimitiveType.Cube, "RoofR", tent, cloth, new Vector3(0.95f, 1.1f, 0f), new Vector3(2.4f, 0.06f, 3.4f), false).transform.localRotation = Quaternion.Euler(0f, 0f, -48f);
+                Part(PrimitiveType.Cube, "Floor", tent, wood, new Vector3(0f, 0.04f, 0f), new Vector3(3f, 0.05f, 3.4f), false);
+                Part(PrimitiveType.Cube, "Bedroll", tent, red, new Vector3(0f, 0.15f, 0f), new Vector3(0.8f, 0.2f, 2.2f), false);
+            }
             data.TentPoint = Trigger(tent, "TentTrigger", new Vector3(0f, 1f, 0f), new Vector3(3.6f, 2.2f, 4f));
 
             // Fogata.
@@ -87,8 +98,17 @@ namespace HuesoOxido.Core
             var pump = new GameObject("FuelPump").transform;
             pump.SetParent(root, false);
             pump.localPosition = new Vector3(13f, 0f, -2f);
-            Part(PrimitiveType.Cube, "Body", pump, red, new Vector3(0f, 0.9f, 0f), new Vector3(0.8f, 1.8f, 0.6f), true);
-            Part(PrimitiveType.Cylinder, "Hose", pump, steel, new Vector3(0.5f, 0.8f, 0f), new Vector3(0.08f, 0.5f, 0.08f), false);
+            if (ArtProp(pump, "gas_pump", Vector3.zero, -90f, 1f))
+            {
+                var col = pump.gameObject.AddComponent<BoxCollider>();
+                col.center = new Vector3(0f, 0.9f, 0f); col.size = new Vector3(0.9f, 1.8f, 0.7f);
+                ArtProp(pump, "jerrycans", new Vector3(1.1f, 0f, 0.4f), 30f, 1f);
+            }
+            else
+            {
+                Part(PrimitiveType.Cube, "Body", pump, red, new Vector3(0f, 0.9f, 0f), new Vector3(0.8f, 1.8f, 0.6f), true);
+                Part(PrimitiveType.Cylinder, "Hose", pump, steel, new Vector3(0.5f, 0.8f, 0f), new Vector3(0.08f, 0.5f, 0.08f), false);
+            }
             data.FuelPoint = Trigger(pump, "FuelTrigger", new Vector3(0f, 1f, 0f), new Vector3(2.4f, 2.2f, 2.4f));
 
             // Museo (vitrina abierta).
@@ -129,6 +149,15 @@ namespace HuesoOxido.Core
             l.type = LightType.Point; l.color = color; l.range = range; l.intensity = 0f; l.shadows = LightShadows.None;
             if (clock != null) go.AddComponent<NightLight>().Initialize(l, clock, intensity);
             else l.intensity = 0f;
+        }
+
+        /// <summary>Coloca un modelo real (si esta en el proyecto) con posicion local, giro y escala. Devuelve false si falta.</summary>
+        static bool ArtProp(Transform parent, string asset, Vector3 local, float yaw, float scale)
+        {
+            var model = ArtLibrary.Get(asset);
+            if (model == null) return false;
+            ArtScatter.Spawn(model, parent, parent.TransformPoint(local), parent.rotation * Quaternion.Euler(0f, yaw, 0f), scale, false);
+            return true;
         }
 
         static GameObject Part(PrimitiveType t, string name, Transform parent, Material mat, Vector3 pos, Vector3 scale, bool collider)

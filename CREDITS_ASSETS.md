@@ -94,3 +94,12 @@ ambientCG (texturas 2K, CC0, aún sin integrar): Moss002, Ground068, Ground037, 
 | detector | [Metal Detector](https://sketchfab.com/3d-models/metal-detector-2527ebf908e94ee88d00aad6fa062377) | Tr0n |
 
 Variante nevada del pino (`pine_snow`): derivada de Pine Tree [Game-ready] (Wenedi), con color mezclado hacia blanco (`tools/art/make_snow_variant.py`).
+
+### Campamento (Sketchfab, CC BY 4.0)
+
+| Uso | Título | Autor |
+|---|---|---|
+| surtidor | [Vintage Gas Pump](https://sketchfab.com/3d-models/vintage-gas-pump-0096f206ce1a4381bea58f9f94fc6b1c) | Rescue3D Assets |
+| carpa | [Military Tent](https://sketchfab.com/3d-models/military-tent-d0d6d9a9f5ab4939932dd27bbaa5ca7d) | Khata |
+| mostrador | [Medieval Market Stall](https://sketchfab.com/3d-models/medieval-market-stall-b5d87398b87a4e7ab8959da2c6a47056) | AspectStudios |
+| bidones | [Game Ready Jerry Cans](https://sketchfab.com/3d-models/game-ready-jerry-cans-01fea903b3464194a4d0eec7d9a1a5d1) | Liam3D |

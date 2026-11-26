@@ -1,0 +1,40 @@
+{
+ "name": "tent",
+ "height": 2.6,
+ "size": [
+  4.001021056352025,
+  2.6,
+  6.718564995718553
+ ],
+ "materials": [
+  {
+   "name": "M_Tent",
+   "diff": "tent_M_Tent_diff.png",
+   "nor": null,
+   "mr": "tent_M_Tent_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 7044,
+   "ratio": 0.45
+  },
+  {
+   "level": 1,
+   "tris": 3130,
+   "ratio": 0.2
+  }
+ ]
+}

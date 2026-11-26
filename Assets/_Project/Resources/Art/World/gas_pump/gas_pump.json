@@ -1,0 +1,74 @@
+{
+ "name": "gas_pump",
+ "height": 2.4,
+ "size": [
+  0.8829780985611725,
+  2.4,
+  0.499334528546758
+ ],
+ "materials": [
+  {
+   "name": "GasDispenser_Main",
+   "diff": "gas_pump_GasDispenser_Main_diff.png",
+   "nor": "gas_pump_GasDispenser_Main_nor.png",
+   "mr": "gas_pump_GasDispenser_Main_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "GasDispenser_Emission",
+   "diff": "gas_pump_GasDispenser_Emission_diff.png",
+   "nor": "gas_pump_GasDispenser_Emission_nor.png",
+   "mr": "gas_pump_GasDispenser_Emission_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "GasDispenser_Alpha",
+   "diff": "gas_pump_GasDispenser_Alpha_diff.png",
+   "nor": null,
+   "mr": null,
+   "alphaMode": "BLEND",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8211145618000169
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 7613,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 3805,
+   "ratio": 0.5
+  }
+ ]
+}

@@ -30,6 +30,10 @@ run $R/saguaro4.glb $W/saguaro4 saguaro4 5 0.5,0.2
 run $R/detector.glb $W/detector detector 1.3 0.5,0.2
 python3 make_snow_variant.py $W pine_wenedi pine_snow 0.75
 run $R/grass_tuft.glb $W/grass_tuft grass_tuft 0.9 1,0.5
+run $R/gas_pump.glb $W/gas_pump gas_pump 2.4 1,0.5
+run $R/tent.glb $W/tent tent 2.6 0.45,0.2
+run $R/stall.glb $W/stall stall 3.0 0.35,0.15
+run $R/jerrycans.glb $W/jerrycans jerrycans 0.55 1,0.5
 # --- Poly Haven (ya vienen en metros) ---
 P=$R/ph
 run $P/rock_07/rock_07_2k.gltf $W/rock_07 rock_07 0 0.25,0.1

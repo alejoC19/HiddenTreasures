@@ -1,0 +1,91 @@
+{
+ "name": "jerrycans",
+ "height": 0.55,
+ "size": [
+  0.40157902182703736,
+  0.55,
+  1.3018048265478759
+ ],
+ "materials": [
+  {
+   "name": "02___Default",
+   "diff": "jerrycans_02___Default_diff.png",
+   "nor": "jerrycans_02___Default_nor.png",
+   "mr": "jerrycans_02___Default_mr.png",
+   "alphaMode": "BLEND",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "03___Default",
+   "diff": "jerrycans_03___Default_diff.png",
+   "nor": "jerrycans_03___Default_nor.png",
+   "mr": "jerrycans_03___Default_mr.png",
+   "alphaMode": "BLEND",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "07___Default",
+   "diff": "jerrycans_07___Default_diff.png",
+   "nor": "jerrycans_07___Default_nor.png",
+   "mr": "jerrycans_07___Default_mr.png",
+   "alphaMode": "BLEND",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "08___Default",
+   "diff": "jerrycans_08___Default_diff.png",
+   "nor": "jerrycans_08___Default_nor.png",
+   "mr": "jerrycans_08___Default_mr.png",
+   "alphaMode": "BLEND",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 4728,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 2361,
+   "ratio": 0.5
+  }
+ ]
+}
