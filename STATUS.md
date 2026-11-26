@@ -97,3 +97,10 @@ Para cada fallo: copiar el texto de la Console.
 
 - `Bootstrap/PerfRecorder.cs` (F9 o argumento `-htperf`), `Core/PerfStats.cs` (4 tests), `Bootstrap/Editor/PerfBuild.cs` (menú para compilar el build de rendimiento). Mide por lugar y nivel de calidad: FPS promedio, 1 % low, p99, tirones, CPU/GPU ms (FrameTimingManager activado en Player Settings), draw calls, SetPass, triángulos y memoria. Salida: `perf_summary.md` + `perf_frames.csv` en la carpeta de datos del juego.
 - **Verificado**: compila en Unity 6 y 77 tests .NET. **No verificado**: la medición en sí (necesita GPU real); la primera línea base real la dará la RX 580.
+
+## Camioneta moderna y reflejos (tras la auditoría)
+
+- **Silverado Trail Boss Z71** (CC-BY, gratis con atribución) reemplaza al Willys: pipeline `gltf-transform` + meshoptimizer (478 874 → ~234 000 triángulos, 192 → 51 mallas, texturas intactas), orientación por marcas `MARK_FRONT/REAR`, escala real (5,75 m), 4 ruedas (llanta + rin) agrupadas por esquina para la física, colisionador ajustado. Respaldo: Willys y luego camioneta procedural.
+- **Reflejos del bosque** (`Bootstrap/ReflectionBaker.cs`): cubemap de 128 px que se refresca cada ~30 min de juego o con el clima (una cara por cuadro). Materiales corregidos por tipo (pintura con clearcoat simulado, llantas sin metal, cromados, vidrio transparente).
+- **Herramienta**: `tools/gen_meta.py` ya no genera `.meta` genéricos para modelos/texturas (rompían la importación de glTF).
+- **Verificado**: compila en Unity 6 y renders del Editor (frente, lado, atrás). **No verificado**: la conducción con el vehículo nuevo (ruedas, suspensión, tamaño del colisionador), el rendimiento y los reflejos en juego.

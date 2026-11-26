@@ -33,8 +33,8 @@ namespace HuesoOxido.Core
             if (Cache.TryGetValue(m.GetInstanceID(), out var cached) && cached != null) return cached;
 
             string n = (m.name ?? "").ToLowerInvariant();
-            bool paint = n.Contains("paint");
-            bool glass = Num(m, "transmissionFactor", 0f) > 0.5f;
+            bool paint = (n.Contains("paint") && !n.Contains("black")) || n == "material";
+            bool glass = Num(m, "transmissionFactor", 0f) > 0.5f || (n.Contains("glass") && !n.Contains("glasssolid")) || m.renderQueue >= 3000;
 
             var o = new Material(MaterialUtil.LitMaterialTemplate()) { name = m.name + "_Lit" };
             Color baseCol = Col(m, "baseColorFactor", Color.white);
@@ -42,6 +42,14 @@ namespace HuesoOxido.Core
             float metal = Mathf.Clamp01(Num(m, "metallicFactor", 0f));
             float smooth = Mathf.Clamp01(1f - Num(m, "roughnessFactor", 1f));
             if (Tex(m, "metallicRoughnessTexture") != null) { metal = Mathf.Min(metal, 0.85f); smooth = Mathf.Max(smooth, 0.4f); }
+            // Correccion por tipo de material (los exportes de autos suelen traer metal/brillo exagerados para un visor, no para un bosque).
+            if (n.Contains("tire") || n.Contains("rubber") || n.Contains("plastic") || n.Contains("cuero") || n.Contains("leather") || n.Contains("carpet")
+                || n.Contains("seatbelt") || n.Contains("costuras") || n.Contains("speaker") || n.Contains("interior") || n.Contains("wood") || n == "material_30")
+            { metal = 0f; smooth = Mathf.Min(smooth, n.Contains("plastic") ? 0.55f : 0.42f); }
+            else if (paint) { metal = Mathf.Min(metal, 0.3f); smooth = Mathf.Min(smooth, 0.72f); }
+            else if (n.Contains("carbon")) { metal = 0.1f; smooth = Mathf.Min(smooth, 0.5f); }
+            else if (n.Contains("chrome") || n.Contains("alum")) { metal = Mathf.Max(metal, 0.9f); smooth = Mathf.Clamp(smooth, 0.55f, 0.85f); }
+            else if (n.Contains("brushed") || n.Contains("lights") || n == "base" || n == "yell") { metal = Mathf.Max(metal, 0.6f); smooth = Mathf.Min(smooth, 0.65f); }
             smooth = Mathf.Min(smooth, smoothCap);
 
             if (o.HasProperty("_BaseColor")) o.SetColor("_BaseColor", baseCol);
@@ -70,7 +78,7 @@ namespace HuesoOxido.Core
             if (glass)
             {
                 SetTransparent(o);
-                var tint = new Color(0.08f, 0.1f, 0.12f, 0.28f);
+                var tint = new Color(0.08f, 0.1f, 0.12f, Mathf.Clamp(baseCol.a, 0.18f, 0.35f));
                 if (o.HasProperty("_BaseColor")) o.SetColor("_BaseColor", tint);
                 if (o.HasProperty("_Smoothness")) o.SetFloat("_Smoothness", 0.97f);
                 if (o.HasProperty("_Metallic")) o.SetFloat("_Metallic", 0f);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using HuesoOxido.Core;
 
@@ -16,9 +17,113 @@ namespace HuesoOxido.Vehicle
         /// <summary>Crea el cuerpo y devuelve los 4 pivotes de rueda (delanteras primero). Agrega el BoxCollider.</summary>
         public static Transform[] Build(Transform root, Vector3[] mounts)
         {
+            var pickup = BuildFromPickup(root, mounts);
+            if (pickup != null) return pickup;
             var real = BuildFromModel(root, mounts);
             if (real != null) return real;
             return BuildProcedural(root, mounts);
+        }
+
+        public const string PickupPath = "Art/Models/Silverado";
+        const float GroundBelowRoot = -0.402f;     // en reposo el suelo queda ~0,40 m bajo el origen del vehiculo (suspension)
+        const float PickupLength = 5.75f;          // largo real de una pickup de cabina doble (m)
+
+        static Bounds RootBounds(Transform root, IEnumerable<MeshFilter> filters)
+        {
+            bool first = true; var b = new Bounds();
+            var toRoot = root.worldToLocalMatrix;
+            foreach (var f in filters)
+            {
+                if (f == null || f.sharedMesh == null) continue;
+                var m = toRoot * f.transform.localToWorldMatrix;
+                var mb = f.sharedMesh.bounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    var c = mb.center + Vector3.Scale(mb.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                    var p = m.MultiplyPoint3x4(c);
+                    if (first) { b = new Bounds(p, Vector3.zero); first = false; } else b.Encapsulate(p);
+                }
+            }
+            return b;
+        }
+
+        /// <summary>
+        /// Pickup moderna (Resources/Art/Models/Silverado.glb, CC-BY, ver CREDITS_ASSETS.md): se orienta con las marcas MARK_FRONT/MARK_REAR,
+        /// se escala a su largo real, se apoya sobre las llantas y cada rueda (llanta + rin) cuelga de un pivote que mueve la fisica.
+        /// Devuelve null si no hay modelo o no se reconocen las 4 ruedas.
+        /// </summary>
+        static Transform[] BuildFromPickup(Transform root, Vector3[] mounts)
+        {
+            var prefab = Resources.Load<GameObject>(PickupPath);
+            if (prefab == null) { Debug.LogWarning("[Vehiculo] No se pudo cargar " + PickupPath + ": se usa el respaldo."); return null; }
+            var model = Object.Instantiate(prefab, root);
+            model.name = "PickupModel";
+            model.transform.localPosition = Vector3.zero; model.transform.localRotation = Quaternion.identity; model.transform.localScale = Vector3.one;
+
+            Transform mFront = null, mRear = null;
+            var wheelFilters = new List<MeshFilter>(); var bodyFilters = new List<MeshFilter>();
+            foreach (var mf in model.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (mf.name.StartsWith("MARK_")) { var mr = mf.GetComponent<Renderer>(); if (mr != null) mr.enabled = false; continue; }
+                bool wheel = false;
+                for (var t = mf.transform; t != null && t != model.transform; t = t.parent) if (t.name.StartsWith("WHEEL_")) { wheel = true; break; }
+                (wheel ? wheelFilters : bodyFilters).Add(mf);
+            }
+            foreach (var t in model.GetComponentsInChildren<Transform>(true)) { if (t.name == "MARK_FRONT") mFront = t; else if (t.name == "MARK_REAR") mRear = t; }
+            if (mFront == null || mRear == null || wheelFilters.Count < 8)
+            {
+                Debug.LogWarning("[Vehiculo] Silverado no reconocida (marcas " + (mFront != null) + "/" + (mRear != null) + ", partes de rueda " + wheelFilters.Count + "): se usa el respaldo.");
+                MaterialUtil.Dispose(model); return null;
+            }
+
+            GltfMaterials.ConvertToLit(model);
+
+            // 1) orientacion: el frente (puerta delantera) debe quedar hacia +Z
+            Vector3 f = root.InverseTransformDirection(mFront.position - mRear.position); f.y = 0f;
+            if (f.sqrMagnitude < 1e-12f) { MaterialUtil.Dispose(model); return null; }
+            model.transform.localRotation = Quaternion.FromToRotation(f.normalized, Vector3.forward);
+            // 2) escala real
+            float len = RootBounds(root, bodyFilters).size.z;
+            float k = len > 1e-4f ? PickupLength / len : 1f;
+            model.transform.localScale = Vector3.one * k;
+
+            // 3) agrupar las partes de rueda por esquina y medir
+            var wheelCenters = new List<(MeshFilter f, Vector3 c, Vector3 size)>();
+            foreach (var wf in wheelFilters) { var b = RootBounds(root, new[] { wf }); wheelCenters.Add((wf, b.center, b.size)); }
+            Vector3 mid = Vector3.zero; foreach (var w in wheelCenters) mid += w.c; mid /= wheelCenters.Count;
+            float groundY = float.MaxValue, radius = 0f;
+            foreach (var w in wheelCenters) { groundY = Mathf.Min(groundY, w.c.y - w.size.y * 0.5f); radius = Mathf.Max(radius, w.size.y * 0.5f); }
+            // 4) centrar entre ejes y apoyar las llantas en el suelo de reposo
+            model.transform.localPosition = new Vector3(-mid.x, GroundBelowRoot - groundY, -mid.z);
+
+            var groups = new List<(MeshFilter f, Vector3 c)>[4];
+            for (int i = 0; i < 4; i++) groups[i] = new List<(MeshFilter, Vector3)>();
+            foreach (var wf in wheelFilters)
+            {
+                var c = RootBounds(root, new[] { wf }).center;
+                int corner = (c.z > 0f ? 0 : 2) + (c.x > 0f ? 1 : 0);          // 0 FL, 1 FR, 2 RL, 3 RR
+                groups[corner].Add((wf, c));
+            }
+            var pivots = new Transform[4];
+            for (int i = 0; i < 4; i++)
+            {
+                if (groups[i].Count == 0) { MaterialUtil.Dispose(model); return null; }
+                Vector3 avg = Vector3.zero; foreach (var g in groups[i]) avg += g.c; avg /= groups[i].Count;
+                var pivot = new GameObject("Wheel" + i).transform;
+                pivot.SetParent(root, false);
+                pivot.localPosition = avg;
+                foreach (var g in groups[i]) { var host = g.f.transform; while (host.parent != null && host.parent != model.transform && !host.name.StartsWith("WHEEL_")) host = host.parent; host.SetParent(pivot, true); }
+                pivots[i] = pivot;
+                mounts[i] = new Vector3(avg.x, 0.35f, avg.z);
+            }
+            WheelRadius = Mathf.Max(0.25f, radius);
+
+            var body = RootBounds(root, bodyFilters);
+            var box = root.gameObject.AddComponent<BoxCollider>();
+            float bottom = GroundBelowRoot + 0.55f, top = Mathf.Max(bottom + 0.8f, body.max.y - 0.1f);
+            box.center = new Vector3(0f, (bottom + top) * 0.5f, 0f);
+            box.size = new Vector3(Mathf.Min(body.size.x * 0.92f, 2.1f), top - bottom, Mathf.Min(body.size.z * 0.94f, PickupLength));
+            return pivots;
         }
 
         // Medidas del Willys Jeep (malla en centimetros * 0,01): ruedas halladas por analisis de vertices.

@@ -45,3 +45,12 @@ Ambos se cargan por código desde `Resources/Art/Models/`; si faltan, el juego u
 Reemplazar un modelo: dejar el nuevo archivo con el mismo nombre en `Resources/Art/Models/` (o cambiar `PlaceholderVehicle.ModelPath` / `PlaceholderCharacter.ModelPath`). Alternativas libres ya localizadas: [UAZ pickup](https://opengameart.org/content/uaz-truck) (CC-BY 4.0, sin texturas, ruedas fusionadas) y [GAZ-67](https://opengameart.org/content/lowpoly-soviet-jeep) (CC0, low-poly).
 
 Todo lo demás del fuego, la camioneta de respaldo, el detector y el explorador de respaldo se genera por código (sin archivos externos).
+
+## Camioneta principal (pickup moderna)
+
+| Archivo | Origen | Licencia | Atribución obligatoria |
+|---|---|---|---|
+| `Resources/Art/Models/Silverado.glb` | "2019 Chevrolet Silverado Trail Boss Z71" de **Ddiaz Design** — https://sketchfab.com/3d-models/2019-chevrolet-silverado-trail-boss-z71-652324cc8a974d3a9869ce2b0f3beaaa | **CC-BY-4.0** (uso comercial permitido) | *This work is based on "2019 Chevrolet Silverado Trail Boss Z71" (https://sketchfab.com/3d-models/2019-chevrolet-silverado-trail-boss-z71-652324cc8a974d3a9869ce2b0f3beaaa) by Ddiaz Design (https://sketchfab.com/ddiaz-design) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)* |
+
+Modificaciones (CC-BY exige indicarlas): reducido de 478 874 a ~234 000 triángulos (meshoptimizer), partes fusionadas por material (192 → 51 mallas), llantas y rines conservados por separado para girar, materiales convertidos a URP/Lit con valores de metal/brillo ajustados, y orientación/escala/anclajes de ruedas calculados al cargar. El texto de licencia original está en `Resources/Art/Models/Silverado_LICENSE.txt`. **Pendiente:** mostrar esta atribución dentro del juego (pantalla de créditos) antes de publicarlo.
+El Willys Jeep sigue en el proyecto solo como respaldo si falta la Silverado.

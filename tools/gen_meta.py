@@ -30,6 +30,9 @@ for dp, dns, fns in os.walk(assets):
         full = os.path.join(dp, name)
         rel = os.path.relpath(full, root).replace(os.sep, "/")
         m = full + ".meta"
+        # Modelos/texturas importados por Unity (glTFast, FBX...): el meta correcto lo genera el Editor; uno generico los rompe.
+        if not is_dir and os.path.splitext(name)[1].lower() in (".glb", ".gltf", ".fbx", ".png", ".jpg", ".jpeg", ".tga", ".exr", ".wav", ".ogg"):
+            continue
         if not os.path.exists(m):
             open(m, "w", newline="\n").write(meta_text(rel, is_dir))
             created += 1

@@ -31,7 +31,7 @@ namespace HuesoOxido.Core.EditorTools
         {
             public WorldData World; public UnityEngine.Camera Cam; public DayNightCycle Day;
             public GameClock Clock; public WeatherModel Weather; public GameObject Player, Vehicle; public AtmosphereFx Atmo;
-            public PlaceholderCharacterAnimator Anim; public PlaceholderCharacter Char; public Transform Det;
+            public ReflectionBaker Refl; public PlaceholderCharacterAnimator Anim; public PlaceholderCharacter Char; public Transform Det;
         }
 
         [MenuItem("Hidden Treasures/Generar vistas previas")]
@@ -70,8 +70,16 @@ namespace HuesoOxido.Core.EditorTools
             st.Cam.transform.position = camp + Vector3.up * 3f; st.Day.ApplyNow(); DynamicGI.UpdateEnvironment();
             Capture(st.Cam, Path.Combine(dir, "_warmup.png")); File.Delete(Path.Combine(dir, "_warmup.png"));
             string only = System.Environment.GetEnvironmentVariable("HT_PREVIEW_ONLY");
-            bool onlyChar = only == "char", onlyForest = only == "forest";
-            if (!onlyChar && !onlyForest)
+            bool onlyChar = only == "char", onlyForest = only == "forest", onlyVeh = only == "vehicle";
+            if (onlyVeh)
+            {
+                var vt = st.Vehicle.transform;
+                Shot(st, dir, "30_camioneta_frente", 17.3f, WeatherKind.Clear, vt.TransformPoint(new Vector3(-4.8f, 1.5f, 6.2f)), vt.position + Vector3.up * 0.9f, 48f);
+                Shot(st, dir, "31_camioneta_lado", 17.3f, WeatherKind.Clear, vt.TransformPoint(new Vector3(-7.5f, 1.4f, 0.3f)), vt.position + Vector3.up * 0.9f, 42f);
+                Shot(st, dir, "32_camioneta_atras", 17.0f, WeatherKind.Clear, vt.TransformPoint(new Vector3(4.5f, 1.8f, -7f)), vt.position + Vector3.up * 1.0f, 48f);
+                Shot(st, dir, "33_camioneta_ruedas", 17.3f, WeatherKind.Clear, vt.TransformPoint(new Vector3(-3.2f, 0.7f, 2.6f)), vt.TransformPoint(new Vector3(-1f, 0.45f, 1.6f)), 50f);
+            }
+            if (!onlyChar && !onlyForest && !onlyVeh)
             {
             Shot(st, dir, "01_campamento_hora_dorada", 17.2f, WeatherKind.Clear, camp + new Vector3(12f, 2.4f, -7f), camp + new Vector3(-1f, 1.6f, 6f), 62f);
             Shot(st, dir, "02_ruinas_hora_dorada", 17.4f, WeatherKind.Clear, ruins + new Vector3(7f, 2.6f, -21f), ruins + new Vector3(0f, 2.2f, 0f), 62f);
@@ -150,6 +158,8 @@ namespace HuesoOxido.Core.EditorTools
 
             st.Day = new GameObject("DayNight").AddComponent<DayNightCycle>();
             st.Day.Initialize(st.World.Sun, st.World.Moon, st.Clock, st.Weather, st.World.Skybox, st.Cam);
+            st.Refl = new GameObject("Reflections").AddComponent<ReflectionBaker>();
+            st.Refl.Initialize(st.Player.transform, st.Clock, st.Weather);
             st.Atmo = new GameObject("Atmosphere").AddComponent<AtmosphereFx>();
             st.Atmo.Initialize(st.Cam.transform, st.World.Sun, st.Clock, st.Weather, st.World.HeightAt);
             return st;
@@ -180,6 +190,8 @@ namespace HuesoOxido.Core.EditorTools
             }
         }
 
+        static Vector3 cam0Pos(Stage st) => st.Cam.transform.position;
+
         static Vector3 OnGround(Stage st, float x, float z, float height) => new Vector3(x, st.World.HeightAt(x, z) + height, z);
 
         static void PoseCharacter(Stage st, bool digging)
@@ -205,6 +217,7 @@ namespace HuesoOxido.Core.EditorTools
             st.Cam.transform.position = pos;
             st.Cam.transform.LookAt(look);
             st.Cam.fieldOfView = fov;
+            if (st.Refl != null) st.Refl.BakeAll(cam0Pos(st));
             st.Atmo.ApplyNow();
             st.Atmo.PrewarmForPreview(40f);
             { var ff = GameObject.Find("FireFx"); if (ff != null) CampfireFx.Prewarm(ff.transform, 4f); }
