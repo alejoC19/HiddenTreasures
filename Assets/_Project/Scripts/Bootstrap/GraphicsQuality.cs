@@ -23,6 +23,8 @@ namespace HuesoOxido.Core
         readonly Dictionary<string, object> _originals = new Dictionary<string, object>();
         object _asset;
 
+        /// <summary>El perfilado lo apaga para medir cada nivel sin que el juego cambie de nivel solo.</summary>
+        public bool AdaptiveEnabled { get; set; } = true;
         public QualityTier Tier { get; private set; } = QualityTier.Medium;
         public string TierName => QualityProfile.NameOf(Tier);
 
@@ -89,7 +91,7 @@ namespace HuesoOxido.Core
 
         void Update()
         {
-            if (_gameplayActive == null) return;
+            if (_gameplayActive == null || !AdaptiveEnabled) return;
             var drop = _adaptive.Feed(Time.unscaledDeltaTime, _gameplayActive(), Tier);
             if (drop.HasValue)
             {

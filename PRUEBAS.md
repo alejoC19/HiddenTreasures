@@ -65,6 +65,16 @@ Con **F1** se muestra un panel con FPS, estado, mision y más. Con el panel abie
 - El proyecto ahora usa **DirectX 11** en Windows (antes Unity elegía DirectX 12). Si en tu PC se ve mal o va peor, cambialo en *Edit → Project Settings → Player → Other Settings → Auto Graphics API*.
 - Con **F1** mirá FPS y "Plantas dibujadas". Mandame esos números por nivel (Bajo/Medio/Alto).
 
+### Medir el rendimiento de verdad (RX 580)
+El juego trae un **perfilado reproducible**: recorre 4 lugares (campamento, camino, bosque denso, ruinas) en los 3 niveles de calidad (≈ 3 min) y escribe un informe con FPS promedio, "1 % low", tiempos de CPU y GPU, draw calls, triángulos y memoria.
+
+1. En Unity: menú **Hidden Treasures → Compilar build de rendimiento (Windows)**. Genera `Builds\Perf\HiddenTreasuresPerf.exe` (build de desarrollo; es mucho más fiel que el Play Mode del Editor).
+2. Cerrá otros programas y ejecutá, en PowerShell, desde la carpeta del proyecto:
+   `Builds\Perf\HiddenTreasuresPerf.exe -htperf -screen-width 1920 -screen-height 1080 -screen-fullscreen 0`
+3. El juego mide solo y se cierra. El informe queda en `%USERPROFILE%\AppData\LocalLow\<empresa>\<producto>\perf\<fecha>\perf_summary.md` (más `perf_frames.csv` con cada cuadro). Mandame el `perf_summary.md`.
+- *Alternativa rápida (menos fiable):* en el Editor, en Play Mode, tecla **F9**.
+- Lectura: si **GPU ms > CPU ms** el límite es la tarjeta; si **CPU ms > GPU ms**, el procesador (draw calls, scripts). 60 FPS = 16,7 ms.
+
 ## 3. Lo que más probablemente falle (y qué hacer)
 
 | Síntoma | Causa probable | Acción |

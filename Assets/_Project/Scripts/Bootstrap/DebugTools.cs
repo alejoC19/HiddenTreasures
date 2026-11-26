@@ -8,7 +8,7 @@ namespace HuesoOxido.Core
     /// <summary>
     /// Herramientas para PROBAR el juego (solo Editor y builds de desarrollo). F1 muestra/oculta el panel:
     /// F2 teletransporta junto a la proxima reliquia sin desenterrar, F3 +$1000, F4 avanza 3 h, F6 cambia el clima,
-    /// F7 vuelve al campamento, F8 llena la energia. Muestra FPS, estado, posicion, mision y vegetacion dibujada.
+    /// F7 vuelve al campamento, F8 llena la energia, F9 mide el rendimiento (informe en la carpeta de datos del juego). Muestra FPS, estado, posicion, mision y vegetacion dibujada.
     /// </summary>
     public sealed class DebugTools : MonoBehaviour
     {
@@ -92,7 +92,7 @@ namespace HuesoOxido.Core
                 "Dinero $" + s.Wallet.Money + "  Mochila " + s.Backpack.TotalWeight.ToString("0.0") + "/" + s.Backpack.CapacityKg.ToString("0.0") + " kg\n" +
                 "Mision: " + (s.Quests.HasQuest ? s.Quests.ProgressText : "-") + "   Reliquias " + relicsFound + "/" + relics + "   Sitios " + sitesFound + "/" + sites + "\n" +
                 "Sitio sin excavar mas cercano: " + (nearest < float.MaxValue ? nearest.ToString("0") + " m" : "-") + "   Senal " + _c.Detector.Signal.ToString("0.00") + "\n" +
-                "<b>F2</b> ir a reliquia  <b>F3</b> +$1000  <b>F4</b> +3 h  <b>F6</b> clima  <b>F7</b> campamento  <b>F8</b> energia";
+                "<b>F2</b> ir a reliquia  <b>F3</b> +$1000  <b>F4</b> +3 h  <b>F6</b> clima  <b>F7</b> campamento  <b>F8</b> energia  <b>F9</b> medir FPS";
             if (Time.unscaledTime < _flashUntil) text += "\n<color=#ffd24a>" + _flash + "</color>";
             GUI.Box(new Rect(Screen.width - 560, 10, 550, 190), GUIContent.none, _box);
             GUI.Label(new Rect(Screen.width - 550, 14, 535, 184), text, _style);

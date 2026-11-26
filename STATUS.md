@@ -92,3 +92,8 @@ Para cada fallo: copiar el texto de la Console.
 - **Cambios**: LOD de árboles (`TreeFactory` con parámetro `detail`: 992 → 424 y 750 → 350 triángulos; se usa a más de ~85 m), sombras de árboles solo hasta ~55 m, distancias de dibujo de plantas más cortas (la niebla las oculta), base de URP más barata (2 cascadas de 1024, 40 m, sombras suaves bajas, SSAO a media resolución), **DirectX 11** como API en Windows.
 - **Niveles de calidad** (`Core/QualityProfile.cs`, `Bootstrap/GraphicsQuality.cs`, 7 tests): Bajo / Medio / Alto (escala de render, distancias, sombras, SSAO, profundidad de campo), botón en el menú, nivel inicial según la memoria de video y **bajada automática** si los FPS son bajos (`AdaptiveQuality`). Los ajustes de URP se restauran al salir.
 - **No verificado**: el efecto real en FPS (sin GPU real); lo medirá tu PC con F1.
+
+## Perfilado reproducible (autorizado tras la auditoría)
+
+- `Bootstrap/PerfRecorder.cs` (F9 o argumento `-htperf`), `Core/PerfStats.cs` (4 tests), `Bootstrap/Editor/PerfBuild.cs` (menú para compilar el build de rendimiento). Mide por lugar y nivel de calidad: FPS promedio, 1 % low, p99, tirones, CPU/GPU ms (FrameTimingManager activado en Player Settings), draw calls, SetPass, triángulos y memoria. Salida: `perf_summary.md` + `perf_frames.csv` en la carpeta de datos del juego.
+- **Verificado**: compila en Unity 6 y 77 tests .NET. **No verificado**: la medición en sí (necesita GPU real); la primera línea base real la dará la RX 580.

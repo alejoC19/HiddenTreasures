@@ -124,6 +124,7 @@ namespace HuesoOxido.Core
             var cinematic = systems.AddComponent<MenuCinematic>();
             cinematic.Initialize(ctx.Cam, ctx.Ui, ctx.World.CampPosition + new Vector3(0f, 0f, -1.5f), ctx.World.HeightAt);
             systems.AddComponent<DebugTools>().Initialize(ctx);
+            systems.AddComponent<PerfRecorder>().Initialize(ctx);
             director.Begin();
             Context = ctx;
         }
