@@ -47,6 +47,7 @@ namespace HuesoOxido.Core
             data.Vegetation = _veg;
             _veg.transform.SetParent(parent, false);
             ScatterTrees(parent);
+            BlurForestMask();
             ScatterRocks(parent);
             new VegetationBuilder(_field, _forestMask, _noise, _seed, _bp) { WaterLevel = _waterLevel }.Build(parent, _veg);
             _veg.Finish();
@@ -365,16 +366,48 @@ namespace HuesoOxido.Core
 
         float Rnd(float a, float b) => a + (float)_rng.NextDouble() * (b - a);
 
+        /// <summary>
+        /// Marca la huella de un arbol en la mascara de bosque con un nucleo REDONDO y suave. Antes era un cuadrado de valor 1:
+        /// cada arbol dejaba un parche cuadrado oscuro en el suelo y en el claro del campamento se veian bandas rectangulares.
+        /// </summary>
         void MarkForest(Vector2 p, int radius)
         {
             int cx = Mathf.RoundToInt((p.x + Size * 0.5f) / Size * (MapRes - 1));
             int cy = Mathf.RoundToInt((p.y + Size * 0.5f) / Size * (MapRes - 1));
-            for (int dy = -radius; dy <= radius; dy++)
-                for (int dx = -radius; dx <= radius; dx++)
+            int r = radius + 2;
+            for (int dy = -r; dy <= r; dy++)
+                for (int dx = -r; dx <= r; dx++)
                 {
                     int x = cx + dx, y = cy + dy;
-                    if (x >= 0 && y >= 0 && x < MapRes && y < MapRes) _forestMask[y, x] = 1f;
+                    if (x < 0 || y < 0 || x >= MapRes || y >= MapRes) continue;
+                    float d = Mathf.Sqrt(dx * dx + dy * dy);
+                    float w = Mathf.Clamp01(1f - (d - 0.5f) / (radius + 1.6f));
+                    w = w * w * (3f - 2f * w);
+                    if (w > _forestMask[y, x]) _forestMask[y, x] = w;
                 }
+        }
+
+        /// <summary>Suaviza la mascara (dos pasadas de promedio 3x3) para que los bordes del bosque no tengan escalones.</summary>
+        void BlurForestMask()
+        {
+            var tmp = new float[MapRes, MapRes];
+            for (int pass = 0; pass < 2; pass++)
+            {
+                for (int y = 0; y < MapRes; y++)
+                    for (int x = 0; x < MapRes; x++)
+                    {
+                        float sum = 0f; int n = 0;
+                        for (int dy = -1; dy <= 1; dy++)
+                            for (int dx = -1; dx <= 1; dx++)
+                            {
+                                int xx = x + dx, yy = y + dy;
+                                if (xx < 0 || yy < 0 || xx >= MapRes || yy >= MapRes) continue;
+                                sum += _forestMask[yy, xx]; n++;
+                            }
+                        tmp[y, x] = sum / n;
+                    }
+                System.Array.Copy(tmp, _forestMask, tmp.Length);
+            }
         }
 
         // ---------- Rocas ----------

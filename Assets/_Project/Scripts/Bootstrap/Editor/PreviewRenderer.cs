@@ -102,6 +102,8 @@ namespace HuesoOxido.Core.EditorTools
                 Shot(st, dir, t + "_05_suelo", 16.0f, WeatherKind.Clear, OnGround(st, -20f, 30f, 1.7f), OnGround(st, 10f, 60f, 2.5f), 70f);
                 Shot(st, dir, t + "_06_niebla", 8.0f, WeatherKind.Fog, camp + new Vector3(36f, 1.8f, 24f), ruins + new Vector3(-6f, 3f, -20f), 66f);
                 Shot(st, dir, t + "_08_ruinas_cenital", 15.0f, WeatherKind.Clear, ruins + new Vector3(0f, 45f, -22f), ruins, 55f);
+                Shot(st, dir, t + "_09_surtidor", 16.5f, WeatherKind.Clear, camp + new Vector3(8f, 1.8f, -6f), camp + new Vector3(13f, 1.2f, -2f), 55f);
+                Shot(st, dir, t + "_10_campamento_cenital", 15.0f, WeatherKind.Clear, camp + new Vector3(0f, 55f, -2f), camp, 60f);
                 Shot(st, dir, t + "_07_noche", 22.0f, WeatherKind.Clear, camp + new Vector3(9f, 2.2f, -6f), camp + new Vector3(0f, 1.2f, 0f), 62f);
             }
             if (onlyForest || only == null || only == "")
@@ -169,6 +171,12 @@ namespace HuesoOxido.Core.EditorTools
             st.Cam.clearFlags = CameraClearFlags.Skybox;
             PostProcessSetup.Apply(st.Cam);
 
+            string hide = System.Environment.GetEnvironmentVariable("HT_HIDE");   // lista separada por ; de nombres de objetos a ocultar (diagnostico)
+            if (!string.IsNullOrEmpty(hide))
+                foreach (var name in hide.Split(';'))
+                    foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+                        if (go.scene.IsValid() && go.name == name) go.SetActive(false);
+            if (System.Environment.GetEnvironmentVariable("HT_NOSHADOWS") != null && st.World.Sun != null) st.World.Sun.shadows = LightShadows.None;
             st.Day = new GameObject("DayNight").AddComponent<DayNightCycle>();
             st.Day.Initialize(st.World.Sun, st.World.Moon, st.Clock, st.Weather, st.World.Skybox, st.Cam, st.World.Biome);
             st.Refl = new GameObject("Reflections").AddComponent<ReflectionBaker>();

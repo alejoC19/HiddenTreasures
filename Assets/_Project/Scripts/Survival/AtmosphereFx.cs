@@ -50,7 +50,7 @@ namespace HuesoOxido.Survival
                 {
                     float u = (x + 0.5f) / w * 2f - 1f, v = (y + 0.5f) / h * 2f - 1f, a;
                     if (mode == 0) a = Mathf.Clamp01(1f - Mathf.Sqrt(u * u + v * v)); // circulo suave
-                    else a = Mathf.Clamp01(1f - Mathf.Abs(u)) * Mathf.Clamp01(1f - Mathf.Abs(v) * 0.9f); // haz: centro y extremos suaves
+                    else a = Mathf.Clamp01(1f - Mathf.Abs(u)) * Mathf.Clamp01(1f - Mathf.Abs(v)); // haz: se desvanece a 0 en los 4 bordes (antes quedaba 10 % arriba/abajo y se veia un borde recto)
                     a = a * a * (3f - 2f * a);
                     px[y * w + x] = new Color32(255, 255, 255, (byte)(a * 255f));
                 }
