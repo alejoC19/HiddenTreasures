@@ -3,9 +3,19 @@ using System.Collections.Generic;
 
 namespace HuesoOxido.Core
 {
-    /// <summary>Encargo de un cliente: recuperar piezas concretas en buen estado, identificadas y autenticas.</summary>
+    /// <summary>
+    /// Tipos de objetivo: Recover (piezas de un tipo), Collection (un conjunto de piezas distintas), Document (fotografiar un sitio: exige camara),
+    /// Survey (llegar a un lugar sin perderse: exige brujula o GPS). Cada tipo empuja a usar equipo y habitos distintos.
+    /// </summary>
+    public enum ContractKind { Recover, Collection, Document, Survey }
+
+    /// <summary>Encargo de un cliente: recuperar piezas concretas en buen estado, identificadas y autenticas, o documentar/reconocer un lugar.</summary>
     public sealed class ContractDefinition
     {
+        public ContractKind Kind = ContractKind.Recover;
+        public string[] ItemIds;                 // Collection: piezas distintas que se piden
+        public string SiteId;                    // Document / Survey: lugar objetivo
+        public string PrerequisiteId;            // cadena: se ofrece solo despues de completar este contrato
         public string Id, Title, Client, Story, RegionId;
         public string ItemId;                    // null = cualquier pieza que cumpla MinRarity
         public Rarity MinRarity = Rarity.Common;
@@ -22,6 +32,7 @@ namespace HuesoOxido.Core
         public ContractDefinition Def;
         public int Delivered;
         public int AcceptedDay;
+        public readonly List<string> DeliveredIds = new List<string>();
         public bool Done => Delivered >= Def.Count;
         public int DueDay => Def.DeadlineDays > 0 ? AcceptedDay + Def.DeadlineDays : int.MaxValue;
     }
@@ -38,7 +49,14 @@ namespace HuesoOxido.Core
                 Story = "Busca denarios de la antigua ruta comercial. Solo auténticos.", ItemId = "roman_denarius", Count = 2, MinCondition = 0.5f, RewardMoney = 320, ReputationReward = 25 },
             new ContractDefinition { Id = "c_axe", Title = "El hacha de bronce", Client = "Fundación Hallstatt", RegionId = Biomes.ForestId,
                 Story = "Una pieza de fundición antigua para un estudio de metalurgia.", ItemId = "bronze_axe", Count = 1, MinCondition = 0.6f, RewardMoney = 480, ReputationReward = 40, MinReputation = 100 },
-            new ContractDefinition { Id = "c_journal", Title = "El diario de Valdés", Client = "Familia Valdés", RegionId = Biomes.ForestId,
+            new ContractDefinition { Id = "c_survey_ruins", Title = "Reconocer las ruinas", Client = "Familia Valdés", RegionId = Biomes.ForestId, Kind = ContractKind.Survey, SiteId = "ruins",
+                Story = "Hace décadas una expedición desapareció cerca de unas ruinas. La familia quiere saber si todavía se puede llegar. Te hará falta orientarte.", Count = 1, RewardMoney = 70, ReputationReward = 15 },
+            new ContractDefinition { Id = "c_doc_arch", Title = "Documentar el arco", Client = "Dra. Ibarra, arqueóloga", RegionId = Biomes.ForestId, Kind = ContractKind.Document, SiteId = "ruins_arch",
+                Story = "Necesita fotografías del arco de piedra antes de que el bosque lo cubra. Hay que llevar una cámara.", Count = 1, RewardMoney = 220, ReputationReward = 20 },
+            new ContractDefinition { Id = "c_village", Title = "Un día en la aldea", Client = "Museo del valle", RegionId = Biomes.ForestId, Kind = ContractKind.Collection,
+                ItemIds = new[] { "pottery_shard", "iron_nail", "flint_arrowhead" }, Count = 3, MinCondition = 0.4f,
+                Story = "Para la sala nueva: una pieza de cada oficio de la aldea, limpias y comprobadas.", RewardMoney = 300, ReputationReward = 30, MinReputation = 100 },
+            new ContractDefinition { Id = "c_journal", Title = "El diario de Valdés", Client = "Familia Valdés", RegionId = Biomes.ForestId, PrerequisiteId = "c_survey_ruins",
                 Story = "Llevan décadas buscando las últimas páginas de la expedición. Devolverlo cierra una historia.", ItemId = "expedition_journal", Count = 1, MinCondition = 0.4f, RewardMoney = 600, ReputationReward = 60, MinReputation = 100 },
             new ContractDefinition { Id = "c_relic", Title = "Una reliquia para el coleccionista", Client = "Casa Montenegro", RegionId = Biomes.ForestId,
                 Story = "Pagará bien por cualquier pieza de rareza épica o superior, con certificado de autenticidad.", ItemId = null, MinRarity = Rarity.Epic, Count = 1, MinCondition = 0.6f, RewardMoney = 900, ReputationReward = 80, MinReputation = 300 },
@@ -77,7 +95,8 @@ namespace HuesoOxido.Core
         {
             var list = new List<ContractDefinition>();
             foreach (var d in _catalog)
-                if ((d.RegionId == null || d.RegionId == regionId) && Reputation >= d.MinReputation && !_completed.Contains(d.Id) && !IsActive(d.Id)) list.Add(d);
+                if ((d.RegionId == null || d.RegionId == regionId) && Reputation >= d.MinReputation && !_completed.Contains(d.Id) && !IsActive(d.Id)
+                    && (d.PrerequisiteId == null || _completed.Contains(d.PrerequisiteId))) list.Add(d);
             return list;
         }
 
@@ -85,7 +104,7 @@ namespace HuesoOxido.Core
         {
             if (_active.Count >= MaxActive || IsActive(id) || _completed.Contains(id)) return false;
             var d = _catalog.Find(x => x.Id == id);
-            if (d == null || Reputation < d.MinReputation) return false;
+            if (d == null || Reputation < d.MinReputation || (d.PrerequisiteId != null && !_completed.Contains(d.PrerequisiteId))) return false;
             _active.Add(new ActiveContract { Def = d, AcceptedDay = currentDay });
             Changed?.Invoke();
             return true;
@@ -105,8 +124,10 @@ namespace HuesoOxido.Core
             ActiveContract match = null; bool sawType = false;
             foreach (var a in _active)
             {
-                if (a.Done) continue;
-                bool typeOk = a.Def.ItemId != null ? a.Def.ItemId == item.DefinitionId : (info != null && info.Rarity >= a.Def.MinRarity);
+                if (a.Done || a.Def.Kind == ContractKind.Document || a.Def.Kind == ContractKind.Survey) continue;
+                bool typeOk = a.Def.Kind == ContractKind.Collection
+                    ? (Array.IndexOf(a.Def.ItemIds ?? new string[0], item.DefinitionId) >= 0 && !a.DeliveredIds.Contains(item.DefinitionId))
+                    : (a.Def.ItemId != null ? a.Def.ItemId == item.DefinitionId : (info != null && info.Rarity >= a.Def.MinRarity));
                 if (!typeOk) continue;
                 sawType = true;
                 if (!state.Identified) return DeliveryResult.NotIdentified;
@@ -116,14 +137,36 @@ namespace HuesoOxido.Core
             }
             if (match == null) return sawType ? DeliveryResult.ConditionTooLow : DeliveryResult.NoMatchingContract;
             match.Delivered++;
-            if (match.Done)
-            {
-                _active.Remove(match); _completed.Add(match.Def.Id);
-                Reputation += match.Def.ReputationReward;
-                Completed?.Invoke(match.Def);
-            }
+            match.DeliveredIds.Add(item.DefinitionId);
+            Finish(match);
             Changed?.Invoke();
             return DeliveryResult.Accepted;
+        }
+
+        void Finish(ActiveContract a)
+        {
+            if (!a.Done) return;
+            _active.Remove(a); _completed.Add(a.Def.Id);
+            Reputation += a.Def.ReputationReward;
+            Completed?.Invoke(a.Def);
+        }
+
+        /// <summary>
+        /// El jugador estuvo en un lugar. Document exige haber fotografiado (camara); Survey exige haber llegado orientandose (brujula/GPS).
+        /// Devuelve true si avanzo algun contrato.
+        /// </summary>
+        public bool ReportSite(string siteId, bool documented, bool navigating)
+        {
+            bool any = false;
+            foreach (var a in new List<ActiveContract>(_active))
+            {
+                if (a.Done || a.Def.SiteId != siteId) continue;
+                bool ok = (a.Def.Kind == ContractKind.Document && documented) || (a.Def.Kind == ContractKind.Survey && navigating);
+                if (!ok) continue;
+                a.Delivered++; any = true; Finish(a);
+            }
+            if (any) Changed?.Invoke();
+            return any;
         }
 
         /// <summary>Vence los contratos con plazo cumplido: -10 de reputacion cada uno (minimo 0), sin penalidad economica.</summary>
@@ -134,20 +177,26 @@ namespace HuesoOxido.Core
             return n;
         }
 
-        public (int reputation, List<string> completed, List<(string id, int delivered, int day)> active) Snapshot()
+        public (int reputation, List<string> completed, List<(string id, int delivered, int day, string deliveredIds)> active) Snapshot()
         {
-            var act = new List<(string, int, int)>();
-            foreach (var a in _active) act.Add((a.Def.Id, a.Delivered, a.AcceptedDay));
+            var act = new List<(string, int, int, string)>();
+            foreach (var a in _active) act.Add((a.Def.Id, a.Delivered, a.AcceptedDay, string.Join(";", a.DeliveredIds)));
             return (Reputation, new List<string>(_completed), act);
         }
 
-        public void Restore(int reputation, IEnumerable<string> completed, IEnumerable<(string id, int delivered, int day)> active)
+        public void Restore(int reputation, IEnumerable<string> completed, IEnumerable<(string id, int delivered, int day, string deliveredIds)> active)
         {
             Reputation = Math.Max(0, reputation);
             _completed.Clear(); _active.Clear();
             if (completed != null) foreach (var c in completed) _completed.Add(c);
             if (active != null)
-                foreach (var a in active) { var d = _catalog.Find(x => x.Id == a.id); if (d != null) _active.Add(new ActiveContract { Def = d, Delivered = a.delivered, AcceptedDay = a.day }); }
+                foreach (var a in active)
+                {
+                    var d = _catalog.Find(x => x.Id == a.id); if (d == null) continue;
+                    var ac = new ActiveContract { Def = d, Delivered = a.delivered, AcceptedDay = a.day };
+                    if (!string.IsNullOrEmpty(a.deliveredIds)) foreach (var id in a.deliveredIds.Split(';')) if (id.Length > 0) ac.DeliveredIds.Add(id);
+                    _active.Add(ac);
+                }
             Changed?.Invoke();
         }
     }

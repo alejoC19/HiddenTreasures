@@ -28,7 +28,7 @@ namespace HuesoOxido.SaveSystem
     public sealed class FindStateDto { public string Uid, ItemId; public float Dirt; public bool Identified, Authentic; }
 
     [Serializable]
-    public sealed class ActiveContractDto { public string Id; public int Delivered, Day; }
+    public sealed class ActiveContractDto { public string Id; public int Delivered, Day; public string DeliveredIds; }
 
     [Serializable]
     public sealed class ContractsDto { public bool Has; public int Reputation; public List<string> Completed = new List<string>(); public List<ActiveContractDto> Active = new List<ActiveContractDto>(); }

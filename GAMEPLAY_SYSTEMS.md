@@ -47,7 +47,7 @@ Auditoría hecha sobre el repositorio (rama `claude/focused-darwin-ps2pj7`, ~12 
 6. Más adelante: amenazas por región, buceo, campamento evolutivo.
 
 ## Modelos puros nuevos (esta etapa): qué son y qué NO son
-Se construyeron **sin depender de que el juego haya sido probado en PC**: son lógica pura (sin motor), con 35 tests nuevos que pasan en .NET (120 en total), compilados también en Unity real, y con guardado compatible hacia atrás (un guardado anterior carga con los valores iniciales).
+Se construyeron **sin depender de que el juego haya sido probado en PC**: son lógica pura (sin motor), con 57 tests nuevos que pasan en .NET (142 en total), compilados también en Unity real, y con guardado compatible hacia atrás (un guardado anterior carga con los valores iniciales).
 
 | Modelo | Archivo | Qué resuelve |
 |---|---|---|
@@ -57,5 +57,7 @@ Se construyeron **sin depender de que el juego haya sido probado en PC**: son l�
 | Hallazgos | `Core/FindMetadata.cs` | Suciedad, limpieza con riesgo según herramienta, identificación, autenticidad decidida una vez por pieza, valor según limpieza/identificación/antigüedad. |
 | Contratos | `Core/ContractBoard.cs` | Encargos que exigen piezas limpias, identificadas, auténticas y en buen estado; reputación y niveles; vencimiento sin penalidad de dinero. |
 | Guardado | `SaveSystem/*` | Bloques opcionales (`Needs`, `Loadout`, `FindStates`, `Contracts`) con migración. |
+
+**Detalle del cableado, eventos, datos compartidos y orden de integración: [`INTEGRATION_DESIGN.md`](INTEGRATION_DESIGN.md).** Se sumaron además `Core/EquipmentEffects.cs` (qué cambia cada pieza) y `Core/CleaningSession.cs` (limpieza con pistas y opinión), y los contratos tienen 4 tipos y cadenas.
 
 **No están conectados al juego.** Nada de esto se ve ni se juega todavía. Cuando se pruebe el juego en PC, la integración será por pasos pequeños: (1) `NeedsModel` con el reloj y el desmayo, (2) pantalla de preparación en el mostrador, (3) limpieza/identificación en la tienda, (4) tablón de contratos, (5) efectos del equipo (linterna, GPS, ropa).

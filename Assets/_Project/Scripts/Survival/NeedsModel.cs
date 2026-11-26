@@ -38,7 +38,10 @@ namespace HuesoOxido.Survival
     {
         public const float NormalBodyC = 37f;
         // Tasas por hora de juego en condiciones normales (caminando, 15 °C).
-        public const float HydrationPerHour = 0.07f, SatietyPerHour = 0.045f;
+        // Calibradas contra el reloj del juego (GameClock: 1 hora de juego = 50 s reales). Objetivo de diseno en el bosque, caminando:
+        // aviso de sed a los ~17 min reales, colapso a los ~24 sin beber; hambre, mas lenta (~28 min al aviso).
+        // Un litro de agua devuelve 0,7 de hidratacion: el equipo inicial (1 L y una racion) sostiene ~40 min caminando y se rellena en el campamento.
+        public const float HydrationPerHour = 0.029f, SatietyPerHour = 0.0195f, HydrationPerLiter = 0.7f, SatietyPerRation = 0.5f;
         public const float WarningHydration = 0.30f, CriticalHydration = 0.10f, WarningSatiety = 0.25f, CriticalSatiety = 0.08f;
         public const float ColdBodyC = 35.5f, FreezingBodyC = 33.5f, HotBodyC = 38.2f, OverheatedBodyC = 39.5f;
 
@@ -83,6 +86,9 @@ namespace HuesoOxido.Survival
             return rate;
         }
 
+        /// <summary>Convierte segundos reales en horas de juego segun el reloj del juego.</summary>
+        public static float GameHoursFromSeconds(float realSeconds) => realSeconds * 24f / GameClock.RealSecondsPerDay;
+
         public void Tick(float gameHours, NeedsContext c)
         {
             if (gameHours <= 0f) return;
@@ -95,6 +101,9 @@ namespace HuesoOxido.Survival
             Changed?.Invoke();
             if (!wasCollapsing && Evaluate().Collapsing) Collapsed?.Invoke();
         }
+
+        public void DrinkLiters(float liters) => Drink(liters * HydrationPerLiter);
+        public void EatRation() => Eat(SatietyPerRation);
 
         public void Drink(float amount) { _hydration = Clamp01(_hydration + Math.Max(0f, amount)); Changed?.Invoke(); }
         public void Eat(float amount) { _satiety = Clamp01(_satiety + Math.Max(0f, amount)); Changed?.Invoke(); }

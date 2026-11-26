@@ -73,7 +73,7 @@ namespace HuesoOxido.SaveSystem
             {
                 var c = s.Contracts.Snapshot();
                 var dto = new ContractsDto { Has = true, Reputation = c.reputation, Completed = c.completed };
-                foreach (var a in c.active) dto.Active.Add(new ActiveContractDto { Id = a.id, Delivered = a.delivered, Day = a.day });
+                foreach (var a in c.active) dto.Active.Add(new ActiveContractDto { Id = a.id, Delivered = a.delivered, Day = a.day, DeliveredIds = a.deliveredIds });
                 data.Contracts = dto;
             }
         }
@@ -124,8 +124,8 @@ namespace HuesoOxido.SaveSystem
             {
                 if (data.Contracts != null && data.Contracts.Has)
                 {
-                    var act = new List<(string, int, int)>();
-                    foreach (var a in data.Contracts.Active) act.Add((a.Id, a.Delivered, a.Day));
+                    var act = new List<(string, int, int, string)>();
+                    foreach (var a in data.Contracts.Active) act.Add((a.Id, a.Delivered, a.Day, a.DeliveredIds));
                     s.Contracts.Restore(data.Contracts.Reputation, data.Contracts.Completed, act);
                 }
                 else s.Contracts.Restore(0, null, null);

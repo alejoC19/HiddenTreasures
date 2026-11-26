@@ -48,14 +48,44 @@ namespace HuesoOxido.Tests
             Assert.Less(NeedsModel.EquilibriumC(wet), NeedsModel.EquilibriumC(Walk(5f)));
         }
 
+        static float Seconds(float s) => NeedsModel.GameHoursFromSeconds(s);
+
         [Test]
-        public void MildForestDay_ShortExpeditionNeedsNoMicromanagement()
+        public void ClockConversion_MatchesTheGameClock() => Assert.AreEqual(1f, NeedsModel.GameHoursFromSeconds(50f), 1e-4f);
+
+        [Test]
+        public void MildForestWalk_DesignTargets_NoMicromanagement()
+        {
+            // Caminando sin parar en un dia templado: sin avisos en los primeros 12 min, sed hacia los 15-20, colapso no antes de 22 min.
+            var n = new NeedsModel(); float thirstyAt = -1f, collapseAt = -1f;
+            for (int s = 0; s < 3600; s += 5)
+            {
+                n.Tick(Seconds(5f), Walk(15f));
+                if (thirstyAt < 0 && (n.Evaluate().Warnings & NeedsWarning.Thirsty) != 0) thirstyAt = s / 60f;
+                if (collapseAt < 0 && n.Evaluate().Collapsing) collapseAt = s / 60f;
+            }
+            Assert.That(thirstyAt, Is.InRange(14f, 21f)); Assert.That(collapseAt, Is.InRange(22f, 28f));
+            Assert.AreEqual(37f, new NeedsModel().BodyTemperatureC, 1e-4f);
+        }
+
+        [Test]
+        public void StarterWaterAndRationCoverAThirtyFiveMinuteExpedition()
         {
             var n = new NeedsModel();
-            for (int i = 0; i < 4; i++) n.Tick(1f, Walk(15f));      // 4 horas de caminata
-            Assert.Greater(n.Hydration, 0.5f); Assert.Greater(n.Satiety, 0.6f);
-            Assert.AreEqual(NeedsWarning.None, n.Evaluate().Warnings);
-            Assert.AreEqual(37f, n.BodyTemperatureC, 0.8f);
+            for (int s = 0; s < 1200; s += 5) n.Tick(Seconds(5f), Walk(15f));   // 20 min
+            Assert.AreNotEqual(NeedsWarning.None, n.Evaluate().Warnings);
+            n.DrinkLiters(1f); n.EatRation();                                    // lo que trae el equipo inicial
+            for (int s = 0; s < 900; s += 5) n.Tick(Seconds(5f), Walk(15f));    // 15 min mas (35 en total)
+            Assert.IsFalse(n.Evaluate().Collapsing); Assert.Greater(n.Hydration, 0.1f); Assert.Greater(n.Satiety, 0.3f);
+        }
+
+        [Test]
+        public void HungerIsSlowerThanThirst_AndNeverTheFirstProblem()
+        {
+            var n = new NeedsModel();
+            for (int s = 0; s < 1500; s += 5) n.Tick(Seconds(5f), Walk(15f));   // 25 min
+            Assert.Greater(n.Satiety, n.Hydration + 0.25f);
+            Assert.AreEqual(0, (int)(n.Evaluate().Warnings & (NeedsWarning.Hungry | NeedsWarning.Starving)));
         }
 
         [Test]

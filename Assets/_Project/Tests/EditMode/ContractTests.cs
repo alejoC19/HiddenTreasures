@@ -113,7 +113,62 @@ namespace HuesoOxido.Tests
             {
                 Assert.Greater(d.RewardMoney, 0); Assert.Greater(d.Count, 0); Assert.IsNotEmpty(d.Story);
                 if (d.ItemId != null) Assert.IsTrue(DefaultItems.Specs().Any(s => s.Id == d.ItemId), d.ItemId);
+                if (d.Kind == ContractKind.Collection) { Assert.AreEqual(d.ItemIds.Length, d.Count); foreach (var id in d.ItemIds) Assert.IsTrue(DefaultItems.Specs().Any(s => s.Id == id), id); }
+                if (d.Kind == ContractKind.Document || d.Kind == ContractKind.Survey) Assert.IsNotEmpty(d.SiteId);
+                if (d.PrerequisiteId != null) Assert.IsTrue(DefaultContracts.All.Any(x => x.Id == d.PrerequisiteId), d.PrerequisiteId);
             }
+        }
+
+        [Test]
+        public void SurveyNeedsNavigation_DocumentNeedsCamera()
+        {
+            var b = new ContractBoard(DefaultContracts.All);
+            b.Accept("c_survey_ruins", 1); b.Accept("c_doc_arch", 1);
+            Assert.IsFalse(b.ReportSite("ruins", documented: true, navigating: false), "llegar sin orientarse no cuenta");
+            Assert.IsFalse(b.ReportSite("ruins_arch", documented: false, navigating: true), "sin camara no se documenta");
+            Assert.IsTrue(b.ReportSite("ruins", false, true)); Assert.IsTrue(b.IsCompleted("c_survey_ruins"));
+            Assert.IsTrue(b.ReportSite("ruins_arch", true, false)); Assert.IsTrue(b.IsCompleted("c_doc_arch"));
+            Assert.AreEqual(35, b.Reputation);
+        }
+
+        [Test]
+        public void CollectionNeedsDistinctPieces_AndChainsUnlockInOrder()
+        {
+            var wb = new FindWorkbook(21); var b = new ContractBoard(DefaultContracts.All);
+            b.Restore(150, null, null);
+            Assert.IsTrue(b.Accept("c_village", 1));
+            Assert.AreEqual(DeliveryResult.Accepted, b.Deliver(Ready(wb, "pottery_shard", 0.8f), Info("pottery_shard"), wb));
+            Assert.AreEqual(DeliveryResult.NoMatchingContract, b.Deliver(Ready(wb, "pottery_shard", 0.8f), Info("pottery_shard"), wb), "la segunda ceramica ya no sirve");
+            Assert.AreEqual(DeliveryResult.Accepted, b.Deliver(Ready(wb, "iron_nail", 0.8f), Info("iron_nail"), wb));
+            Assert.AreEqual(DeliveryResult.Accepted, b.Deliver(Ready(wb, "flint_arrowhead", 0.8f), Info("flint_arrowhead"), wb));
+            Assert.IsTrue(b.IsCompleted("c_village"));
+            // cadena: el diario solo despues del reconocimiento
+            Assert.IsFalse(b.Accept("c_journal", 2));
+            CollectionAssert.DoesNotContain(b.Offers(Biomes.ForestId).Select(d => d.Id).ToList(), "c_journal");
+            b.Accept("c_survey_ruins", 2); b.ReportSite("ruins", false, true);
+            CollectionAssert.Contains(b.Offers(Biomes.ForestId).Select(d => d.Id).ToList(), "c_journal");
+        }
+
+        [Test]
+        public void CollectionProgressSurvivesSaveAndLoad()
+        {
+            var wb = new FindWorkbook(22); var b = new ContractBoard(DefaultContracts.All);
+            b.Restore(150, null, null); b.Accept("c_village", 3);
+            b.Deliver(Ready(wb, "iron_nail", 0.8f), Info("iron_nail"), wb);
+            var s = b.Snapshot();
+            var c = new ContractBoard(DefaultContracts.All); c.Restore(s.reputation, s.completed, s.active);
+            Assert.AreEqual(DeliveryResult.NoMatchingContract, c.Deliver(Ready(wb, "iron_nail", 0.8f), Info("iron_nail"), wb), "el clavo ya se entrego");
+            Assert.AreEqual(DeliveryResult.Accepted, c.Deliver(Ready(wb, "pottery_shard", 0.8f), Info("pottery_shard"), wb));
+        }
+
+        [Test]
+        public void ProgressionIsCoherent_RewardsGrowWithLevelAndTypesAreVaried()
+        {
+            var forest = DefaultContracts.All.Where(d => d.RegionId == Biomes.ForestId).ToList();
+            Assert.GreaterOrEqual(forest.Select(d => d.Kind).Distinct().Count(), 4, "cuatro tipos de objetivo distintos");
+            float avgLow = (float)forest.Where(d => d.MinReputation == 0).Average(d => d.RewardMoney);
+            float avgHigh = (float)forest.Where(d => d.MinReputation >= 100).Average(d => d.RewardMoney);
+            Assert.Greater(avgHigh, avgLow);
         }
     }
 }

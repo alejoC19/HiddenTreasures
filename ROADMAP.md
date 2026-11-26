@@ -24,7 +24,7 @@ Dependencia previa y bloqueante: **verificar en una PC real lo que ya existe** (
 Criterio de salida: una persona sin herramientas de desarrollo completa una expedición satisfactoria en 30–60 min, con FPS medidos.
 
 ### Avance de la Fase 1 en paralelo a la verificación (modelos puros, sin conectar)
-Hechos y probados en lógica: necesidades (1.3), equipamiento (1.1), preparación y registro de expedición (1.2), metadatos/limpieza/identificación (1.5), contratos (1.6) y su guardado. **Pendiente de la verificación real y de la integración**: todo lo que se vea o se juegue. Orden de cableado sugerido: necesidades → preparación → limpieza/identificación → contratos → efectos del equipo.
+Hechos y probados en lógica: necesidades (1.3), equipamiento (1.1), preparación y registro de expedición (1.2), metadatos/limpieza/identificación (1.5), contratos (1.6) y su guardado. **Pendiente de la verificación real y de la integración**: todo lo que se vea o se juegue. Orden y criterios de cableado: ver [`INTEGRATION_DESIGN.md`](INTEGRATION_DESIGN.md) (necesidades → equipo y preparación → mesa de limpieza → contratos → cierre del ciclo), siempre detrás de interruptores y después de la prueba integral en PC.
 
 ## Fase 2 — Consolidación de supervivencia, progresión y campamento
 Lesiones, protección ambiental, economía con gastos reales, mejoras de vehículo/campamento, instalaciones desbloqueables, contratos variados.
