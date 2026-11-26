@@ -26,3 +26,6 @@ Todas **CC0** (dominio público) de [Poly Haven](https://polyhaven.com). Descarg
 ## Texturas del bosque (ambientCG, CC0)
 
 `forest_floor` = Ground068, `grass` = Ground037, `road` = Ground071, `red_earth` = ScatteredLeaves009 (2K, color + normal GL). https://ambientcg.com
+
+## Texturas de desierto, nieve y pantano (ambientCG, CC0)
+desert_sand=Ground079L, desert_dry=Ground102, desert_road=Ground079S, desert_earth=Ground097, desert_rock=Rock029, desert_ruin=Rock050; snow_a=Snow010A, snow_b=Snow014, snow_road=Ground054, snow_earth=Snow011, snow_rock=Rock058, snow_ruin=Rock050; swamp_mud=Ground106, swamp_moss=Ground102, swamp_road=Ground036, swamp_earth=Ground109. https://ambientcg.com
