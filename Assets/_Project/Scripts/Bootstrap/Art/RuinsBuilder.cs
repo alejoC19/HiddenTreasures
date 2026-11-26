@@ -173,9 +173,9 @@ namespace HuesoOxido.Core
             {
                 if (i == n - 1 && rng.NextDouble() < 0.5) continue;   // una dovela perdida
                 float a = Mathf.PI * (i + 0.5f) / n;
-                var v = Block(holder, "Voussoir", stone, Vector3.zero, new Vector3(0.9f, 0.8f, 1.1f), 0f, false);
+                var v = Block(holder, "Voussoir", stone, Vector3.zero, new Vector3(0.7f, 0.7f, 1.1f), 0f, false);
                 v.transform.localPosition = new Vector3(-Mathf.Cos(a) * (span + 0.4f), springY + Mathf.Sin(a) * (span + 0.4f), 0f);
-                v.transform.localRotation = Quaternion.Euler(0f, 0f, a * Mathf.Rad2Deg - 90f);
+                v.transform.localRotation = Quaternion.Euler(0f, 0f, 90f - a * Mathf.Rad2Deg);
             }
             var cl = new GameObject("ArchColL").AddComponent<BoxCollider>(); cl.transform.SetParent(holder, false);
             cl.transform.localPosition = new Vector3(-(span + 0.5f), 1.75f, 0f); cl.size = new Vector3(1.1f, 3.6f, 1.2f);
