@@ -2,7 +2,7 @@
 
 **Estado: diseño. Nada de esto está conectado al juego.** Los cinco modelos (necesidades, equipamiento, preparación, hallazgos, contratos) más dos de apoyo (efectos del equipo, sesión de limpieza) son lógica pura con tests en .NET y compilación verificada en Unity. No hay UI, ni eventos del juego, ni guardado activo en `GameDirector`. Se conectan **solo después** de la prueba integral en PC (PlayMode, F9, rendimiento).
 
-Archivos: `Survival/NeedsModel.cs`, `Core/Equipment.cs`, `Core/EquipmentEffects.cs`, `Core/ExpeditionPlanner.cs`, `Core/FindMetadata.cs`, `Core/CleaningSession.cs`, `Core/ContractBoard.cs`, `SaveSystem/*`.
+Archivos: `Survival/NeedsModel.cs`, `Survival/Provisions.cs`, `Core/RescueService.cs`, `Core/Equipment.cs`, `Core/EquipmentEffects.cs`, `Core/ExpeditionPlanner.cs`, `Core/FindMetadata.cs`, `Core/CleaningSession.cs`, `Core/ContractBoard.cs`, `SaveSystem/*`.
 
 ## 1. Reglas de integración
 1. **Un sistema por vez**, cada uno detrás de un interruptor (`GameplayFlags`, una clase estática con booleanos, apagados por defecto → el juego sigue siendo el que ya se probó). Si algo falla en PC se apaga el interruptor, no se revierte código.
@@ -37,6 +37,7 @@ Reglas de dependencia (asmdef): los modelos viven en `Core`/`Survival`/`Economy`
 | `NeedsModel` | `Changed` | — | HUD (solo si cambió un aviso) |
 | `NeedsModel` | `Collapsed` | — | `GameDirector.OnExhausted` (mismo desmayo que hoy; pérdida = `EquipmentEffects.CollapseLossFraction`) |
 | `Loadout` | `Changed` | — | UI de preparación, peso de carga, `EquipmentEffects` (recalcular) |
+| Radio (nuevo, `GameDirector`) | `RescueRequested` / `RescueArrived` | `RescueQuote` | HUD, reloj (pasa el ETA), `Wallet` (tarifa), recuperación de objetos caídos, guardado |
 | `ExpeditionLog` | `PhaseChanged` | fase | HUD, guardado automático al salir/volver, `ContractBoard.ExpireOverdue` al volver |
 | `FindWorkbook` | `Changed` | — | UI de la mesa, guardado |
 | `CleaningSession` | `ClueRevealed` | `Clue` | UI de la mesa, audio |
@@ -62,7 +63,7 @@ Eventos nuevos a crear: `ExpeditionLog.Summary` (al volver) y un evento `SiteRea
 ## 5. Orden de integración (cada paso: entrada → trabajo → salida verificable)
 **Paso 0 — Prueba integral en PC (bloqueante).** Jugar el bucle actual, F9, PlayMode. Salida: lista de defectos corregida y FPS medidos.
 
-**Paso 1 — Necesidades (invisible al principio).** Entrada: paso 0. Trabajo: un `NeedsComponent` que cada segundo llama `Tick(GameHoursFromSeconds(dt), contexto)` con el contexto del jugador; efectos solo sobre `EnergyDrainMultiplier` y `SpeedMultiplier`; **sin HUD nuevo** salvo un icono al cruzar un umbral; colapso → `OnExhausted`. Salida: en una caminata de 30 min no hay avisos hasta ~17 min y no hay colapso antes de ~24 min (tests ya fijan estos números).
+**Paso 1 — Necesidades (invisible al principio).** Entrada: paso 0. Trabajo: un `NeedsComponent` que cada segundo llama `Tick(GameHoursFromSeconds(dt), contexto)` con el contexto del jugador; consumo automático con `Provisions.AutoConsume`; efectos solo sobre `EnergyDrainMultiplier` y `SpeedMultiplier`; **sin HUD nuevo** salvo un icono al cruzar un umbral; colapso → `OnExhausted`. Salida en PC: sin provisiones, aviso suave a los ~20 min y colapso no antes de ~28 min; con 3 L y 2 raciones, 75 min de exploración seguida sin avisos críticos (los tests ya fijan estos números; la prueba en PC confirma que se *sienten* bien).
 
 **Paso 2 — Equipo y preparación.** Trabajo: tienda del mostrador (pestaña "Equipo") sobre `Loadout`; pantalla de preparación en la carpa; `EquipmentEffects` conectados de a uno (primero ropa → `NeedsContext`, linterna → visibilidad nocturna, pala/pico → velocidad de excavación según suelo). Salida: salir de noche sin linterna se bloquea con explicación; con ropa térmica en el Pinar Nevado el frío no colapsa.
 
@@ -76,13 +77,14 @@ Cada paso tiene su prueba PlayMode y su entrada en `PRUEBAS.md`.
 
 ## 6. Diseño por área (los cinco cuidados)
 
-### 6.1 Necesidades sin microgestión
-- **El jugador no administra barras.** El HUD no muestra sed/hambre/temperatura de forma permanente: aparece un icono suave solo cuando se cruza un aviso (sed, hambre, frío, calor), y se va al resolverlo.
-- **Ritmo calibrado al reloj real**: sed ~17 min, colapso ~24 min sin beber, hambre ~28 min; 1 L de agua y 1 ración alcanzan para ~35–40 min. Los números salen de tests, no de la intuición.
-- **Una tecla contextual** ("beber/comer") y **beber automático al descansar** en el campamento; reposición gratis en el campamento (la economía no debe cobrar agua básica).
-- **Consecuencias graduales y claras**: primero rinde menos (excavar más lento, energía que baja más rápido), después camina más lento, recién después colapsa (= desmayo ya existente, sin muerte permanente).
-- **Las necesidades obligan a planificar, no a vigilar**: se resuelven en la preparación (agua, ropa), no minuto a minuto.
-- Riesgo de diseño: que moleste. Medida de control en la prueba: contar cuántas veces el jugador actúa por necesidades en 30 min (objetivo ≤ 3).
+### 6.1 Necesidades: planificar, no una cuenta regresiva
+- **El jugador no administra barras.** El HUD no muestra sed/hambre/temperatura de forma permanente: un icono suave aparece solo al cruzar un aviso y se va al resolverlo.
+- **No hay reloj que apure.** La autonomía se **compra con peso y preparación**, no con apuro: cada litro de agua suma ~22 min de exploración y pesa 1 kg (capacidad máxima 4 L); las raciones sostienen mucho más tiempo que el agua. Con 3 L y 2 raciones se explora **más de 90 min seguidos** sin mirar nada. El limitante real es cuánto peso decidís cargar y las **fuentes de agua**: el agua se rellena gratis en el campamento y en manantiales/arroyos marcados en el mapa (a colocar en el bosque al integrar).
+- **Consumo automático** (activado por defecto): si llevás agua o comida, bebés/comés solos al cruzar el aviso. Quien se preparó no atiende nada; quien no llevó provisiones recibe el aviso y debe buscar una fuente o volver.
+- **Sed y hambre "normales" solo avisan**: las penalizaciones (excavar más lento, gastar más energía, caminar más lento) empiezan en el estado *crítico*; el colapso (= el desmayo actual, sin muerte) llega al final. Así hay margen amplio para reaccionar.
+- **Autonomía visible en la preparación** (`Provisions.Estimate`): "con lo que llevás alcanzás para ~95 min de agua / ~140 min de comida en este clima". Sirve para planificar, no para presionar durante la expedición.
+- **Calibración** contra el reloj real (1 h de juego = 50 s): sin provisiones ni fuentes, aviso suave a los ~20 min y colapso a los ~31; el clima (calor, frío) y el esfuerzo (correr, excavar) la modifican, y la ropa y el descanso la mejoran.
+- Riesgo de diseño: que moleste o que se sienta como temporizador. Medidas en PC: acciones del jugador por necesidades en 30 min (objetivo ≤ 3), y si alguna vez se sintió "apurado" por sed/hambre.
 
 ### 6.2 Cada pieza de equipo cambia una decisión
 | Pieza | Efecto concreto (`EquipmentEffects`) | Decisión que cambia |
@@ -92,13 +94,22 @@ Cada paso tiene su prueba PlayMode y su entrada en `PRUEBAS.md`.
 | Brújula / GPS | Orientación; GPS marca posición y vehículo en el mapa | Si se puede internar en zonas sin referencias o con niebla; exigida por contratos de reconocimiento |
 | Cuerda | Pendiente máxima 32° → 42° | Qué laderas y desniveles son transitables |
 | Botiquín | Trata lesiones | Si se arriesga en terreno de caídas |
-| Radio | Pérdida al desmayarse 40 % → 20 % | Qué tanto se arriesga lejos de la base |
+| Radio | **Pedir asistencia** (`RescueService`): evacuación, recuperación de lo caído, coordenadas | Cuánto se arriesga lejos de la base y en regiones remotas; con GPS la ayuda llega antes y recupera todo |
 | Machete | Abre vegetación densa | Rutas alternativas en la selva |
 | Repelente | Protección contra insectos | Entrar a zonas con plaga |
 | Cámara | Permite documentar | Contratos de documentación, reputación |
 | Cepillo | Calidad de limpieza 0,2 → 0,7 | Cuánto se arriesga la pieza al limpiar |
 | Ropa térmica / ligera | Abrigo vs. protección del calor | Qué región se puede hacer sin colapsar (se nota en `NeedsModel`) |
 Regla: **ninguna pieza es "+5 %"**; todas habilitan, bloquean o cambian un riesgo. Peso y costo las equilibran (se lleva lo necesario, no todo).
+
+#### La radio (`RescueService`)
+La radio **no** reduce castigos: abre una *opción* con costo y condiciones.
+- **Sin radio no hay llamada.** Con radio hace falta **cobertura**: el bosque la tiene (0,9), el Pinar Nevado (0,5) y el Pantano (0,4) son más difíciles, y lejos de la base (>400 m) cae. En una zona sin señal no se puede pedir ayuda: la preparación lo advierte ("Radio recomendada: cobertura baja").
+- **Coordenadas**: radio sola = ubicación *aproximada* (la ayuda tarda ~1,8× y recupera la mitad de lo caído); radio + GPS = ubicación *precisa* (llega antes y recupera todo). El GPS sin radio no transmite nada.
+- **Clima**: una tormenta fuerte (>0,75) impide que salga el rescate hasta que amaine; la lluvia lo retrasa.
+- **Cuándo**: *antes* de colapsar (varado, sin combustible, herido) evita el desmayo y la pérdida de carga; *después* (con objetos caídos) la ayuda trae lo caído según la precisión de las coordenadas.
+- **Costo**: tarifa 40 + distancia/25 (+30 de noche) y el tiempo de espera (ETA en horas de juego). Es una decisión económica y de tiempo, no un seguro gratis.
+- La pérdida base al desmayarse (40 %) es igual para todos: el equipo no la "compra".
 
 ### 6.3 Limpiar e identificar como actividad
 - **Mesa de limpieza**: la pieza se ve dividida en 6 sectores cubiertos de tierra; el jugador elige dónde cepillar y con qué presión.

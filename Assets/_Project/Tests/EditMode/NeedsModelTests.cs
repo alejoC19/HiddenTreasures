@@ -1,3 +1,4 @@
+using HuesoOxido.Core;
 using HuesoOxido.Survival;
 using NUnit.Framework;
 
@@ -64,19 +65,19 @@ namespace HuesoOxido.Tests
                 if (thirstyAt < 0 && (n.Evaluate().Warnings & NeedsWarning.Thirsty) != 0) thirstyAt = s / 60f;
                 if (collapseAt < 0 && n.Evaluate().Collapsing) collapseAt = s / 60f;
             }
-            Assert.That(thirstyAt, Is.InRange(14f, 21f)); Assert.That(collapseAt, Is.InRange(22f, 28f));
+            Assert.That(thirstyAt, Is.InRange(17f, 27f)); Assert.That(collapseAt, Is.InRange(28f, 38f));
             Assert.AreEqual(37f, new NeedsModel().BodyTemperatureC, 1e-4f);
         }
 
         [Test]
-        public void StarterWaterAndRationCoverAThirtyFiveMinuteExpedition()
+        public void StarterWaterAndRationCoverAFortyFiveMinuteExpedition()
         {
             var n = new NeedsModel();
-            for (int s = 0; s < 1200; s += 5) n.Tick(Seconds(5f), Walk(15f));   // 20 min
+            for (int s = 0; s < 24 * 60; s += 5) n.Tick(Seconds(5f), Walk(15f));   // 24 min: ya llego el aviso suave
             Assert.AreNotEqual(NeedsWarning.None, n.Evaluate().Warnings);
-            n.DrinkLiters(1f); n.EatRation();                                    // lo que trae el equipo inicial
-            for (int s = 0; s < 900; s += 5) n.Tick(Seconds(5f), Walk(15f));    // 15 min mas (35 en total)
-            Assert.IsFalse(n.Evaluate().Collapsing); Assert.Greater(n.Hydration, 0.1f); Assert.Greater(n.Satiety, 0.3f);
+            n.DrinkLiters(1f); n.EatRation();                                       // lo que trae el equipo inicial
+            for (int s = 0; s < 21 * 60; s += 5) n.Tick(Seconds(5f), Walk(15f));   // 45 min en total
+            Assert.IsFalse(n.Evaluate().Collapsing); Assert.Greater(n.Hydration, 0.2f); Assert.Greater(n.Satiety, 0.3f);
         }
 
         [Test]
@@ -146,6 +147,68 @@ namespace HuesoOxido.Tests
             for (int i = 0; i < 400; i++) n.Tick(0.7f, new NeedsContext { Sprinting = true, AmbientC = 45f, LoadFraction = 1f });
             Assert.GreaterOrEqual(n.Hydration, 0f); Assert.GreaterOrEqual(n.Satiety, 0f);
             Assert.IsFalse(float.IsNaN(n.BodyTemperatureC));
+        }
+
+        [Test]
+        public void ThirstWarningIsOnlyAReminder_PenaltiesStartLater()
+        {
+            var n = new NeedsModel(); n.Restore(0.3f, 1f, 37f);
+            var e = n.Evaluate();
+            Assert.IsTrue((e.Warnings & NeedsWarning.Thirsty) != 0);
+            Assert.AreEqual(1f, e.SpeedMultiplier); Assert.AreEqual(1f, e.DigMultiplier); Assert.AreEqual(1f, e.EnergyDrainMultiplier);
+            n.Restore(0.1f, 1f, 37f);
+            Assert.Greater(n.Evaluate().EnergyDrainMultiplier, 1.2f);
+        }
+
+        [Test]
+        public void ARightlyPreparedExplorerExploresForOverAnHour_NoCountdown()
+        {
+            // 3 L de agua y 2 raciones, auto-consumo: caminando 75 min seguidos (mas del doble de la expedicion "sin preparar").
+            var n = new NeedsModel(); var l = Loadout.Starter(); l.AddWater(2f); l.AddRations(1);
+            bool everCritical = false;
+            for (int s = 0; s < 75 * 60; s += 5)
+            {
+                n.Tick(Seconds(5f), Walk(15f));
+                Provisions.AutoConsume(n, l);
+                var w = n.Evaluate().Warnings;
+                if ((w & (NeedsWarning.Dehydrated | NeedsWarning.Starving)) != 0 || n.Evaluate().Collapsing) everCritical = true;
+            }
+            Assert.IsFalse(everCritical);
+            Assert.Greater(Provisions.Estimate(Biomes.Forest, l, n).LimitingMinutes, 0f);
+        }
+
+        [Test]
+        public void MoreWaterMeansMoreAutonomy_AtTheCostOfWeight()
+        {
+            var a = Loadout.Starter(); var b = Loadout.Starter(); b.AddWater(2f);
+            float ma = Provisions.Estimate(Biomes.Forest, a).WaterMinutes, mb = Provisions.Estimate(Biomes.Forest, b).WaterMinutes;
+            Assert.That(ma, Is.InRange(45f, 60f)); Assert.That(mb, Is.InRange(90f, 110f));
+            Assert.AreEqual(2f, b.EquipmentWeightKg() - a.EquipmentWeightKg(), 1e-3f, "cada litro pesa 1 kg: la autonomia se paga con peso");
+            Assert.LessOrEqual(b.WaterLiters, Loadout.WaterCapacityLiters);
+            var four = Loadout.Starter(); four.AddWater(10f); Assert.AreEqual(Loadout.WaterCapacityLiters, four.WaterLiters, "capacidad maxima");
+        }
+
+        [Test]
+        public void HeatShortensAutonomy_ProtectionAndRestHelp()
+        {
+            var l = Loadout.Starter(); l.AddWater(2f);
+            float forest = Provisions.Estimate(Biomes.Forest, l).WaterMinutes, desert = Provisions.Estimate(Biomes.Desert, l).WaterMinutes;
+            Assert.Less(desert, forest * 0.7f);
+            Assert.Less(NeedsModel.HydrationDrainPerHour(new NeedsContext { AmbientC = 15f }), NeedsModel.HydrationDrainPerHour(Walk(15f)), "descansar gasta menos");
+        }
+
+        [Test]
+        public void AutoConsumeUsesProvisionsOnlyWhenNeeded_AndRefillIsFree()
+        {
+            var n = new NeedsModel(); var l = Loadout.Starter();
+            Assert.AreEqual((false, false), Provisions.AutoConsume(n, l), "recien salido no consume");
+            n.Restore(0.3f, 0.2f, 37f);
+            var r = Provisions.AutoConsume(n, l);
+            Assert.IsTrue(r.drank); Assert.IsTrue(r.ate); Assert.AreEqual(0.5f, l.WaterLiters, 1e-4f); Assert.AreEqual(0, l.Rations);
+            n.Restore(0.2f, 1f, 37f); l.TakeWater(0.5f);
+            Assert.IsFalse(Provisions.AutoConsume(n, l).drank, "sin agua no hay que consumir: queda el aviso suave");
+            l.RefillWater();
+            Assert.AreEqual(Loadout.WaterCapacityLiters, l.WaterLiters);
         }
     }
 }

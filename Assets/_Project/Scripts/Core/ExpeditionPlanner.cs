@@ -49,6 +49,8 @@ namespace HuesoOxido.Core
             float waterNeeded = region.Temperature > 28f ? 2f : 1f;
             Add("water", "Agua: " + waterNeeded.ToString("0.#") + " L o más", RequirementLevel.Required, load.WaterLiters + 1e-4f >= waterNeeded);
             Add("food", "Al menos una ración", RequirementLevel.Recommended, load.Rations >= 1);
+            Add("water_long", "Agua ≥ 3 L si querés explorar más de una hora", RequirementLevel.Recommended, load.WaterLiters >= 3f);
+            if (region.RadioCoverage < 0.6f) Add("radio", "Radio: la cobertura es baja y podés necesitar pedir ayuda", RequirementLevel.Recommended, load.Has(EquipmentKind.Radio));
 
             if (region.Temperature <= 5f)
             {

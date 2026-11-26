@@ -4,6 +4,9 @@ namespace HuesoOxido.Core
 {
     public enum SoilKind { Soft, Hard, Rooty, Rocky }
 
+    /// <summary>Que tan bien puede la base ubicar al explorador: ninguna sin radio, aproximada solo con radio, precisa con radio + GPS.</summary>
+    public enum CoordinatePrecision { None, Approximate, Precise }
+
     /// <summary>
     /// Que cambia en el juego segun lo que el explorador lleva equipado. Cada pieza tiene un efecto concreto que cambia una DECISION
     /// de exploracion (adonde ir, cuando, con que herramienta), no un simple numero. Logica pura; el juego solo consulta estos valores.
@@ -20,7 +23,9 @@ namespace HuesoOxido.Core
         public bool HasGps;                     // marca posicion propia y la del vehiculo en el mapa
         // --- Seguridad ---
         public bool CanTreatInjury;             // botiquin
-        public float CollapseLossFraction;      // parte de la mochila que se pierde al desmayarse (la radio la reduce: viene el rescate)
+        public float CollapseLossFraction;      // parte de la mochila que se pierde al desmayarse (igual para todos: el equipo no "compra" el desmayo)
+        public bool CanCallForHelp;             // radio: pedir asistencia (ver RescueService)
+        public CoordinatePrecision Coordinates; // que tan bien se transmite la posicion
         public bool CanClearVegetation;         // machete: abre caminos en vegetacion densa
         public bool InsectProtection;           // repelente
         // --- Hallazgos ---
@@ -41,7 +46,8 @@ namespace HuesoOxido.Core
             e.CanNavigate = l.Has(EquipmentKind.Compass) || l.Has(EquipmentKind.Gps);
             e.HasGps = l.Has(EquipmentKind.Gps);
             e.CanTreatInjury = l.Has(EquipmentKind.FirstAid);
-            if (l.Has(EquipmentKind.Radio)) e.CollapseLossFraction = 0.2f;
+            e.CanCallForHelp = l.Has(EquipmentKind.Radio);
+            e.Coordinates = !e.CanCallForHelp ? CoordinatePrecision.None : (e.HasGps ? CoordinatePrecision.Precise : CoordinatePrecision.Approximate);
             e.CanClearVegetation = l.Has(EquipmentKind.Machete);
             e.InsectProtection = l.Has(EquipmentKind.InsectRepellent);
             if (l.Has(EquipmentKind.Brush)) e.CleanQuality = 0.7f;

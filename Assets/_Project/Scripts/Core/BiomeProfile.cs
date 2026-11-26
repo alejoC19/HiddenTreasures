@@ -69,6 +69,8 @@ namespace HuesoOxido.Core
         public float SunIntensity = 1f;
         public float Temperature = 12f;
         public float WindStrength = 0.4f;
+        /// <summary>0..1: cobertura de radio de la region (decide si se puede pedir ayuda). El bosque es una zona cercana a la base.</summary>
+        public float RadioCoverage = 0.9f;
 
         // ---- Mapa ----
         public Rgb MapLow = new Rgb(0.24f, 0.34f, 0.18f), MapHigh = new Rgb(0.58f, 0.52f, 0.36f), MapVegetation = new Rgb(0.10f, 0.22f, 0.12f);
@@ -99,7 +101,7 @@ namespace HuesoOxido.Core
             Trees = TreeStyle.Cactus, MaxTrees = 230, TreeScale = 1f, UnderstoryDensity = 0.35f, VegTint = new Rgb(1.55f, 1.0f, 0.42f), RockCount = 200, RockScale = 1.5f,
             SkyDay = new Rgb(0.46f, 0.66f, 0.95f), FogDay = new Rgb(0.86f, 0.72f, 0.56f), FogDusk = new Rgb(0.95f, 0.50f, 0.28f),
             AmbientGround = new Rgb(0.42f, 0.27f, 0.18f), Skirt = new Rgb(0.46f, 0.26f, 0.15f),
-            FogMultiplier = 0.55f, SunIntensity = 1.12f, Temperature = 34f, WindStrength = 0.8f,
+            FogMultiplier = 0.55f, SunIntensity = 1.12f, Temperature = 34f, WindStrength = 0.8f, RadioCoverage = 0.7f,
             MapLow = new Rgb(0.62f, 0.40f, 0.24f), MapHigh = new Rgb(0.84f, 0.62f, 0.38f), MapVegetation = new Rgb(0.36f, 0.42f, 0.22f)
         };
 
@@ -114,7 +116,7 @@ namespace HuesoOxido.Core
             Trees = TreeStyle.SnowPine, MaxTrees = 1100, TreeScale = 1.05f, UnderstoryDensity = 0.12f, VegTint = new Rgb(0.55f, 0.62f, 0.66f), RockCount = 130, RockScale = 1.2f,
             SkyDay = new Rgb(0.60f, 0.72f, 0.88f), FogDay = new Rgb(0.80f, 0.86f, 0.92f), FogDusk = new Rgb(0.78f, 0.62f, 0.64f),
             AmbientGround = new Rgb(0.34f, 0.38f, 0.46f), Skirt = new Rgb(0.80f, 0.84f, 0.90f),
-            FogMultiplier = 1.0f, SunIntensity = 0.95f, Temperature = -8f, WindStrength = 1.0f,
+            FogMultiplier = 1.0f, SunIntensity = 0.95f, Temperature = -8f, WindStrength = 1.0f, RadioCoverage = 0.5f,
             MapLow = new Rgb(0.78f, 0.84f, 0.90f), MapHigh = new Rgb(0.95f, 0.97f, 1.00f), MapVegetation = new Rgb(0.28f, 0.40f, 0.36f)
         };
 
@@ -129,7 +131,7 @@ namespace HuesoOxido.Core
             Trees = TreeStyle.SwampDead, MaxTrees = 620, TreeScale = 1f, UnderstoryDensity = 0.8f, VegTint = new Rgb(0.72f, 0.85f, 0.55f), RockCount = 60, RockScale = 0.9f,
             SkyDay = new Rgb(0.52f, 0.60f, 0.56f), FogDay = new Rgb(0.52f, 0.60f, 0.52f), FogDusk = new Rgb(0.60f, 0.52f, 0.38f),
             AmbientGround = new Rgb(0.16f, 0.18f, 0.12f), Skirt = new Rgb(0.12f, 0.15f, 0.09f),
-            FogMultiplier = 2.6f, SunIntensity = 0.8f, Temperature = 20f, WindStrength = 0.2f,
+            FogMultiplier = 2.6f, SunIntensity = 0.8f, Temperature = 20f, WindStrength = 0.2f, RadioCoverage = 0.4f,
             MapLow = new Rgb(0.22f, 0.28f, 0.16f), MapHigh = new Rgb(0.40f, 0.44f, 0.26f), MapVegetation = new Rgb(0.10f, 0.20f, 0.10f)
         };
 

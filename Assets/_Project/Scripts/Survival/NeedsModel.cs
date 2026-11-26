@@ -39,10 +39,10 @@ namespace HuesoOxido.Survival
         public const float NormalBodyC = 37f;
         // Tasas por hora de juego en condiciones normales (caminando, 15 °C).
         // Calibradas contra el reloj del juego (GameClock: 1 hora de juego = 50 s reales). Objetivo de diseno en el bosque, caminando:
-        // aviso de sed a los ~17 min reales, colapso a los ~24 sin beber; hambre, mas lenta (~28 min al aviso).
-        // Un litro de agua devuelve 0,7 de hidratacion: el equipo inicial (1 L y una racion) sostiene ~40 min caminando y se rellena en el campamento.
-        public const float HydrationPerHour = 0.029f, SatietyPerHour = 0.0195f, HydrationPerLiter = 0.7f, SatietyPerRation = 0.5f;
-        public const float WarningHydration = 0.30f, CriticalHydration = 0.10f, WarningSatiety = 0.25f, CriticalSatiety = 0.08f;
+        // aviso suave de sed a los ~20 min reales y colapso a los ~31 sin beber NI llevar nada (el caso sin preparar); hambre, mas lenta. Con 3 L y 2 raciones se explora ~95 min sin mirar nada.
+        // Un litro de agua devuelve 0,7 de hidratacion: el equipo inicial (1 L y una racion) sostiene ~50 min y se rellena gratis en el campamento o en una fuente; cada litro extra suma ~22 min a costa de 1 kg.
+        public const float HydrationPerHour = 0.022f, SatietyPerHour = 0.015f, HydrationPerLiter = 0.7f, SatietyPerRation = 0.5f;
+        public const float WarningHydration = 0.35f, CriticalHydration = 0.15f, WarningSatiety = 0.30f, CriticalSatiety = 0.10f;
         public const float ColdBodyC = 35.5f, FreezingBodyC = 33.5f, HotBodyC = 38.2f, OverheatedBodyC = 39.5f;
 
         float _hydration = 1f, _satiety = 1f, _bodyC = NormalBodyC;
@@ -116,9 +116,10 @@ namespace HuesoOxido.Survival
         public NeedsEffects Evaluate()
         {
             var e = NeedsEffects.Neutral;
-            if (_hydration < WarningHydration) { e.Warnings |= NeedsWarning.Thirsty; e.EnergyDrainMultiplier *= 1.25f; e.DigMultiplier *= 0.92f; }
+            // Sed y hambre "normales" solo AVISAN (recordatorio suave, sin castigo): las penalizaciones empiezan recien en el estado critico.
+            if (_hydration < WarningHydration) e.Warnings |= NeedsWarning.Thirsty;
             if (_hydration < CriticalHydration) { e.Warnings |= NeedsWarning.Dehydrated; e.EnergyDrainMultiplier *= 1.4f; e.SpeedMultiplier *= 0.88f; e.DigMultiplier *= 0.85f; }
-            if (_satiety < WarningSatiety) { e.Warnings |= NeedsWarning.Hungry; e.DigMultiplier *= 0.92f; }
+            if (_satiety < WarningSatiety) e.Warnings |= NeedsWarning.Hungry;
             if (_satiety < CriticalSatiety) { e.Warnings |= NeedsWarning.Starving; e.EnergyDrainMultiplier *= 1.3f; e.SpeedMultiplier *= 0.92f; }
             if (_bodyC < ColdBodyC) { e.Warnings |= NeedsWarning.Cold; e.DigMultiplier *= 0.88f; e.EnergyDrainMultiplier *= 1.15f; }
             if (_bodyC < FreezingBodyC) { e.Warnings |= NeedsWarning.Freezing; e.SpeedMultiplier *= 0.85f; e.EnergyDrainMultiplier *= 1.5f; }

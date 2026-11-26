@@ -47,12 +47,12 @@ Auditoría hecha sobre el repositorio (rama `claude/focused-darwin-ps2pj7`, ~12 
 6. Más adelante: amenazas por región, buceo, campamento evolutivo.
 
 ## Modelos puros nuevos (esta etapa): qué son y qué NO son
-Se construyeron **sin depender de que el juego haya sido probado en PC**: son lógica pura (sin motor), con 57 tests nuevos que pasan en .NET (142 en total), compilados también en Unity real, y con guardado compatible hacia atrás (un guardado anterior carga con los valores iniciales).
+Se construyeron **sin depender de que el juego haya sido probado en PC**: son lógica pura (sin motor), con 70 tests nuevos que pasan en .NET (155 en total), compilados también en Unity real, y con guardado compatible hacia atrás (un guardado anterior carga con los valores iniciales).
 
 | Modelo | Archivo | Qué resuelve |
 |---|---|---|
-| Necesidades | `Survival/NeedsModel.cs` | Sed, hambre y temperatura corporal en horas de juego; efectos graduales (velocidad, excavación, drenaje de energía); colapso = el desmayo actual, no muerte. Calibrado con tests: una caminata de 4 h en el bosque no exige microgestión. |
-| Equipamiento | `Core/Equipment.cs` | 15 piezas, slots exclusivos (un detector, pala o pico, una ropa), peso, agua y raciones. |
+| Necesidades | `Survival/NeedsModel.cs` | Sed, hambre y temperatura corporal en horas de juego; efectos graduales (velocidad, excavación, drenaje de energía); colapso = el desmayo actual, no muerte. Calibrado con tests contra el reloj real: aviso suave de sed a ~20 min y colapso a ~31 solo sin provisiones; con 3 L y 2 raciones se explora >90 min seguidos; consumo automático y autonomía estimada (`Provisions.cs`). |
+| Equipamiento | `Core/Equipment.cs`, `Core/RescueService.cs` | 15 piezas, slots exclusivos (un detector, pala o pico, una ropa), peso, agua y raciones. |
 | Preparación | `Core/ExpeditionPlanner.cs` | Requisitos y recomendaciones derivados del perfil de la región; riesgo estimado; `ExpeditionLog` (preparar → salir → volver → resumen). |
 | Hallazgos | `Core/FindMetadata.cs` | Suciedad, limpieza con riesgo según herramienta, identificación, autenticidad decidida una vez por pieza, valor según limpieza/identificación/antigüedad. |
 | Contratos | `Core/ContractBoard.cs` | Encargos que exigen piezas limpias, identificadas, auténticas y en buen estado; reputación y niveles; vencimiento sin penalidad de dinero. |

@@ -98,5 +98,28 @@ namespace HuesoOxido.Tests
             var n = new Loadout(); n.Restore(new[] { "fake", "eq_shovel" }, new[] { "eq_shovel", "eq_gps" }, -3f, -2);
             Assert.IsTrue(n.Has(EquipmentKind.Shovel)); Assert.IsFalse(n.Has(EquipmentKind.Gps)); Assert.AreEqual(0f, n.WaterLiters);
         }
+
+        [Test]
+        public void RemoteRegionsRecommendARadio_ForestDoesNot()
+        {
+            var l = Loadout.Starter();
+            Assert.IsFalse(ExpeditionPlanner.Evaluate(Biomes.Forest, l, 0.9f, 10f).Items.Exists(i => i.Id == "radio"));
+            var swamp = ExpeditionPlanner.Evaluate(Biomes.Swamp, l, 0.9f, 10f);
+            var item = swamp.Items.Find(i => i.Id == "radio");
+            Assert.IsNotNull(item); Assert.AreEqual(RequirementLevel.Recommended, item.Level); Assert.IsFalse(item.Met);
+            l.Grant("eq_radio"); l.Equip("eq_radio");
+            Assert.IsTrue(ExpeditionPlanner.Evaluate(Biomes.Swamp, l, 0.9f, 10f).Items.Find(i => i.Id == "radio").Met);
+        }
+
+        [Test]
+        public void LongExplorationIsRecommendedNotRequired()
+        {
+            var l = Loadout.Starter();
+            var r = ExpeditionPlanner.Evaluate(Biomes.Forest, l, 0.9f, 10f);
+            var item = r.Items.Find(i => i.Id == "water_long");
+            Assert.AreEqual(RequirementLevel.Recommended, item.Level); Assert.IsFalse(item.Met); Assert.IsTrue(r.CanDepart);
+            l.AddWater(2f);
+            Assert.IsTrue(ExpeditionPlanner.Evaluate(Biomes.Forest, l, 0.9f, 10f).Items.Find(i => i.Id == "water_long").Met);
+        }
     }
 }

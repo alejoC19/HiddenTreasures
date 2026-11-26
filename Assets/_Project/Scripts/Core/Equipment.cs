@@ -51,6 +51,8 @@ namespace HuesoOxido.Core
         readonly HashSet<string> _equipped = new HashSet<string>();
 
         public event Action Changed;
+        /// <summary>Agua maxima que se puede llevar (cada litro pesa 1 kg: llevar mas agua permite explorar mas, pero cansa).</summary>
+        public const float WaterCapacityLiters = 4f;
         public float WaterLiters { get; private set; }
         public int Rations { get; private set; }
 
@@ -102,7 +104,10 @@ namespace HuesoOxido.Core
             return w + WaterLiters + Rations * 0.35f;
         }
 
-        public void AddWater(float liters) { WaterLiters = Math.Max(0f, WaterLiters + liters); Changed?.Invoke(); }
+        public void AddWater(float liters) { WaterLiters = Math.Max(0f, Math.Min(WaterCapacityLiters, WaterLiters + liters)); Changed?.Invoke(); }
+
+        /// <summary>Llena las botellas en el campamento o en una fuente (manantial, arroyo): el agua no es un recurso que se compre.</summary>
+        public void RefillWater(float toLiters = WaterCapacityLiters) { WaterLiters = Math.Max(WaterLiters, Math.Min(WaterCapacityLiters, toLiters)); Changed?.Invoke(); }
         public void AddRations(int n) { Rations = Math.Max(0, Rations + n); Changed?.Invoke(); }
         public bool TakeWater(float liters) { if (WaterLiters + 1e-4f < liters) return false; WaterLiters -= liters; Changed?.Invoke(); return true; }
         public bool TakeRation() { if (Rations <= 0) return false; Rations--; Changed?.Invoke(); return true; }
@@ -114,7 +119,7 @@ namespace HuesoOxido.Core
             _owned.Clear(); _equipped.Clear();
             if (owned != null) foreach (var o in owned) if (DefaultEquipment.Get(o) != null) _owned.Add(o);
             if (equipped != null) foreach (var e in equipped) if (_owned.Contains(e)) _equipped.Add(e);
-            WaterLiters = Math.Max(0f, water); Rations = Math.Max(0, rations);
+            WaterLiters = Math.Max(0f, Math.Min(WaterCapacityLiters, water)); Rations = Math.Max(0, rations);
             Changed?.Invoke();
         }
 

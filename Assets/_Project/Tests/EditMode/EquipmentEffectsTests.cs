@@ -29,7 +29,8 @@ namespace HuesoOxido.Tests
             Assert.IsTrue(EquipmentEffects.From(With("eq_compass")).CanNavigate); Assert.IsFalse(EquipmentEffects.From(With("eq_compass")).HasGps);
             Assert.IsTrue(EquipmentEffects.From(With("eq_gps")).HasGps);
             Assert.IsTrue(EquipmentEffects.From(With("eq_firstaid")).CanTreatInjury);
-            Assert.Less(EquipmentEffects.From(With("eq_radio")).CollapseLossFraction, 0.4f);
+            Assert.IsTrue(EquipmentEffects.From(With("eq_radio")).CanCallForHelp);
+            Assert.AreEqual(0.4f, EquipmentEffects.From(With("eq_radio")).CollapseLossFraction, "el equipo no cambia la perdida al desmayarse: la radio sirve para pedir ayuda");
             Assert.IsTrue(EquipmentEffects.From(With("eq_machete")).CanClearVegetation);
             Assert.IsTrue(EquipmentEffects.From(With("eq_repellent")).InsectProtection);
             Assert.AreEqual(0.7f, EquipmentEffects.From(With("eq_brush")).CleanQuality);
@@ -66,6 +67,14 @@ namespace HuesoOxido.Tests
             Assert.AreEqual(7f, dark.VisibilityMeters(0f, 150f)); Assert.AreEqual(150f, dark.VisibilityMeters(1f, 150f));
             Assert.Greater(lamp.VisibilityMeters(0f, 150f), dark.VisibilityMeters(0f, 150f));
             Assert.GreaterOrEqual(lamp.VisibilityMeters(0.5f, 10f), lamp.NightVisionMeters);
+        }
+
+        [Test]
+        public void CoordinatePrecisionNeedsRadioAndImprovesWithGps()
+        {
+            Assert.AreEqual(CoordinatePrecision.None, EquipmentEffects.From(With("eq_gps")).Coordinates, "el GPS sin radio no transmite nada");
+            Assert.AreEqual(CoordinatePrecision.Approximate, EquipmentEffects.From(With("eq_radio")).Coordinates);
+            Assert.AreEqual(CoordinatePrecision.Precise, EquipmentEffects.From(With("eq_radio", "eq_gps")).Coordinates);
         }
 
         [Test]
