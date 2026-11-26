@@ -1,0 +1,29 @@
+{
+    "Version": 1,
+    "SavedAtUtc": "2026-11-20T18:05:11.0000000Z",
+    "Money": 135,
+    "Backpack": [
+        { "Uid": "A1B2C3D4E5F60718", "DefinitionId": "iron_nail", "Condition": 0.55 },
+        { "Uid": "0F1E2D3C4B5A6978", "DefinitionId": "pottery_shard", "Condition": 0.4 }
+    ],
+    "Trunk": [
+        { "Uid": "1122334455667788", "DefinitionId": "roman_denarius", "Condition": 0.8 }
+    ],
+    "Upgrades": [ { "Id": "backpack", "Level": 1 } ],
+    "Permits": [ "permit_forest_ruins" ],
+    "Collection": [ { "Id": "iron_nail", "TimesFound": 2, "Displayed": true } ],
+    "Energy": 61.5,
+    "Hour": 14.25,
+    "Day": 3,
+    "Weather": 1,
+    "Fuel": 22.0,
+    "ExcavatedSites": [ "forest_site_00", "forest_site_torc" ],
+    "Player": { "X": -61.2, "Y": 6.4, "Z": -58.8, "Yaw": 210.0 },
+    "Vehicle": { "X": -58.0, "Y": 6.5, "Z": -68.0, "Yaw": 140.0 },
+    "HasPositions": true,
+    "GroundItems": [],
+    "WorldSeed": 1337,
+    "QuestId": "relic_hunt",
+    "QuestProgress": 1,
+    "QuestCompleted": false
+}

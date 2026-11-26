@@ -9,7 +9,7 @@ Mundo y arte del bosque a buen nivel visual (render verificado, sin medir en GPU
 Informe en [`GAMEPLAY_SYSTEMS.md`](GAMEPLAY_SYSTEMS.md), arquitectura en [`TECHNICAL_ARCHITECTURE.md`](TECHNICAL_ARCHITECTURE.md).
 
 ## Fase 1 — Primera expedición completa (el bosque) — **siguiente**
-Dependencia previa y bloqueante: **verificar en una PC real lo que ya existe** (jugar, F9, capturas, ejecutar los 11 tests PlayMode).
+Dependencia previa y bloqueante: **verificar en una PC real lo que ya existe**. El orden exacto (actualizar `stable`, guardado anterior, PlayMode, expedición completa, F9) está al principio de [`PRUEBAS.md`](PRUEBAS.md).
 
 1. **1.0 Verificación real**: jugar el bucle actual, corregir errores de ejecución, medir rendimiento en la RX 580, ajustar distancias/LOD/cantidades con datos.
 2. **1.1 Equipamiento mínimo funcional**: loadout (linterna, GPS/brújula, botiquín, cuerda…), cada pieza con utilidad real; el vehículo y el baúl amplían capacidad.

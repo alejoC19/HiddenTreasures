@@ -1,5 +1,14 @@
 # Cómo probar todo (guía para tu PC con Windows)
 
+> ## ▶ Orden de la verificación base (antes de integrar cualquier sistema nuevo)
+> 1. **Actualizar y ejecutar `stable`**: `git pull` (con Git LFS: `git lfs pull`), abrir con Unity 6000.0.58f2 y esperar la importación (la primera vez tarda por los ≈140 MB de arte). Sin errores rojos en la Console.
+> 2. **Guardado anterior**: antes de actualizar, copiá tu guardado (`%USERPROFILE%\AppData\LocalLow\<empresa>\<producto>\hidden_treasures_save.json`) a otra carpeta. Después de actualizar: menú **Hidden Treasures → Comprobar compatibilidad de guardados** (usa un guardado de ejemplo anterior y el serializador real; debe decir *OK*), y luego en el juego **Continuar** con tu guardado real: el dinero, la mochila, el baúl y la posición deben ser los de antes.
+> 3. **PlayMode**: Window → General → Test Runner → PlayMode → *Run All* (hay 12, incluido el de compatibilidad de guardados). Anotá cuáles fallan y el texto del error.
+> 4. **Expedición completa en el Bosque de las Ruinas** (sección 2 de esta guía): permiso → camioneta → ruinas → detector → excavar → mochila/baúl → vender → mejora → dormir → Continuar. Anotá todo lo que moleste, se vea mal o falle.
+> 5. **Rendimiento**: build de rendimiento y `perf_summary.md` (sección «Medir el rendimiento de verdad»), o F9 en el Editor.
+> Qué mandar: errores de la Console, resultados del Test Runner, `perf_summary.md`, capturas de lo que más moleste y si el guardado anterior cargó.
+> **Recién después** empieza la integración paso a paso (primero Necesidades, ver `INTEGRATION_DESIGN.md`).
+
 Esta guía complementa a `PRIMERA_EJECUCION_WINDOWS.md` (instalación y apertura del proyecto). Lo que cambió desde entonces:
 hay **62 tests EditMode**, el juego usa **Git LFS** (texturas, modelos y audio de referencia) y se agregó el paquete **glTFast**
 (Unity lo descarga solo la primera vez: necesitás internet al abrir el proyecto).
