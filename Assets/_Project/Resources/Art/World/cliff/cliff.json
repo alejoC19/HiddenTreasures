@@ -1,0 +1,40 @@
+{
+ "name": "cliff",
+ "height": 3,
+ "size": [
+  7.375420578689865,
+  3,
+  7.994863238796399
+ ],
+ "materials": [
+  {
+   "name": "cliff",
+   "diff": "cliff_cliff_diff.png",
+   "nor": "cliff_cliff_nor.png",
+   "mr": "cliff_cliff_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 5746,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 2298,
+   "ratio": 0.4
+  }
+ ]
+}

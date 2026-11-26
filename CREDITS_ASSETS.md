@@ -54,3 +54,31 @@ Todo lo demás del fuego, la camioneta de respaldo, el detector y el explorador 
 
 Modificaciones (CC-BY exige indicarlas): reducido de 478 874 a ~234 000 triángulos (meshoptimizer), partes fusionadas por material (192 → 51 mallas), llantas y rines conservados por separado para girar, materiales convertidos a URP/Lit con valores de metal/brillo ajustados, y orientación/escala/anclajes de ruedas calculados al cargar. El texto de licencia original está en `Resources/Art/Models/Silverado_LICENSE.txt`. **Pendiente:** mostrar esta atribución dentro del juego (pantalla de créditos) antes de publicarlo.
 El Willys Jeep sigue en el proyecto solo como respaldo si falta la Silverado.
+
+## Modelos de Sketchfab (CC BY 4.0: atribución obligatoria)
+
+Modificados para el juego: decimados, divididos en LOD, escalados a medidas reales y con texturas reorganizadas (`tools/art/`).
+
+| Uso | Título | Autor | Licencia |
+|---|---|---|---|
+| pine_wenedi | [Pine Tree [Game-ready]](https://sketchfab.com/3d-models/pine-tree-game-ready-dc3fbd9205cf4027a4455d1f415e0478) | Wenedi (^-^)/ | CC BY 4.0 |
+| beech | [Beech tree](https://sketchfab.com/3d-models/beech-tree-0983d8933531491f9be71c669e8a907b) | evolveduk | CC BY 4.0 |
+| deadtree | [Dead Tree](https://sketchfab.com/3d-models/dead-tree-33ccce6111604656a4b5709483670ec3) | MaX3Dd | CC BY 4.0 |
+| deadpine | [Mid Poly Dead Pine Tree](https://sketchfab.com/3d-models/mid-poly-dead-pine-tree-84b73e8b6efb4ca7b47409c89689927a) | sujirour | CC BY 4.0 |
+| ruin_arch / ruin_pillar_a / ruin_pillar_b (derivados) | [Stone Arch Pillars - Ruins](https://sketchfab.com/3d-models/stone-arch-pillars-ruins-a1a8e633c9aa40c08b4d2a0631ac61d2) | Unreal Designer | CC BY 4.0 |
+| temple | [Old Ruined Temple](https://sketchfab.com/3d-models/old-ruined-temple-bb2b2cc8db1f4fb49917b0eb8cb83977) | Muhammet Gündel | CC BY 4.0 |
+| modarch | [Modular Ancient Stone Archway - PBR Game Ready](https://sketchfab.com/3d-models/modular-ancient-stone-archway-pbr-game-ready-052a392328b0451db4eaa257aeea969c) | Hardframe | CC BY 4.0 |
+| bigrock | [Big Rock 1B](https://sketchfab.com/3d-models/big-rock-1b-44c96d506d55496598b6b92dec8b1049) | Andrei.D | CC BY 4.0 |
+| rockcliff | [Rockcliff](https://sketchfab.com/3d-models/rockcliff-3e3b2d1cfda0493da4e1ec150f046c41) | DJMaesen | CC BY 4.0 |
+| cliff | [Cliff](https://sketchfab.com/3d-models/cliff-082da1166a814c6e9c9e6c1b38159e4e) | DJMaesen | CC BY 4.0 |
+| desertcliff | [Desert Cliff 6](https://sketchfab.com/3d-models/desert-cliff-6-ed2e9c7e976e4768868481e4a5c63f6f) | WireframeArt | CC BY 4.0 |
+| fallentrunk | [Pine Tree Fallen Trunk Scan 02](https://sketchfab.com/3d-models/pine-tree-fallen-trunk-scan-02-f5ad948275cd4d13ba3ce2040b72ed47) | Pers Scans | CC BY 4.0 |
+| logpile | [Log Pile (Game Ready / 2K PBR)](https://sketchfab.com/3d-models/log-pile-game-ready-2k-pbr-3f4205a30a7d4adda50c775fb8cce06c) | Meerschaum Digital | CC BY 4.0 |
+| sandarch | [Ancient Ruined Sandstone Archway & Gate](https://sketchfab.com/3d-models/ancient-ruined-sandstone-archway-gate-76fe696447c54e9ca4fa97c591e75ccc) | mana5677 | CC BY 4.0 |
+| abbey | [Abbey Wall Ruins](https://sketchfab.com/3d-models/abbey-wall-ruins-37936ba6a1674f15be60075315469a43) | tonyflanagan | CC BY 4.0 |
+
+## Modelos y materiales CC0 añadidos (arte del mundo)
+
+Poly Haven (modelos, ya en metros): rock_07, rock_09, stone_01, rock_moss_set_01, rock_moss_set_02, tree_stump_01, tree_stump_02, dead_tree_trunk, shrub_03, shrub_04, fern_02, nettle_plant, weed_plant_02, dry_branches_medium_01. Descarga: `tools/fetch_polyhaven_models.py`.
+
+ambientCG (texturas 2K, CC0, aún sin integrar): Moss002, Ground068, Ground037, Ground071, Gravel041, Gravel043, Rock064, Ground011, ScatteredLeaves009, Bark014. Descarga: `tools/fetch_ambientcg.py`.

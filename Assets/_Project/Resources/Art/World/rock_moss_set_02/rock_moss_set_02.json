@@ -1,0 +1,40 @@
+{
+ "name": "rock_moss_set_02",
+ "height": 1.368368238210678,
+ "size": [
+  8.278153410240598,
+  1.368368238210678,
+  3.4104167222976685
+ ],
+ "materials": [
+  {
+   "name": "rock_moss_set_02",
+   "diff": "rock_moss_set_02_rock_moss_set_02_diff.jpg",
+   "nor": "rock_moss_set_02_rock_moss_set_02_nor.jpg",
+   "mr": "rock_moss_set_02_rock_moss_set_02_mr.jpg",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 6916,
+   "ratio": 0.12
+  },
+  {
+   "level": 1,
+   "tris": 2882,
+   "ratio": 0.05
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+{
+ "name": "weed_plant_02",
+ "height": 0.0750729264691472,
+ "size": [
+  2.125252954661846,
+  0.0750729264691472,
+  0.2909194082021713
+ ],
+ "materials": [
+  {
+   "name": "weed_plant_02",
+   "diff": "weed_plant_02_weed_plant_02_diff.jpg",
+   "nor": "weed_plant_02_weed_plant_02_nor.jpg",
+   "mr": "weed_plant_02_weed_plant_02_mr.jpg",
+   "alphaMode": "MASK",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 3889,
+   "ratio": 0.35
+  },
+  {
+   "level": 1,
+   "tris": 1333,
+   "ratio": 0.12
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+{
+ "name": "bigrock",
+ "height": 3.2,
+ "size": [
+  2.6513878523408634,
+  3.2,
+  2.869301120313379
+ ],
+ "materials": [
+  {
+   "name": "Scene___Root",
+   "diff": "bigrock_Scene___Root_diff.png",
+   "nor": "bigrock_Scene___Root_nor.png",
+   "mr": "bigrock_Scene___Root_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 7393,
+   "ratio": 0.3
+  },
+  {
+   "level": 1,
+   "tris": 2463,
+   "ratio": 0.1
+  }
+ ]
+}

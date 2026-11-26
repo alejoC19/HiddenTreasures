@@ -101,6 +101,7 @@ namespace HuesoOxido.Core.EditorTools
                 Shot(st, dir, t + "_04_aerea", 15.0f, WeatherKind.Clear, new Vector3(-150f, 95f, -150f), new Vector3(0f, 8f, 0f), 60f);
                 Shot(st, dir, t + "_05_suelo", 16.0f, WeatherKind.Clear, OnGround(st, -20f, 30f, 1.7f), OnGround(st, 10f, 60f, 2.5f), 70f);
                 Shot(st, dir, t + "_06_niebla", 8.0f, WeatherKind.Fog, camp + new Vector3(36f, 1.8f, 24f), ruins + new Vector3(-6f, 3f, -20f), 66f);
+                Shot(st, dir, t + "_08_ruinas_cenital", 15.0f, WeatherKind.Clear, ruins + new Vector3(0f, 45f, -22f), ruins, 55f);
                 Shot(st, dir, t + "_07_noche", 22.0f, WeatherKind.Clear, camp + new Vector3(9f, 2.2f, -6f), camp + new Vector3(0f, 1.2f, 0f), 62f);
             }
             if (onlyForest || only == null || only == "")

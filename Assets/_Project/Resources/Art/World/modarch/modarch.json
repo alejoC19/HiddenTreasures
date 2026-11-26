@@ -1,0 +1,91 @@
+{
+ "name": "modarch",
+ "height": 4.5,
+ "size": [
+  5.308940972894718,
+  4.5,
+  2.093779616096661
+ ],
+ "materials": [
+  {
+   "name": "Bricks",
+   "diff": "modarch_Bricks_diff.png",
+   "nor": "modarch_Bricks_nor.png",
+   "mr": "modarch_Bricks_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "Sand_Stone",
+   "diff": "modarch_Sand_Stone_diff.png",
+   "nor": "modarch_Sand_Stone_nor.png",
+   "mr": "modarch_Sand_Stone_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "Metal",
+   "diff": "modarch_Metal_diff.jpg",
+   "nor": "modarch_Metal_nor.png",
+   "mr": "modarch_Metal_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "Door",
+   "diff": "modarch_Door_diff.jpg",
+   "nor": "modarch_Door_nor.png",
+   "mr": "modarch_Door_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 3350,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 1680,
+   "ratio": 0.5
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+{
+ "name": "rockcliff",
+ "height": 5,
+ "size": [
+  2.3414966187149107,
+  5,
+  3.8817386874824558
+ ],
+ "materials": [
+  {
+   "name": "rockcliff",
+   "diff": "rockcliff_rockcliff_diff.png",
+   "nor": "rockcliff_rockcliff_nor.png",
+   "mr": "rockcliff_rockcliff_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 7152,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 2860,
+   "ratio": 0.4
+  }
+ ]
+}

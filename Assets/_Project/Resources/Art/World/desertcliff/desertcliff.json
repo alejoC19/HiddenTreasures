@@ -1,0 +1,40 @@
+{
+ "name": "desertcliff",
+ "height": 6,
+ "size": [
+  9.763891362709158,
+  6,
+  9.562399356774861
+ ],
+ "materials": [
+  {
+   "name": "P6DesertCliffM",
+   "diff": "desertcliff_P6DesertCliffM_diff.png",
+   "nor": "desertcliff_P6DesertCliffM_nor.png",
+   "mr": "desertcliff_P6DesertCliffM_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 8352,
+   "ratio": 0.6
+  },
+  {
+   "level": 1,
+   "tris": 3480,
+   "ratio": 0.25
+  }
+ ]
+}

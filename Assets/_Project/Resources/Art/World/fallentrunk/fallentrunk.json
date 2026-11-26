@@ -1,0 +1,40 @@
+{
+ "name": "fallentrunk",
+ "height": 1.3,
+ "size": [
+  7.206795275056336,
+  1.3,
+  1.6333344339217322
+ ],
+ "materials": [
+  {
+   "name": "fallen_pine_01",
+   "diff": "fallentrunk_fallen_pine_01_diff.jpg",
+   "nor": "fallentrunk_fallen_pine_01_nor.jpg",
+   "mr": "fallentrunk_fallen_pine_01_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 9812,
+   "ratio": 0.2
+  },
+  {
+   "level": 1,
+   "tris": 3924,
+   "ratio": 0.08
+  }
+ ]
+}

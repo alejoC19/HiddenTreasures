@@ -74,7 +74,7 @@ namespace HuesoOxido.Core
             float dc = Mathf.Sqrt((x - WorldLayout.CampX) * (x - WorldLayout.CampX) + (z - WorldLayout.CampZ) * (z - WorldLayout.CampZ));
             if (dc < 13f) return false;
             float dr = Mathf.Sqrt((x - WorldLayout.RuinsX) * (x - WorldLayout.RuinsX) + (z - WorldLayout.RuinsZ) * (z - WorldLayout.RuinsZ));
-            if (dr < 7f) return false;
+            if (dr < 5f) return false;
             if (_bp.WaterFraction > 0f && _field.HeightAt(x, z) < WaterLevel + 0.2f) return false;
             return _field.SlopeDegrees(x, z) < maxSlope;
         }
@@ -169,11 +169,63 @@ namespace HuesoOxido.Core
             }
             Debug.Log("[VEG] pasto=" + grass + " pasto alto=" + tall + " helechos=" + ferns + " arbustos=" + bushes + " flores=" + flowers);
 
+            ArtUnderstory(root, vt);
             BuildLogs(root);
+        }
+
+        /// <summary>Sotobosque con modelos reales (helechos, hierbas, ortigas, ramas secas). Si faltan, queda solo el respaldo de tarjetas.</summary>
+        void ArtUnderstory(Transform root, Color vt)
+        {
+            if (!ArtLibrary.Exists("fern_02")) return;
+            float d = _bp.UnderstoryDensity;
+            ArtKit Kit(string tag, string asset, Color tint, float dist, float lodDist) => ArtScatter.AddKit(_veg, tag, asset, tint * vt, dist, false, lodDist, 0f, 0.35f);
+            var fern = Kit("aFern", "fern_02", new Color(0.9f, 1f, 0.85f), 55f, 20f);
+            var shrub3 = Kit("aShrubA", "shrub_03", Color.white, 50f, 18f);
+            var shrub4 = Kit("aShrubB", "shrub_04", Color.white, 50f, 18f);
+            var nettle = Kit("aNettle", "nettle_plant", new Color(0.9f, 1f, 0.85f), 45f, 16f);
+            var weed = Kit("aWeed", "weed_plant_02", Color.white, 45f, 16f);
+            var twigs = ArtScatter.AddKit(_veg, "aTwigs", "dry_branches", Color.white, 45f, false, 16f, 0f, 0.3f);
+            void Scatter(ArtKit k, int count, float maxSlope, float roadMin, float smin, float smax, float forestBias)
+            {
+                if (k == null) return;
+                for (int i = 0, n = 0; i < count * 40 && n < count; i++)
+                {
+                    float x = Rnd(-HeightField.Half, HeightField.Half), z = Rnd(-HeightField.Half, HeightField.Half);
+                    if (!Allowed(x, z, maxSlope, roadMin)) continue;
+                    if (_rng.NextDouble() > 0.25 + Forest(x, z) * forestBias) continue;
+                    float s = Rnd(smin, smax);
+                    ArtScatter.Place(_veg, k, Matrix4x4.TRS(new Vector3(x, _field.HeightAt(x, z) - 0.02f, z), Quaternion.Euler(0f, Rnd(0f, 360f), 0f), new Vector3(s, s * Rnd(0.85f, 1.2f), s)));
+                    n++;
+                }
+            }
+            Scatter(fern, Mathf.RoundToInt(900 * d), 30f, 2.2f, 0.9f, 1.6f, 0.9f);
+            Scatter(shrub3, Mathf.RoundToInt(1100 * d), 30f, 1.8f, 0.8f, 1.5f, 0.6f);
+            Scatter(shrub4, Mathf.RoundToInt(1100 * d), 30f, 1.8f, 0.9f, 1.6f, 0.6f);
+            Scatter(nettle, Mathf.RoundToInt(500 * d), 28f, 2.4f, 0.9f, 1.5f, 0.5f);
+            Scatter(weed, Mathf.RoundToInt(1400 * d), 30f, 1.6f, 0.8f, 1.4f, 0.4f);
+            Scatter(twigs, Mathf.RoundToInt(260 * Mathf.Max(0.5f, d)), 25f, 2.5f, 0.8f, 1.4f, 0.8f);
         }
 
         void BuildLogs(Transform root)
         {
+            if (ArtLibrary.Exists("tree_stump_01") && ArtLibrary.Exists("dead_tree_trunk"))
+            {
+                var stumps = new[] { ArtLibrary.Get("tree_stump_01", Color.white, 0.3f), ArtLibrary.Get("tree_stump_02", Color.white, 0.3f) };
+                var logs = new[] { ArtLibrary.Get("dead_tree_trunk", Color.white, 0.3f), ArtLibrary.Get("fallentrunk", Color.white, 0.3f) };
+                for (int i = 0, placed = 0; i < 900 && placed < 40; i++)
+                {
+                    float x = Rnd(-HeightField.Half + 12f, HeightField.Half - 12f), z = Rnd(-HeightField.Half + 12f, HeightField.Half - 12f);
+                    if (!Allowed(x, z, 20f, 3.5f)) continue;
+                    bool log = _rng.NextDouble() < 0.6;
+                    var m = log ? logs[_rng.Next(logs.Length)] : stumps[_rng.Next(stumps.Length)];
+                    if (m == null) continue;
+                    float y = _field.HeightAt(x, z);
+                    float sc = Rnd(0.8f, 1.3f);
+                    ArtScatter.Spawn(m, root, new Vector3(x, y - 0.04f, z), Quaternion.Euler(Rnd(-3f, 3f), Rnd(0f, 360f), Rnd(-3f, 3f)), sc);
+                    placed++;
+                }
+                return;
+            }
             var bark = ArtMaterials.Textured("bark_pine", new Color(0.8f, 0.76f, 0.7f), 0.06f);
             for (int i = 0, placed = 0; i < 400 && placed < 42; i++)
             {

@@ -1,0 +1,40 @@
+{
+ "name": "rock_09",
+ "height": 0.03286941419355571,
+ "size": [
+  0.07400986179709435,
+  0.03286941419355571,
+  0.144624512642622
+ ],
+ "materials": [
+  {
+   "name": "rock_09",
+   "diff": "rock_09_rock_09_diff.jpg",
+   "nor": "rock_09_rock_09_nor.jpg",
+   "mr": "rock_09_rock_09_mr.jpg",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 3724,
+   "ratio": 0.3
+  },
+  {
+   "level": 1,
+   "tris": 1486,
+   "ratio": 0.12
+  }
+ ]
+}

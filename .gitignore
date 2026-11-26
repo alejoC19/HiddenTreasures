@@ -36,3 +36,4 @@ Thumbs.db
 # Resultados y logs de ejecuciones de tests / Editor en linea de comandos
 /TestResults*.xml
 /editor-*.log
+tools/art/node_modules

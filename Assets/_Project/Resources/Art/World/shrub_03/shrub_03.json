@@ -1,0 +1,40 @@
+{
+ "name": "shrub_03",
+ "height": 0.40278380597010255,
+ "size": [
+  1.366919405758381,
+  0.40278380597010255,
+  0.15120302885770798
+ ],
+ "materials": [
+  {
+   "name": "shrub_03",
+   "diff": "shrub_03_shrub_03_diff.jpg",
+   "nor": "shrub_03_shrub_03_nor.jpg",
+   "mr": "shrub_03_shrub_03_mr.jpg",
+   "alphaMode": "MASK",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 3313,
+   "ratio": 0.4
+  },
+  {
+   "level": 1,
+   "tris": 1237,
+   "ratio": 0.15
+  }
+ ]
+}

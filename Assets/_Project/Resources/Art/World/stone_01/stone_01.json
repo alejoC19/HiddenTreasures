@@ -1,0 +1,40 @@
+{
+ "name": "stone_01",
+ "height": 0.07179516553878784,
+ "size": [
+  0.14686474204063416,
+  0.07179516553878784,
+  0.08905630558729172
+ ],
+ "materials": [
+  {
+   "name": "stone_01",
+   "diff": "stone_01_stone_01_diff.jpg",
+   "nor": "stone_01_stone_01_nor.jpg",
+   "mr": "stone_01_stone_01_mr.jpg",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 5350,
+   "ratio": 0.1
+  },
+  {
+   "level": 1,
+   "tris": 2140,
+   "ratio": 0.04
+  }
+ ]
+}

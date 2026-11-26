@@ -1,0 +1,40 @@
+{
+ "name": "logpile",
+ "height": 0.7,
+ "size": [
+  2.545608311283351,
+  0.7,
+  1.2586076041825558
+ ],
+ "materials": [
+  {
+   "name": "Log_Pile_PBR",
+   "diff": "logpile_Log_Pile_PBR_diff.jpg",
+   "nor": "logpile_Log_Pile_PBR_nor.jpg",
+   "mr": "logpile_Log_Pile_PBR_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.9
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 3858,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 2933,
+   "ratio": 0.5
+  }
+ ]
+}

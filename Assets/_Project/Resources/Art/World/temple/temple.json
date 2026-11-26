@@ -1,0 +1,74 @@
+{
+ "name": "temple",
+ "height": 6,
+ "size": [
+  7.071919106752294,
+  6,
+  6.054609433173429
+ ],
+ "materials": [
+  {
+   "name": "Temple",
+   "diff": "temple_Temple_diff.jpg",
+   "nor": "temple_Temple_nor.png",
+   "mr": "temple_Temple_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "Wall",
+   "diff": "temple_Wall_diff.jpg",
+   "nor": "temple_Wall_nor.png",
+   "mr": "temple_Wall_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  },
+  {
+   "name": "Stones",
+   "diff": "temple_Stones_diff.jpg",
+   "nor": "temple_Stones_nor.png",
+   "mr": "temple_Stones_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 0.7191704819753267
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 12012,
+   "ratio": 0.6
+  },
+  {
+   "level": 1,
+   "tris": 5004,
+   "ratio": 0.25
+  }
+ ]
+}

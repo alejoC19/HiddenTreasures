@@ -1,0 +1,45 @@
+{
+ "name": "deadpine",
+ "height": 9,
+ "size": [
+  2.4570174252072654,
+  9,
+  3.3910638981677863
+ ],
+ "materials": [
+  {
+   "name": "Bark_Mat",
+   "diff": "deadpine_Bark_Mat_diff.png",
+   "nor": "deadpine_Bark_Mat_nor.png",
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.5,
+   "roughness": 0.65
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 6329,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 3105,
+   "ratio": 0.5
+  },
+  {
+   "level": 2,
+   "tris": 1243,
+   "ratio": 0.2
+  }
+ ]
+}

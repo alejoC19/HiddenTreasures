@@ -1,0 +1,40 @@
+{
+ "name": "tree_stump_01",
+ "height": 0.5726675391197205,
+ "size": [
+  1.4255504608154297,
+  0.5726675391197205,
+  1.5903143286705017
+ ],
+ "materials": [
+  {
+   "name": "tree_stump_01",
+   "diff": "tree_stump_01_tree_stump_01_diff.jpg",
+   "nor": "tree_stump_01_tree_stump_01_nor.jpg",
+   "mr": "tree_stump_01_tree_stump_01_mr.jpg",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 6154,
+   "ratio": 0.15
+  },
+  {
+   "level": 1,
+   "tris": 2462,
+   "ratio": 0.06
+  }
+ ]
+}

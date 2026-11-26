@@ -1,0 +1,62 @@
+{
+ "name": "pine_wenedi",
+ "height": 15,
+ "size": [
+  11.669893669809486,
+  15,
+  11.45385858669813
+ ],
+ "materials": [
+  {
+   "name": "Trunk",
+   "diff": "pine_wenedi_Trunk_diff.png",
+   "nor": "pine_wenedi_Trunk_nor.png",
+   "mr": null,
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.9819505542
+  },
+  {
+   "name": "M_TreeAtlas",
+   "diff": "pine_wenedi_M_TreeAtlas_diff.png",
+   "nor": "pine_wenedi_M_TreeAtlas_nor.png",
+   "mr": "pine_wenedi_M_TreeAtlas_mr.png",
+   "alphaMode": "BLEND",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 1650,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 825,
+   "ratio": 0.5
+  },
+  {
+   "level": 2,
+   "tris": 328,
+   "ratio": 0.2
+  }
+ ]
+}

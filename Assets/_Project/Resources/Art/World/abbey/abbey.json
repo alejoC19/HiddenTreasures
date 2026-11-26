@@ -1,0 +1,40 @@
+{
+ "name": "abbey",
+ "height": 5.5,
+ "size": [
+  27.211411977862763,
+  5.5,
+  10.170493162557213
+ ],
+ "materials": [
+  {
+   "name": "abbey_wall_Bake1_baked",
+   "diff": "abbey_abbey_wall_Bake1_baked_diff.png",
+   "nor": "abbey_abbey_wall_Bake1_baked_nor.png",
+   "mr": "abbey_abbey_wall_Bake1_baked_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 14178,
+   "ratio": 0.3
+  },
+  {
+   "level": 1,
+   "tris": 1050,
+   "ratio": 0.12
+  }
+ ]
+}

@@ -146,6 +146,9 @@ namespace HuesoOxido.Core
             public readonly List<TreeVariant> Variants = new List<TreeVariant>();
             public readonly List<InstancedVegetation.Layer> Trunks = new List<InstancedVegetation.Layer>();
             public readonly List<InstancedVegetation.Layer[]> Crowns = new List<InstancedVegetation.Layer[]>();
+            /// <summary>Modelos reales: cada variante lleva todas sus capas (tronco + hojas) y se instancian juntas.</summary>
+            public readonly List<ArtKit> Art = new List<ArtKit>();
+            public bool IsArt => Art.Count > 0;
         }
 
         const float TreeDist = 260f, LodDist = 85f, ShadowDist = 55f;
@@ -185,6 +188,36 @@ namespace HuesoOxido.Core
             return copy;
         }
 
+        /// <summary>Arma las familias de arboles con modelos reales (si estan en el proyecto). Devuelve false para usar el respaldo procedural.</summary>
+        bool BuildArtTrees(TreeKit forest, TreeKit broad)
+        {
+            if (!ArtLibrary.Exists("pine_wenedi")) return false;
+            void Fam(TreeKit kit, string tag, string asset, Color tint, int weight)
+            {
+                var k = ArtScatter.AddKit(_veg, tag, asset, tint, TreeDist, true, LodDist, ShadowDist, 0.6f);
+                if (k == null) return;
+                for (int w = 0; w < weight; w++) kit.Art.Add(k);
+            }
+            switch (_bp.Trees)
+            {
+                case TreeStyle.SnowPine:
+                    Fam(forest, "snowA", "pine_wenedi", new Color(1.5f, 1.6f, 1.7f), 2); Fam(forest, "snowB", "pine_wenedi", new Color(1.25f, 1.4f, 1.5f), 2);
+                    Fam(broad, "snowDead", "deadtree", new Color(0.9f, 0.95f, 1.1f), 1); Fam(broad, "snowDead2", "deadpine", new Color(0.9f, 0.95f, 1.1f), 1);
+                    break;
+                case TreeStyle.SwampDead:
+                    Fam(forest, "mireDead", "deadtree", new Color(0.7f, 0.75f, 0.65f), 3); Fam(forest, "mireDead2", "deadpine", new Color(0.75f, 0.8f, 0.7f), 2);
+                    Fam(broad, "mireBeech", "beech", new Color(0.55f, 0.72f, 0.4f), 2); Fam(broad, "mireBeech2", "beech", new Color(0.7f, 0.78f, 0.38f), 1);
+                    break;
+                case TreeStyle.Cactus:
+                    return false;   // los cactus siguen siendo procedurales hasta conseguir un modelo real
+                default:
+                    Fam(forest, "pineA", "pine_wenedi", new Color(0.95f, 1.0f, 0.95f), 2); Fam(forest, "pineB", "pine_wenedi", new Color(0.85f, 0.95f, 0.85f), 2); Fam(forest, "pineC", "pine_wenedi", new Color(1.0f, 1.0f, 0.85f), 1);
+                    Fam(broad, "beechA", "beech", new Color(0.9f, 1f, 0.85f), 3); Fam(broad, "beechB", "beech", new Color(1.0f, 1.0f, 0.7f), 1); Fam(broad, "beechC", "beech", new Color(1.25f, 0.85f, 0.55f), 1);
+                    break;
+            }
+            return forest.IsArt;
+        }
+
         void ScatterTrees(Transform parent)
         {
             var root = new GameObject("Forest").transform;
@@ -192,8 +225,10 @@ namespace HuesoOxido.Core
             var forest = new TreeKit();     // conjunto A: coniferas / cactus / pinos nevados / arboles muertos
             var broad = new TreeKit();      // conjunto B: latifoliados (bosque) o sauces (pantano)
 
-            switch (_bp.Trees)
+            bool art = BuildArtTrees(forest, broad);
+            switch (art ? TreeStyle.ForestMix + 100 : _bp.Trees)
             {
+                case TreeStyle.ForestMix + 100: break;
                 case TreeStyle.Cactus:
                 {
                     var cactusMat = MaterialUtil.Lit(new Color(0.30f, 0.44f, 0.22f), 0.22f);
@@ -288,23 +323,33 @@ namespace HuesoOxido.Core
 
                 bool useA = _rng.NextDouble() < shareA;
                 var kit = useA ? forest : broad;
-                int vi = _rng.Next(kit.Variants.Count);
-                var v = kit.Variants[vi];
-                _veg.Add(kit.Trunks[vi], m);
-                var crowns = kit.Crowns[vi];
-                if (crowns.Length > 0)
+                float trunkR;
+                if (kit.IsArt)
                 {
-                    int ci;
-                    double r = _rng.NextDouble();
-                    if (crowns.Length == 3) ci = r < 0.78 ? 0 : (r < 0.94 ? 1 : 2);   // verde, amarillo, otono
-                    else ci = r < 0.5 ? 0 : 1;
-                    _veg.Add(crowns[ci], m);
+                    var ak = kit.Art[_rng.Next(kit.Art.Count)];
+                    ArtScatter.Place(_veg, ak, m);
+                    trunkR = ak.TrunkRadius;
+                }
+                else
+                {
+                    int vi = _rng.Next(kit.Variants.Count);
+                    trunkR = kit.Variants[vi].TrunkRadius;
+                    _veg.Add(kit.Trunks[vi], m);
+                    var crowns = kit.Crowns[vi];
+                    if (crowns.Length > 0)
+                    {
+                        int ci;
+                        double r = _rng.NextDouble();
+                        if (crowns.Length == 3) ci = r < 0.78 ? 0 : (r < 0.94 ? 1 : 2);   // verde, amarillo, otono
+                        else ci = r < 0.5 ? 0 : 1;
+                        _veg.Add(crowns[ci], m);
+                    }
                 }
 
                 var col = new GameObject("T").AddComponent<CapsuleCollider>();
                 col.transform.SetParent(colliders, false);
                 col.transform.position = g + Vector3.up * 1.6f;
-                col.radius = Mathf.Max(0.3f, v.TrunkRadius * scale * (_bp.Trees == TreeStyle.Cactus && useA ? 1.0f : 1.2f));
+                col.radius = Mathf.Max(0.3f, trunkR * scale * (_bp.Trees == TreeStyle.Cactus && useA && !forest.IsArt ? 1.0f : 1.2f));
                 col.height = 3.2f;
                 MarkForest(p, forestLike ? 2 : 1);
             }
@@ -326,8 +371,61 @@ namespace HuesoOxido.Core
         }
 
         // ---------- Rocas ----------
+        /// <summary>Rocas con modelos reales: bloques grandes con colision, conjuntos de rocas con musgo y piedras chicas instanciadas.</summary>
+        bool ArtRocks(Transform parent)
+        {
+            if (!ArtLibrary.Exists("bigrock")) return false;
+            var root = new GameObject("Rocks").transform;
+            root.SetParent(parent, false);
+            Color rockTint = _bp.Trees == TreeStyle.Cactus ? new Color(1.45f, 0.95f, 0.68f) : (_bp.Trees == TreeStyle.SnowPine ? new Color(1.25f, 1.3f, 1.4f) : new Color(1f, 1f, 0.95f));
+            var big = ArtLibrary.Get(_bp.Trees == TreeStyle.Cactus && ArtLibrary.Exists("desertcliff") ? "desertcliff" : "bigrock", _bp.Trees == TreeStyle.Cactus ? (Color?)null : rockTint, 0.5f);
+            var sets = new[] { ArtLibrary.Get("rock_moss_set_01", rockTint, 0.5f), ArtLibrary.Get("rock_moss_set_02", rockTint, 0.5f) };
+            var stones = new[] { ArtScatter.AddKit(_veg, "stoneA", "rock_07", rockTint, 70f, true, 30f, 40f, 0.5f), ArtScatter.AddKit(_veg, "stoneB", "stone_01", rockTint, 70f, true, 30f, 40f, 0.5f), ArtScatter.AddKit(_veg, "stoneC", "rock_09", rockTint, 60f, false, 25f, 0f, 0.5f) };
+            int nBig = Mathf.RoundToInt(_bp.RockCount * 0.3f), nSet = Mathf.RoundToInt(_bp.RockCount * 0.12f);
+            bool Spot(float margin, out Vector2 p)
+            {
+                for (int tries = 0; tries < 30; tries++)
+                {
+                    bool cluster = _rng.NextDouble() < 0.35;
+                    p = cluster ? _ruins + new Vector2(Rnd(-34f, 34f), Rnd(-34f, 34f)) : new Vector2(Rnd(-Size * 0.46f, Size * 0.46f), Rnd(-Size * 0.46f, Size * 0.46f));
+                    if (Vector2.Distance(p, _camp) < 16f || RoadDistance(p) < margin || Underwater(p) || Vector2.Distance(p, _ruins) < 10f) continue;
+                    return true;
+                }
+                p = default; return false;
+            }
+            int placed = 0;
+            for (int i = 0; i < nBig * 3 && placed < nBig; i++)
+            {
+                if (!Spot(4f, out var p) || big == null) continue;
+                float sc = Rnd(0.7f, 1.8f);
+                ArtScatter.Spawn(big, root, GroundAt(p) - Vector3.up * (0.12f * sc), Quaternion.Euler(Rnd(-4f, 4f), Rnd(0f, 360f), Rnd(-4f, 4f)), sc);
+                placed++;
+            }
+            placed = 0;
+            for (int i = 0; i < nSet * 3 && placed < nSet; i++)
+            {
+                var set = sets[_rng.Next(sets.Length)];
+                if (!Spot(5f, out var p) || set == null) continue;
+                float sc = Rnd(0.8f, 1.25f);
+                ArtScatter.Spawn(set, root, GroundAt(p) - Vector3.up * 0.1f, Quaternion.Euler(0f, Rnd(0f, 360f), 0f), sc);
+                placed++;
+            }
+            // Piedras sueltas: miles de instancias baratas que rompen la monotonia del suelo.
+            int nStone = Mathf.RoundToInt(900 * Mathf.Clamp(_bp.RockCount / 120f, 0.4f, 1.6f));
+            for (int i = 0; i < nStone; i++)
+            {
+                var k = stones[_rng.Next(stones.Length)]; if (k == null) continue;
+                var p = new Vector2(Rnd(-Size * 0.47f, Size * 0.47f), Rnd(-Size * 0.47f, Size * 0.47f));
+                if (Vector2.Distance(p, _camp) < 12f || RoadDistance(p) < 1.2f || Underwater(p)) continue;
+                float sc = Rnd(0.8f, 2.4f);
+                ArtScatter.Place(_veg, k, Matrix4x4.TRS(GroundAt(p) - Vector3.up * 0.02f, Quaternion.Euler(Rnd(-8f, 8f), Rnd(0f, 360f), Rnd(-8f, 8f)), Vector3.one * sc));
+            }
+            return true;
+        }
+
         void ScatterRocks(Transform parent)
         {
+            if (ArtRocks(parent)) return;
             var root = new GameObject("Rocks").transform;
             root.SetParent(parent, false);
             var rockMat = ArtMaterials.Textured(_bp.RockTexture, new Color(0.9f, 0.9f, 0.85f), 0.2f);
@@ -366,7 +464,8 @@ namespace HuesoOxido.Core
             root.SetParent(parent, false);
             var stone = ArtMaterials.Textured(_bp.RuinTexture, C(_bp.RuinTint), 0.10f);
             var moss = _bp.IsDefault ? ArtMaterials.Textured("ruin_blocks", new Color(0.82f, 0.88f, 0.78f), 0.08f) : ArtMaterials.Textured(_bp.RuinTexture, C(_bp.RuinTint) * 0.75f, 0.08f);
-            RuinsBuilder.Build(root, GroundAt(_ruins), GroundAt, stone, moss, _rng, _night);
+            Color artTint = _bp.Trees == TreeStyle.Cactus ? new Color(1.3f, 1.05f, 0.8f) : (_bp.Trees == TreeStyle.SnowPine ? new Color(1.15f, 1.2f, 1.3f) : (_bp.Trees == TreeStyle.SwampDead ? new Color(0.75f, 0.9f, 0.7f) : Color.white));
+            RuinsBuilder.Build(root, GroundAt(_ruins), GroundAt, stone, moss, _rng, _night, artTint);
         }
 
         static GameObject Block(Transform parent, string name, Material mat, Vector3 pos, Vector3 scale, float yaw)

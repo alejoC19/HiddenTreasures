@@ -26,7 +26,7 @@ namespace HuesoOxido.Core.EditorTools
             var ti = (TextureImporter)assetImporter;
             string name = System.IO.Path.GetFileNameWithoutExtension(assetPath);
             bool normal = name.EndsWith("_nor") || name.Contains("_nor_");
-            bool linear = normal || name.Contains("_rough") || name.Contains("_arm");
+            bool linear = normal || name.Contains("_rough") || name.Contains("_arm") || name.EndsWith("_ms");
             ti.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
             ti.sRGBTexture = !linear;
             ti.mipmapEnabled = true;
@@ -36,6 +36,14 @@ namespace HuesoOxido.Core.EditorTools
             ti.maxTextureSize = 2048;
             ti.isReadable = false;
             ti.textureCompression = TextureImporterCompression.Compressed;
+            // Hojas y cartas con alfa: el recorte conserva la cobertura en los mips (si no, el follaje se "evapora" de lejos).
+            if (name.EndsWith("_diff") && ti.DoesSourceTextureHaveAlpha())
+            {
+                ti.alphaSource = TextureImporterAlphaSource.FromInput;
+                ti.alphaIsTransparency = true;
+                ti.mipMapsPreserveCoverage = true;
+                ti.alphaTestReferenceValue = 0.5f;
+            }
         }
     }
 }

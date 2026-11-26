@@ -1,0 +1,57 @@
+{
+ "name": "ruin_arch",
+ "height": 4.948200225830078,
+ "size": [
+  2.6838190853595734,
+  4.948200225830078,
+  0.5490040183067322
+ ],
+ "materials": [
+  {
+   "name": "Grout",
+   "diff": "ruin_arch_Grout_diff.jpg",
+   "nor": null,
+   "mr": "ruin_arch_Grout_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  },
+  {
+   "name": "StoneBricks",
+   "diff": "ruin_arch_StoneBricks_diff.jpg",
+   "nor": "ruin_arch_StoneBricks_nor.jpg",
+   "mr": "ruin_arch_StoneBricks_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 8965,
+   "ratio": 0.2
+  },
+  {
+   "level": 1,
+   "tris": 2702,
+   "ratio": 0.08
+  }
+ ]
+}

@@ -9,7 +9,51 @@ namespace HuesoOxido.Core
     /// </summary>
     public static class RuinsBuilder
     {
-        public static void Build(Transform root, Vector3 c, System.Func<Vector2, Vector3> groundAt, Material stone, Material moss, System.Random rng, System.Func<float> night)
+        /// <summary>Ruinas con modelos reales (templo, arco, pilares, muro de abadia, portal); si faltan, usa el trazado procedural.</summary>
+        public static void Build(Transform root, Vector3 c, System.Func<Vector2, Vector3> groundAt, Material stone, Material moss, System.Random rng, System.Func<float> night, Color artTint)
+        {
+            if (BuildArt(root, c, groundAt, rng, night, artTint)) return;
+            BuildProcedural(root, c, groundAt, stone, moss, rng, night);
+        }
+
+        static bool BuildArt(Transform root, Vector3 c, System.Func<Vector2, Vector3> groundAt, System.Random rng, System.Func<float> night, Color tint)
+        {
+            if (!ArtLibrary.Exists("temple") || !ArtLibrary.Exists("ruin_arch")) return false;
+            float Rnd(float a, float b) => a + (float)rng.NextDouble() * (b - a);
+            Vector3 G(float dx, float dz) => groundAt(new Vector2(c.x + dx, c.z + dz));
+            void Put(string asset, float dx, float dz, float yaw, float scale, float sink = 0.15f, Color? t = null)
+            {
+                var m = ArtLibrary.Get(asset, t ?? tint, 0.5f);
+                if (m == null) return;
+                // El objeto se apoya en el punto mas alto de su huella aproximada para no quedar enterrado en laderas.
+                float y = Mathf.Max(G(dx, dz).y, Mathf.Max(G(dx + m.Size.x * 0.3f * scale, dz).y, G(dx - m.Size.x * 0.3f * scale, dz).y));
+                ArtScatter.Spawn(m, root, new Vector3(c.x + dx, y - sink, c.z + dz), Quaternion.Euler(0f, yaw, 0f), scale);
+            }
+            Put("temple", 0f, 12f, 180f, 1.35f);
+            Put("ruin_arch", 0f, -8.5f, 0f, 1f);
+            Put("ruin_pillar_a", -7f, -6f, 25f, 1f);
+            Put("ruin_pillar_b", 8f, -5f, -30f, 1f);
+            Put("modarch", 15f, 2f, 270f, 1.1f);
+            Put("ruin_pillar_b", -13f, 5f, 70f, 0.9f);
+            Put("ruin_pillar_a", 12f, 12f, 200f, 0.8f);
+            for (int i = 0; i < 5; i++) { float a = Rnd(0f, 6.28f), r = Rnd(6f, 15f); Put("fallentrunk", Mathf.Cos(a) * r, Mathf.Sin(a) * r, Rnd(0f, 360f), Rnd(0.8f, 1.2f), 0.05f, new Color(1f, 1f, 1f)); }
+            // Escombro suelto en la plaza.
+            var rubble = new[] { ArtLibrary.Get("rock_09", tint, 0.4f), ArtLibrary.Get("stone_01", tint, 0.4f), ArtLibrary.Get("rock_07", tint, 0.4f) };
+            for (int i = 0; i < 70; i++)
+            {
+                var m = rubble[rng.Next(rubble.Length)]; if (m == null) continue;
+                float a = Rnd(0f, 6.28f), r = Rnd(2f, 12f);
+                ArtScatter.Spawn(m, root, G(Mathf.Cos(a) * r, Mathf.Sin(a) * r) - Vector3.up * 0.02f, Quaternion.Euler(Rnd(-10f, 10f), Rnd(0f, 360f), Rnd(-10f, 10f)), Rnd(1.2f, 3.2f), false);
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                float a = Mathf.PI * 0.25f + i * Mathf.PI * 0.5f;
+                Torch(root, G(Mathf.Cos(a) * 7.4f, Mathf.Sin(a) * 7.4f), night);
+            }
+            return true;
+        }
+
+        static void BuildProcedural(Transform root, Vector3 c, System.Func<Vector2, Vector3> groundAt, Material stone, Material moss, System.Random rng, System.Func<float> night)
         {
             float Rnd(float a, float b) => a + (float)rng.NextDouble() * (b - a);
             Vector3 G(float dx, float dz) => groundAt(new Vector2(c.x + dx, c.z + dz));

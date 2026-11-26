@@ -1,0 +1,40 @@
+{
+ "name": "dry_branches",
+ "height": 0.3409853130578995,
+ "size": [
+  1.059486199170351,
+  0.3409853130578995,
+  1.299152910709381
+ ],
+ "materials": [
+  {
+   "name": "dry_branches_medium_01",
+   "diff": "dry_branches_dry_branches_medium_01_diff.jpg",
+   "nor": "dry_branches_dry_branches_medium_01_nor.jpg",
+   "mr": "dry_branches_dry_branches_medium_01_mr.jpg",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 5037,
+   "ratio": 0.3
+  },
+  {
+   "level": 1,
+   "tris": 2665,
+   "ratio": 0.1
+  }
+ ]
+}

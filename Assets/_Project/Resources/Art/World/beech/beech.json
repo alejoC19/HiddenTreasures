@@ -1,0 +1,62 @@
+{
+ "name": "beech",
+ "height": 11,
+ "size": [
+  8.37027582021933,
+  11,
+  7.74903115395614
+ ],
+ "materials": [
+  {
+   "name": "Tree_0Mat",
+   "diff": "beech_Tree_0Mat_diff.png",
+   "nor": "beech_Tree_0Mat_nor.png",
+   "mr": "beech_Tree_0Mat_mr.png",
+   "alphaMode": "OPAQUE",
+   "cutoff": 0.5,
+   "doubleSided": false,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  },
+  {
+   "name": "Tree_1Mat",
+   "diff": "beech_Tree_1Mat_diff.png",
+   "nor": "beech_Tree_1Mat_nor.png",
+   "mr": "beech_Tree_1Mat_mr.png",
+   "alphaMode": "MASK",
+   "cutoff": 0.2274076786,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 6017,
+   "ratio": 1
+  },
+  {
+   "level": 1,
+   "tris": 2405,
+   "ratio": 0.4
+  },
+  {
+   "level": 2,
+   "tris": 1198,
+   "ratio": 0.15
+  }
+ ]
+}

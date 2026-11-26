@@ -1,0 +1,40 @@
+{
+ "name": "nettle_plant",
+ "height": 0.21842166036367416,
+ "size": [
+  1.0827890951186419,
+  0.21842166036367416,
+  0.09468341991305351
+ ],
+ "materials": [
+  {
+   "name": "nettle_plant",
+   "diff": "nettle_plant_nettle_plant_diff.jpg",
+   "nor": "nettle_plant_nettle_plant_nor.jpg",
+   "mr": "nettle_plant_nettle_plant_mr.jpg",
+   "alphaMode": "MASK",
+   "cutoff": 0.5,
+   "doubleSided": true,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1
+  }
+ ],
+ "lods": [
+  {
+   "level": 0,
+   "tris": 4695,
+   "ratio": 0.15
+  },
+  {
+   "level": 1,
+   "tris": 1170,
+   "ratio": 0.05
+  }
+ ]
+}
